@@ -23,12 +23,12 @@ def remove_user(users_to_disconnect):
 
 async def session(websocket, path):
     client = add_user(path)
-    while True:
-        try:
+    try:
+        while True:
             msg = await websocket.recv()
             await websocket.send(f'Your msg is {msg}')
-        except websockets.exceptions.WebSocketException:
-            remove_user(client)
+    except websockets.exceptions.WebSocketException:
+        remove_user(client)
 
 
 if __name__ == '__main__':
