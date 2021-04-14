@@ -1,11 +1,11 @@
-# import asyncio
-# import websockets
-# import jwt
-# from urllib.parse import parse_qs
+import asyncio
+import websockets
+import jwt
+from urllib.parse import parse_qs
 
 
-# token_key = 'EDAGame$!2021'
-# users_connected = set()
+token_key = 'EDAGame$!2021'
+users_connected = set()
 
 
 # def add_user(path):
@@ -17,8 +17,8 @@
 #     return user_to_connect.get('user')
 
 
-# def remove_user(users_to_disconnect):
-#     users_connected.remove(users_to_disconnect)
+def remove_user(users_to_disconnect):
+    users_connected.remove(users_to_disconnect)
 
 
 # async def session(websocket, path):
