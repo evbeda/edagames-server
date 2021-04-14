@@ -1,11 +1,11 @@
-# import unittest
-# from parameterized import parameterized
-# from server import session
-# import server
-# from unittest.mock import MagicMock
+import unittest
+from parameterized import parameterized
+from server import session
+import server
+from unittest.mock import MagicMock
 
 
-# class TestServer(unittest.IsolatedAsyncioTestCase):
+class TestServer(unittest.IsolatedAsyncioTestCase):
 
 #     @parameterized.expand([
 #         ('/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlVzdWFyaW8gVGVzdDEifQ.dP91nnEzz1ZNrpSBgbPpxAYE-bnPdjrWTlx0dcMFXKw&action=NULL&msg=NULL',
@@ -29,3 +29,8 @@
 #         with self.assertRaises(Exception):
 #             await session(websocket, path)
 #         self.assertNotIn(user_name, server.users_connected)
+
+    def test_remove_user(self):
+        server.users_connected = {"Usuario Test 1", "Usuario Test 2"}
+        server.users_connected.remove("Usuario Test 1")
+        self.assertEqual({"Usuario Test 2"}, server.users_connected)
