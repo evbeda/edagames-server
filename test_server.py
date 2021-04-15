@@ -2,8 +2,22 @@ import unittest
 from parameterized import parameterized
 from server import session
 import server
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock, patch, AsyncMock
 from server import add_user
+
+
+def true_once():
+    yield True
+    yield False
+
+
+class MockTrueFunc(object):
+
+    def __init__(self):
+        self.gen = true_once()
+
+    def __call__(self):
+        return next(self.gen)
 
 
 class TestServer(unittest.IsolatedAsyncioTestCase):
@@ -38,3 +52,14 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         server.users_connected = {"Usuario Test 1", "Usuario Test 2"}
         server.users_connected.remove("Usuario Test 1")
         self.assertEqual({"Usuario Test 2"}, server.users_connected)
+
+    @patch("server.add_user", return_value="User 1")
+    @patch("server.true_func", new_callable=MockTrueFunc)
+    async def test_session_methods(self, mock_true, mock_path):
+        websocket = MagicMock()
+        websocket.recv = AsyncMock()
+        websocket.send = AsyncMock()
+
+        await server.session(websocket, "path")
+        websocket.recv.assert_called()
+        websocket.send.assert_called()

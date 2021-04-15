@@ -26,13 +26,15 @@ def add_user(path):
 def remove_user(users_to_disconnect):
     users_connected.remove(users_to_disconnect)
 
+def true_func():
+    return True
 
 async def session(websocket, path):
     client = add_user(path)
     if client is None:
         websocket.close()
     try:
-        while True:
+        while true_func():
             msg = await websocket.recv()
             await websocket.send(f'Your msg is {msg}')
     except websockets.exceptions.WebSocketException:
