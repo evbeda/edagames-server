@@ -5,7 +5,6 @@ from urllib.parse import parse_qs
 import os
 
 
-# token_key = 'EDAGame$!2021'
 users_connected = set()
 
 
@@ -36,13 +35,16 @@ def true_func():
 async def session(websocket, path):
     client = add_user(path)
     if client is None:
-        websocket.close()
+        await websocket.close()
+    print(f"User {client} connected")
     try:
         while true_func():
             msg = await websocket.recv()
+            print(f"Received {msg}")
             await websocket.send(f'Your msg is {msg}')
     except websockets.exceptions.WebSocketException:
         remove_user(client)
+        print(f"User {client} disconnected")
 
 
 if __name__ == '__main__':
