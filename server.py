@@ -9,10 +9,16 @@ users_connected = set()
 
 
 def add_user(path):
-    path = path[2:]
+    try:
+        path = path[2:]
+    except IndexError:
+        return
     dict_path = parse_qs(path)
     encoded_token = dict_path.get('token')[0].encode()
-    user_to_connect = jwt.decode(encoded_token, token_key, algorithms=["HS256"])
+    try:
+        user_to_connect = jwt.decode(encoded_token, token_key, algorithms=["HS256"])
+    except jwt.exceptions.InvalidTokenError:
+        return
     users_connected.add(user_to_connect.get('user'))
     return user_to_connect.get('user')
 
@@ -23,6 +29,8 @@ def remove_user(users_to_disconnect):
 
 async def session(websocket, path):
     client = add_user(path)
+    if client is None:
+        websocket.close()
     try:
         while True:
             msg = await websocket.recv()
