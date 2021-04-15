@@ -22,7 +22,6 @@ class MockTrueFunc(object):
 
 class TestServer(unittest.IsolatedAsyncioTestCase):
 
-    # ---------------TEST_ADD_USER---------------------
     @parameterized.expand([
         ('/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiVXNlciBUZXN0NCJ9.p6MnNJLD5jwTH1C0PvqUb-spfc7XW7xf6gQjSiDrktg&action=NULL&msg=NULL',
          'User Test4',)
@@ -47,7 +46,6 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(Exception):
             add_user(path)
 
-    # ---------------TEST_REMOVE_USER---------------------
     def test_remove_user(self):
         server.users_connected = {"Usuario Test 1", "Usuario Test 2"}
         server.users_connected.remove("Usuario Test 1")
