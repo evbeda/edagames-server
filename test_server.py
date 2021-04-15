@@ -1,9 +1,11 @@
 import unittest
 from parameterized import parameterized
-from server import session
 import server
-from unittest.mock import MagicMock, Mock, patch, AsyncMock
+from unittest.mock import MagicMock, patch, AsyncMock
 from server import add_user
+import os
+
+os.environ['TOKEN_KEY'] = 'EDAGame$!2021'
 
 
 def true_once():
@@ -36,6 +38,7 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
          'User Test1',)
     ])
     def test_add_user_ok(self, path, user):
+
         add_user(path)
         self.assertIn(user, server.users_connected)
 
