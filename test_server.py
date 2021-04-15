@@ -25,8 +25,12 @@ class MockTrueFunc(object):
 class TestServer(unittest.IsolatedAsyncioTestCase):
 
     @parameterized.expand([
-        ('/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiVXNlciBUZXN0NCJ9.p6MnNJLD5jwTH1C0PvqUb-spfc7XW7xf6gQjSiDrktg&action=NULL&msg=NULL',
-         'User Test4',)
+        (
+            '/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
+            'eyJ1c2VyIjoiVXNlciBUZXN0NCJ9.'
+            'p6MnNJLD5jwTH1C0PvqUb-spfc7XW7xf6gQjSiDrktg&action=NULL&msg=NULL',
+            'User Test4',
+        )
     ])
     def test_add_user_token_fail(self, path, user):
         add_user(path)
@@ -34,8 +38,12 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn(str_us_con, user)
 
     @parameterized.expand([
-        ('/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiVXNlciBUZXN0MSJ9.nsn153OEb8vMoieBF91b6h9zORlniwdbJ-RL1exsQs0&action=NULL&msg=NULL',
-         'User Test1',)
+        (
+            '/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
+            'eyJ1c2VyIjoiVXNlciBUZXN0MSJ9.'
+            'nsn153OEb8vMoieBF91b6h9zORlniwdbJ-RL1exsQs0&action=NULL&msg=NULL',
+            'User Test1',
+        )
     ])
     def test_add_user_ok(self, path, user):
 
