@@ -1,8 +1,8 @@
 import unittest
 from parameterized import parameterized
-import server
+import server.server as server
 from unittest.mock import MagicMock, patch, AsyncMock
-from server import add_user
+from server.server import add_user
 import os
 
 os.environ['TOKEN_KEY'] = 'EDAGame$!2021'
@@ -62,8 +62,8 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         server.users_connected.remove("Usuario Test 1")
         self.assertEqual({"Usuario Test 2"}, server.users_connected)
 
-    @patch("server.add_user", return_value="User 1")
-    @patch("server.true_func", new_callable=MockTrueFunc)
+    @patch("server.server.add_user", return_value="User 1")
+    @patch("server.server.true_func", new_callable=MockTrueFunc)
     async def test_session_methods(self, mock_true, mock_path):
         websocket = MagicMock()
         websocket.recv = AsyncMock()
