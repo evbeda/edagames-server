@@ -2,13 +2,15 @@ import asyncio
 import websockets
 import jwt
 from urllib.parse import parse_qs
+import os
 
 
-token_key = 'EDAGame$!2021'
+# token_key = 'EDAGame$!2021'
 users_connected = set()
 
 
 def add_user(path):
+    token_key = os.environ.get('TOKEN_KEY')
     try:
         path = path[2:]
     except IndexError:
@@ -26,8 +28,10 @@ def add_user(path):
 def remove_user(users_to_disconnect):
     users_connected.remove(users_to_disconnect)
 
+
 def true_func():
     return True
+
 
 async def session(websocket, path):
     client = add_user(path)
