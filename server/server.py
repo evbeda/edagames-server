@@ -1,11 +1,13 @@
-import asyncio
-import websockets
+import starlette
 import jwt
 from urllib.parse import parse_qs
 import os
+import uvicorn
+from fastapi import FastAPI, WebSocket
 
 
 users_connected = set()
+app = FastAPI()
 
 
 def add_user(path):
@@ -32,22 +34,21 @@ def true_func():
     return True
 
 
-async def session(websocket, path):
-    client = add_user(path)
+@app.websocket("/ws")
+async def session(websocket: WebSocket):
+    client = add_user('')
     if client is None:
         await websocket.close()
-    print(f"User {client} connected")
+    await websocket.accept()
     try:
         while true_func():
-            msg = await websocket.recv()
+            msg = await websocket.receive_text()
             print(f"Received {msg}")
-            await websocket.send(f'Your msg is {msg}')
-    except websockets.exceptions.WebSocketException:
+            await websocket.send_text(f'Your msg is {msg}')
+    except starlette.websockets.WebSocketDisconnect:
         remove_user(client)
         print(f"User {client} disconnected")
 
 
 if __name__ == '__main__':
-    start_server = websockets.serve(session, "localhost", 5000)
-    asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_forever()
+    uvicorn.run(app, host="0.0.0.0", port=8000)
