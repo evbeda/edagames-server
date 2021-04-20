@@ -4,7 +4,10 @@ from urllib.parse import parse_qs
 import os
 import uvicorn
 from fastapi import FastAPI, WebSocket
+import requests
+import json
 
+DJANGO_USERS_URI = 'http://localhost:8000/users'
 
 users_connected = set()
 app = FastAPI()
@@ -28,6 +31,15 @@ def add_user(path):
 
 def remove_user(users_to_disconnect):
     users_connected.remove(users_to_disconnect)
+
+
+def update_users_in_django():
+    requests.post(
+        DJANGO_USERS_URI,
+        json=json.dumps({
+            'users': list(users_connected.keys()),
+        }),
+    )
 
 
 def true_func():
