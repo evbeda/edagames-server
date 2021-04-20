@@ -8,6 +8,7 @@ import requests
 import json
 
 DJANGO_USERS_URI = 'http://localhost:8000/users'
+DJANGO_GAME_URI = 'http://localhost:8000/games'
 
 users_connected = set()
 app = FastAPI()
@@ -39,6 +40,16 @@ def update_users_in_django():
         json=json.dumps({
             'users': list(users_connected),
         }),
+    )
+
+
+def notify_game_created(challenge_id, game_id):
+    requests.post(
+        DJANGO_GAME_URI,
+        json=json.dumps({
+            'challenge_id': challenge_id,
+            'game_id': game_id,
+        })
     )
 
 
