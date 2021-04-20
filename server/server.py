@@ -37,7 +37,7 @@ def update_users_in_django():
     requests.post(
         DJANGO_USERS_URI,
         json=json.dumps({
-            'users': list(users_connected.keys()),
+            'users': list(users_connected),
         }),
     )
 
