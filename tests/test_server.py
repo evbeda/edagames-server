@@ -1,6 +1,8 @@
 import unittest
+from parameterized import parameterized
 import server.server as server
-from unittest.mock import patch
+from server.server import add_user, manager, remove_user
+from unittest.mock import MagicMock, patch, AsyncMock
 import os
 import json
 
@@ -22,12 +24,68 @@ class MockTrueFunc(object):
 
 
 class TestServer(unittest.IsolatedAsyncioTestCase):
+    @parameterized.expand([
+        (
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiVGVzdCBDbGllbnQgMSJ9'
+            '.zrXQiT77v9jnUVsZHr41HAZVDnJtRa84t8hmRVdzPck',
+            'Test Client 1',
+        )
+    ])
+    def test_add_user_ok(self, token, expected):
+        client = add_user(token)
+        self.assertEquals(client, expected)
+
+    def test_remove_user(self):
+        manager.connections = {'Test Client 1': 'websocket'}
+        remove_user("Test Client 1")
+        self.assertEqual({}, manager.connections)
+
+    @parameterized.expand([
+        (
+            '/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
+            'eyJ1c2VyIjoiVXNlciBUZXN0NCJ9.'
+            'p6MnNJLD5jwTH1C0PvqUb-spfc7XW7xf6gQjSiDrktg&action=NULL&msg=NULL',
+            'Test Client 1',
+        )
+    ])
+    def test_add_user_token_fail(self, token, expected):
+        add_user(token)
+        self.assertNotIn(expected, manager.connections)
+
+    @parameterized.expand([
+        (
+            'Test Client 1',
+        )
+    ])
+    async def test_connect(self, client):
+        websocket = MagicMock()
+        websocket.accept = AsyncMock()
+
+        await server.ConnectionManager.connect(websocket, client)
+        websocket.accept().assert_called()
+
+    # @parameterized.expand([
+    #     (
+    #         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiVGVzdCBDbGllbnQgMSJ9'
+    #         '.zrXQiT77v9jnUVsZHr41HAZVDnJtRa84t8hmRVdzPck',
+    #     )
+    # ])
+    # @patch("server.server.add_user", return_value="User 1")
+    # @patch("server.server.true_func", new_callable=MockTrueFunc)
+    # async def test_session_methods(self, mock_true, mock_path, token):
+    #     websocket = MagicMock()
+    #     websocket.close = AsyncMock()
+    #     websocket.accept = AsyncMock()
+
+    #     await server.session(websocket, token)
+    #     websocket.accept.assert_called()
+
     @patch('requests.post')
     def test_update_users_in_django(self, post_patched):
         user_list = set(['User 1', 'User 2'])
         user_dict = {'users': list(user_list)}
 
-        server.users_connected = user_list
+        server.manager.connections = user_list
 
         server.update_users_in_django()
 

@@ -22,9 +22,9 @@ class ConnectionManager:
     def __init__(self):
         self.connections = {}
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket, client):
         await websocket.accept()
-        self.connections['User'] = websocket
+        self.connections[client] = websocket
 
     async def broadcast(self, data: str):
         for user, connection in self.connections.items():
@@ -42,19 +42,18 @@ def add_user(token):
         )
     except jwt.exceptions.InvalidTokenError:
         return
-    users_connected.add(user_to_connect.get('user'))
     return user_to_connect.get('user')
 
 
 def remove_user(users_to_disconnect):
-    users_connected.remove(users_to_disconnect)
+    del manager.connections[users_to_disconnect]
 
 
 def update_users_in_django():
     requests.post(
         DJANGO_USERS_URI,
         json=json.dumps({
-            'users': list(users_connected),
+            'users': list(manager.connections.keys()),
         }),
     )
 
@@ -81,7 +80,7 @@ async def session(websocket: WebSocket, token):
     client = add_user(token)
     if client is None:
         await websocket.close()
-    await manager.connect(websocket)
+    await manager.connect(websocket, client)
     try:
         while true_func():
             msg = await websocket.receive_text()
