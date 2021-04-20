@@ -1,6 +1,5 @@
 import starlette
 import jwt
-from urllib.parse import parse_qs
 import os
 import uvicorn
 from fastapi import FastAPI, WebSocket
@@ -14,14 +13,22 @@ users_connected = set()
 app = FastAPI()
 
 
-def add_user(path):
+class ConnectionManager:
+    def __init__(self):
+        self.connections = {}
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.connections['User'] = websocket
+
+    async def broadcast(self, data: str):
+        for user, connection in self.connections.items():
+            await connection.send_text(data)
+
+
+def add_user(token):
     token_key = os.environ.get('TOKEN_KEY')
-    try:
-        path = path[2:]
-    except IndexError:
-        return
-    dict_path = parse_qs(path)
-    encoded_token = dict_path.get('token')[0].encode()
+    encoded_token = token.encode()
     try:
         user_to_connect = jwt.decode(encoded_token, token_key, algorithms=["HS256"])
     except jwt.exceptions.InvalidTokenError:
@@ -57,17 +64,20 @@ def true_func():
     return True
 
 
-@app.websocket("/ws")
-async def session(websocket: WebSocket):
-    client = add_user('')
+manager = ConnectionManager()
+
+
+@app.websocket("/ws/")
+async def session(websocket: WebSocket, token):
+    client = add_user(token)
     if client is None:
         await websocket.close()
-    await websocket.accept()
+    await manager.connect(websocket)
     try:
         while true_func():
             msg = await websocket.receive_text()
             print(f"Received {msg}")
-            await websocket.send_text(f'Your msg is {msg}')
+            await manager.broadcast(f'Your msg is {msg}')
     except starlette.websockets.WebSocketDisconnect:
         remove_user(client)
         print(f"User {client} disconnected")
