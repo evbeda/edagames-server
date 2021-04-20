@@ -4,6 +4,7 @@ import server.server as server
 from server.server import add_user
 from unittest.mock import MagicMock, patch, AsyncMock
 import os
+import json
 
 os.environ['TOKEN_KEY'] = 'EDAGame$!2021'
 
@@ -73,3 +74,17 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         await server.session(websocket)
         websocket.accept.assert_called()
         websocket.send_text.assert_called()
+
+    @patch('requests.post')
+    def test_update_users_in_django(self, post_patched):
+        user_list = set(['User 1', 'User 2'])
+        user_dict = {'users': list(user_list)}
+
+        server.users_connected = user_list
+
+        server.update_users_in_django()
+
+        post_patched.assert_called_with(
+            server.DJANGO_USERS_URI,
+            json=json.dumps(user_dict)
+        )
