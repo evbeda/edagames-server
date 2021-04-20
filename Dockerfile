@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 8000
 
-ENTRYPOINT ["unvicorn", "server.server:app"]
+ENTRYPOINT ["uvicorn", "server.server:app"]

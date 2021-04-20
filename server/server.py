@@ -10,8 +10,13 @@ import json
 DJANGO_USERS_URI = 'http://localhost:8000/users'
 DJANGO_GAME_URI = 'http://localhost:8000/games'
 
-users_connected = set()
 app = FastAPI()
+users_connected = set()
+
+
+@app.get("/")
+async def read_root():
+    return {"Hello": "World"}
 
 
 def add_user(path):
@@ -23,7 +28,11 @@ def add_user(path):
     dict_path = parse_qs(path)
     encoded_token = dict_path.get('token')[0].encode()
     try:
-        user_to_connect = jwt.decode(encoded_token, token_key, algorithms=["HS256"])
+        user_to_connect = jwt.decode(
+            encoded_token,
+            token_key,
+            algorithms=["HS256"],
+        )
     except jwt.exceptions.InvalidTokenError:
         return
     users_connected.add(user_to_connect.get('user'))
