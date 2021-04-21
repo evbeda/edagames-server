@@ -5,8 +5,6 @@ from unittest.mock import MagicMock, patch, AsyncMock
 import os
 import json
 import starlette
-from httpx import AsyncClient
-from server.server import app
 import server.websocket_events as websocket_events
 import server.django_urls as django_urls
 
@@ -117,31 +115,4 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
                 'opponent': challenge_sender,
                 'game_id': test_game_id,
             },
-        )
-
-    async def test_manager_send(self):
-        user = 'User'
-        event = 'event'
-        data = {
-            'data': 'some data',
-            'other_data': 'some other data',
-        }
-
-        websocket_patched = MagicMock()
-        websocket_patched.send_text = AsyncMock()
-        server.manager.connections = {
-            user: websocket_patched,
-        }
-
-        await server.manager.send(
-            user,
-            event,
-            data,
-        )
-
-        websocket_patched.send_text.assert_called_with(
-            json.dumps({
-                'event': event,
-                'data': data
-            })
         )
