@@ -33,7 +33,7 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
     ])
     def test_add_user_ok(self, token, expected):
         client = add_user(token)
-        self.assertEquals(client, expected)
+        self.assertEqual(client, expected)
 
     def test_remove_user(self):
         manager.connections = {'Test Client 1': 'websocket'}
@@ -61,8 +61,8 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         websocket = MagicMock()
         websocket.accept = AsyncMock()
 
-        await server.ConnectionManager.connect(websocket, client)
-        websocket.accept().assert_called()
+        await server.manager.connect(websocket, client)
+        websocket.accept.assert_called()
 
     # @parameterized.expand([
     #     (
@@ -82,16 +82,16 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
 
     @patch('requests.post')
     def test_update_users_in_django(self, post_patched):
-        user_list = set(['User 1', 'User 2'])
-        user_dict = {'users': list(user_list)}
+        user_list = {"users": ["User 1"]}
+        user_dict = {'User 1': 'websockets'}
 
-        server.manager.connections = user_list
+        server.manager.connections = user_dict
 
         server.update_users_in_django()
 
         post_patched.assert_called_with(
             server.DJANGO_USERS_URI,
-            json=json.dumps(user_dict)
+            json=json.dumps(user_list)
         )
 
     @patch('requests.post')
