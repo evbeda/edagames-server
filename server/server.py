@@ -36,9 +36,9 @@ class ConnectionManager:
     async def send(self, client: str, event: str, data: Dict[str, str]):
         client_websocket = self.connections.get(client)
         if client_websocket is not None:
-            client_websocket.send_text(json.dumps({
+            await client_websocket.send_text(json.dumps({
                 'event': event,
-                'data': json.dumps(data)
+                'data': data,
             }))
 
 

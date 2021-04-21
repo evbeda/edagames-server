@@ -139,3 +139,30 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
                 'game_id': test_game_id,
             },
         )
+
+    async def test_manager_send(self):
+        user = 'User'
+        event = 'event'
+        data = {
+            'data': 'some data',
+            'other_data': 'some other data',
+        }
+
+        websocket_patched = MagicMock()
+        websocket_patched.send_text = AsyncMock()
+        server.manager.connections = {
+            user: websocket_patched,
+        }
+
+        await server.manager.send(
+            user,
+            event,
+            data,
+        )
+
+        websocket_patched.send_text.assert_called_with(
+            json.dumps({
+                'event': event,
+                'data': data
+            })
+        )
