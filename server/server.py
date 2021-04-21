@@ -5,9 +5,12 @@ import uvicorn
 from fastapi import FastAPI, WebSocket
 import requests
 import json
+from typing import Dict
 
 DJANGO_USERS_URI = 'http://localhost:8000/users'
 DJANGO_GAME_URI = 'http://localhost:8000/games'
+
+EVENT_SEND_CHALLENGE = 'challenge'
 
 app = FastAPI()
 users_connected = set()
@@ -29,6 +32,25 @@ class ConnectionManager:
     async def broadcast(self, data: str):
         for user, connection in self.connections.items():
             await connection.send_text(data)
+
+    async def send(self, client: str, event: str, data: Dict[str, str]):
+        client_websocket = self.connections.get(client)
+        if client_websocket is not None:
+            await client_websocket.send_text(json.dumps({
+                'event': event,
+                'data': data,
+            }))
+
+
+async def notify_challenge_to_client(client: str, opponent: str, game_id: str):
+    await manager.send(
+        client,
+        EVENT_SEND_CHALLENGE,
+        {
+            'opponent': opponent,
+            'game_id': game_id,
+        },
+    )
 
 
 def add_user(token):

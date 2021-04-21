@@ -120,3 +120,49 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
                 'game_id': '123e4567-e89b-12d3-a456-426614174000',
             })
         )
+
+    @patch.object(server.ConnectionManager, 'send', new_callable=AsyncMock)
+    async def test_notify_challenge_to_client(self, send_patched):
+        challenge_sender = 'User 1'
+        challenge_receiver = 'User 2'
+        test_game_id = '00000000-0000-0000-0000-000000000001'
+        await server.notify_challenge_to_client(
+            challenge_receiver,
+            challenge_sender,
+            test_game_id,
+        )
+        send_patched.assert_called_with(
+            challenge_receiver,
+            server.EVENT_SEND_CHALLENGE,
+            {
+                'opponent': challenge_sender,
+                'game_id': test_game_id,
+            },
+        )
+
+    async def test_manager_send(self):
+        user = 'User'
+        event = 'event'
+        data = {
+            'data': 'some data',
+            'other_data': 'some other data',
+        }
+
+        websocket_patched = MagicMock()
+        websocket_patched.send_text = AsyncMock()
+        server.manager.connections = {
+            user: websocket_patched,
+        }
+
+        await server.manager.send(
+            user,
+            event,
+            data,
+        )
+
+        websocket_patched.send_text.assert_called_with(
+            json.dumps({
+                'event': event,
+                'data': data
+            })
+        )
