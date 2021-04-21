@@ -10,7 +10,7 @@ router = APIRouter()
 
 @router.post("/challenge")
 async def challenge(challenge: Challenge):
-    game = Game(challenge.challenger, challenge.challenged)
+    game = Game(challenge.challenger, challenge.challenged, challenge.challenge_id)
     games.append(game)
     await server.websockets.notify_challenge_to_client(
         game.player,

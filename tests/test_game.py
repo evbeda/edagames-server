@@ -8,9 +8,10 @@ class TestGame(unittest.TestCase):
         (
             'User 1',
             'User 2',
+            393923,
         )
     ])
-    def test_game(self, user, challenged_player):
-        game = Game(user, challenged_player)
+    def test_game(self, user, challenged_player, challenge_id):
+        game = Game(user, challenged_player, challenge_id)
         self.assertEqual(game.player, user)
         self.assertEqual(game.challenged_player, challenged_player)

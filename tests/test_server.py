@@ -8,6 +8,7 @@ import server.django_urls as django_urls
 from server.connection_manager import ConnectionManager
 from server.websockets import notify_challenge_to_client
 from parameterized import parameterized
+from server.game import Game
 
 
 class TestServer(unittest.IsolatedAsyncioTestCase):
@@ -68,8 +69,12 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         )
 
     @parameterized.expand([
-        ({"action": "accept_challenge", "data": {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}}),
+        ({"action": "accept_challenge", "data": {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
     ])
     def test_accept_challenge(self, data):
-        server.acept_challenge(data)
-        # self.assertEqual(game.state, 'accepted')
+        game = Game('player1', 'player2', 123213123)
+        game.uuid_game = "c303282d-f2e6-46ca-a04a-35d3d873712d"
+        server.games = [game]
+        with patch('server.server.notify_game_created'):
+            server.accept_challenge(data)
+            self.assertEqual(game.state, 'accepted')

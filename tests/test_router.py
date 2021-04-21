@@ -8,7 +8,7 @@ from server.server import manager
 
 class TestRouter(unittest.IsolatedAsyncioTestCase):
     @parameterized.expand([
-        ({"challenger": "Ana", "challenged": "Pepe"}, 200),
+        ({"challenger": "Ana", "challenged": "Pepe", "challenge_id": "2138123721"}, 200),
     ])
     async def test_challenge(self, data, status):
         with patch('uuid.uuid4', return_value='810a84e7'):
