@@ -5,6 +5,8 @@ import uvicorn
 from fastapi import FastAPI, WebSocket
 import requests
 import json
+from pydantic import BaseModel
+
 
 DJANGO_USERS_URI = 'http://localhost:8000/users'
 DJANGO_GAME_URI = 'http://localhost:8000/games'
@@ -85,6 +87,16 @@ async def session(websocket: WebSocket, token):
     except starlette.websockets.WebSocketDisconnect:
         remove_user(client)
         return
+
+
+class Challenge(BaseModel):
+    challenger: str
+    challenged: str
+
+
+@app.post("/challenge")
+async def challenge(challenge: Challenge):
+    return {challenge.challenged}
 
 
 if __name__ == '__main__':
