@@ -120,3 +120,19 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
                 'game_id': '123e4567-e89b-12d3-a456-426614174000',
             })
         )
+
+    @patch.object(server.ConnectionManager, 'send', new_callable=AsyncMock)
+    async def test_notify_challenge_to_client(self, send_patched):
+        await server.notify_challenge_to_client(
+            'User 2',
+            'User 1',
+            '00000000-0000-0000-0000-000000000001',
+        )
+        send_patched.assert_called_with(
+            'User 2',
+            server.EVENT_SEND_CHALLENGE,
+            {
+                'opponent': 'User 1',
+                'game_id': '00000000-0000-0000-0000-000000000001',
+            },
+        )
