@@ -5,7 +5,7 @@ from server.connection_manager import ConnectionManager
 import json
 
 
-class TestServer(unittest.IsolatedAsyncioTestCase):
+class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.manager = ConnectionManager()
 
