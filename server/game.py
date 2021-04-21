@@ -6,3 +6,4 @@ class Game:
         self.player = player
         self.challenged_player = challenged_player
         self.uuid_game = uuid.uuid4()
+        self.state = 'pending'
