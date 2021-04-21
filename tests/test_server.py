@@ -1,27 +1,12 @@
 import unittest
 from parameterized import parameterized
 import server.server as server
-# from server.server import add_user, manager, remove_user
 from unittest.mock import MagicMock, patch, AsyncMock
 import os
 import json
 import starlette
 
 os.environ['TOKEN_KEY'] = 'EDAGame$!2021'
-
-
-# def true_once():
-#     yield True
-#     yield False
-
-
-# class MockTrueFunc(object):
-
-#     def __init__(self):
-#         self.gen = true_once()
-
-#     def __call__(self):
-#         return next(self.gen)
 
 
 class TestServer(unittest.IsolatedAsyncioTestCase):
