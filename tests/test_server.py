@@ -1,26 +1,27 @@
 import unittest
 from parameterized import parameterized
 import server.server as server
-from server.server import add_user, manager, remove_user
+# from server.server import add_user, manager, remove_user
 from unittest.mock import MagicMock, patch, AsyncMock
 import os
 import json
+import starlette
 
 os.environ['TOKEN_KEY'] = 'EDAGame$!2021'
 
 
-def true_once():
-    yield True
-    yield False
+# def true_once():
+#     yield True
+#     yield False
 
 
-class MockTrueFunc(object):
+# class MockTrueFunc(object):
 
-    def __init__(self):
-        self.gen = true_once()
+#     def __init__(self):
+#         self.gen = true_once()
 
-    def __call__(self):
-        return next(self.gen)
+#     def __call__(self):
+#         return next(self.gen)
 
 
 class TestServer(unittest.IsolatedAsyncioTestCase):
@@ -32,13 +33,13 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         )
     ])
     def test_add_user_ok(self, token, expected):
-        client = add_user(token)
+        client = server.add_user(token)
         self.assertEqual(client, expected)
 
     def test_remove_user(self):
-        manager.connections = {'Test Client 1': 'websocket'}
-        remove_user("Test Client 1")
-        self.assertEqual({}, manager.connections)
+        server.manager.connections = {'Test Client 1': 'websocket'}
+        server.remove_user("Test Client 1")
+        self.assertEqual({}, server.manager.connections)
 
     @parameterized.expand([
         (
@@ -49,8 +50,8 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         )
     ])
     def test_add_user_token_fail(self, token, expected):
-        add_user(token)
-        self.assertNotIn(expected, manager.connections)
+        server.add_user(token)
+        self.assertNotIn(expected, server.manager.connections)
 
     @parameterized.expand([
         (
@@ -77,24 +78,21 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         await server.manager.broadcast(data)
         connection.send_text.assert_called()
 
-    # @parameterized.expand([
-    #     (
-    #         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiVGVzdCBDbGllbnQgMSJ9'
-    #         '.zrXQiT77v9jnUVsZHr41HAZVDnJtRa84t8hmRVdzPck',
-    #     )
-    # ])
-    # @patch("server.server.add_user", return_value="User 1")
-    # @patch("server.server.true_func", new_callable=MockTrueFunc)
-    # async def test_session_methods(self, mock_true, mock_path, token):
-    #     websocket = MagicMock()
-    #     websocket.close = AsyncMock()
-    #     websocket.accept = AsyncMock()
-    #     websocket.receive_text = AsyncMock()
-    #     connection = MagicMock()
-    #     connection.send_text = AsyncMock()
+    async def test_session_methods(self):
+        websocket = MagicMock()
+        websocket.receive_text = AsyncMock()
+        websocket.receive_text.side_effect = starlette.websockets.WebSocketDisconnect()
 
-    #     await server.session(websocket, token)
-    #     websocket.accept.assert_called()
+        add_user_patched = MagicMock()
+        add_user_patched.return_value = 'User 1'
+        server.add_user = add_user_patched
+
+        manager_patched = MagicMock()
+        manager_patched.connect = AsyncMock()
+        server.manager = manager_patched
+
+        await server.session(websocket, 'token')
+        server.manager.connect.assert_called_with(websocket, 'User 1')
 
     @patch('requests.post')
     def test_update_users_in_django(self, post_patched):
