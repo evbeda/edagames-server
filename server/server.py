@@ -17,7 +17,6 @@ EVENT_SEND_CHALLENGE = 'challenge'
 app = FastAPI()
 users_connected = set()
 
-
 # @app.get("/")
 # async def read_root():
 #     return {"Hello": "World"}
