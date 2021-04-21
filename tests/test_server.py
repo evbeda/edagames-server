@@ -64,6 +64,19 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         await server.manager.connect(websocket, client)
         websocket.accept.assert_called()
 
+    @parameterized.expand([
+        (
+            'Test Message 1',
+        )
+    ])
+    async def test_broadcast(self, data):
+        connection = MagicMock()
+        connection.send_text = AsyncMock()
+        server.manager.connections = {'Test Client 1': connection}
+
+        await server.manager.broadcast(data)
+        connection.send_text.assert_called()
+
     # @parameterized.expand([
     #     (
     #         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiVGVzdCBDbGllbnQgMSJ9'
@@ -76,6 +89,9 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
     #     websocket = MagicMock()
     #     websocket.close = AsyncMock()
     #     websocket.accept = AsyncMock()
+    #     websocket.receive_text = AsyncMock()
+    #     connection = MagicMock()
+    #     connection.send_text = AsyncMock()
 
     #     await server.session(websocket, token)
     #     websocket.accept.assert_called()
