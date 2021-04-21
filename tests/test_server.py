@@ -7,7 +7,8 @@ import json
 import starlette
 from httpx import AsyncClient
 from server.server import app
-
+import server.websocket_events as websocket_events
+import server.django_urls as django_urls
 
 os.environ['TOKEN_KEY'] = 'EDAGame$!2021'
 
@@ -105,7 +106,7 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         server.update_users_in_django()
 
         post_patched.assert_called_with(
-            server.DJANGO_USERS_URI,
+            django_urls.USERS_URL,
             json=json.dumps(user_list)
         )
 
@@ -117,7 +118,7 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         )
 
         post_patched.assert_called_with(
-            server.DJANGO_GAME_URI,
+            django_urls.GAME_URL,
             json=json.dumps({
                 'challenge_id': '00000000-0000-0000-0000-000000000001',
                 'game_id': '123e4567-e89b-12d3-a456-426614174000',
@@ -136,7 +137,7 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         )
         send_patched.assert_called_with(
             challenge_receiver,
-            server.EVENT_SEND_CHALLENGE,
+            websocket_events.EVENT_SEND_CHALLENGE,
             {
                 'opponent': challenge_sender,
                 'game_id': test_game_id,
