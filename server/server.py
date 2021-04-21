@@ -13,6 +13,7 @@ from .router import router
 app = FastAPI()
 app.include_router(router)
 manager = ConnectionManager()
+games = []
 
 
 async def notify_challenge_to_client(client: str, opponent: str, game_id: str):
