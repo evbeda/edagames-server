@@ -34,10 +34,12 @@ class ConnectionManager:
             await connection.send_text(data)
 
     async def send(self, client: str, event: str, data: Dict[str, str]):
-        await self.connections[client].send_text(json.dumps({
-            'event': event,
-            'data': json.dumps(data)
-        }))
+        client_websocket = self.connections.get(client)
+        if client_websocket is not None:
+            client_websocket.send_text(json.dumps({
+                'event': event,
+                'data': json.dumps(data)
+            }))
 
 
 async def notify_challenge_to_client(client: str, opponent: str, game_id: str):
