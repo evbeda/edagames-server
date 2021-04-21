@@ -2,6 +2,7 @@ import unittest
 from parameterized import parameterized
 from unittest.mock import MagicMock, AsyncMock
 from server.connection_manager import ConnectionManager
+import json
 
 
 class TestServer(unittest.IsolatedAsyncioTestCase):
@@ -32,3 +33,30 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
 
         await self.manager.broadcast(data)
         connection.send_text.assert_called()
+
+    async def test_manager_send(self):
+        user = 'User'
+        event = 'event'
+        data = {
+            'data': 'some data',
+            'other_data': 'some other data',
+        }
+
+        websocket_patched = MagicMock()
+        websocket_patched.send_text = AsyncMock()
+        self.manager.connections = {
+            user: websocket_patched,
+        }
+
+        await self.manager.send(
+            user,
+            event,
+            data,
+        )
+
+        websocket_patched.send_text.assert_called_with(
+            json.dumps({
+                'event': event,
+                'data': data
+            })
+        )
