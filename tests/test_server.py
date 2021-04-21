@@ -78,7 +78,7 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         await server.manager.broadcast(data)
         connection.send_text.assert_called()
 
-    async def test_session_methods(self):
+    async def test_session_open_close(self):
         websocket = MagicMock()
         websocket.receive_text = AsyncMock()
         websocket.receive_text.side_effect = starlette.websockets.WebSocketDisconnect()
@@ -91,8 +91,11 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         manager_patched.connect = AsyncMock()
         server.manager = manager_patched
 
+        server.remove_user = MagicMock()
+
         await server.session(websocket, 'token')
         server.manager.connect.assert_called_with(websocket, 'User 1')
+        server.remove_user.assert_called_with('User 1')
 
     @patch('requests.post')
     def test_update_users_in_django(self, post_patched):
