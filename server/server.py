@@ -5,12 +5,14 @@ import uvicorn
 from fastapi import FastAPI, WebSocket
 import requests
 import json
-from pydantic import BaseModel
 import server.websocket_events as websocket_events
 import server.django_urls as django_urls
 from server.connection_manager import ConnectionManager
+from .router import router
 
 app = FastAPI()
+app.include_router(router)
+
 users_connected = set()
 
 # @app.get("/")
@@ -83,16 +85,6 @@ async def session(websocket: WebSocket, token):
     except starlette.websockets.WebSocketDisconnect:
         remove_user(client)
         return
-
-
-class Challenge(BaseModel):
-    challenger: str
-    challenged: str
-
-
-@app.post("/challenge")
-async def challenge(challenge: Challenge):
-    return {'Challenge received OK'}
 
 
 if __name__ == '__main__':
