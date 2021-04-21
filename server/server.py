@@ -5,26 +5,12 @@ import uvicorn
 from fastapi import FastAPI, WebSocket
 import requests
 import json
-import server.websocket_events as websocket_events
 import server.django_urls as django_urls
-from server.connection_manager import ConnectionManager
+from server.connection_manager import manager
 from .router import router
 
 app = FastAPI()
 app.include_router(router)
-manager = ConnectionManager()
-games = []
-
-
-async def notify_challenge_to_client(client: str, opponent: str, game_id: str):
-    await manager.send(
-        client,
-        websocket_events.EVENT_SEND_CHALLENGE,
-        {
-            'opponent': opponent,
-            'game_id': game_id,
-        },
-    )
 
 
 def add_user(token):

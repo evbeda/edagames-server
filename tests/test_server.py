@@ -7,6 +7,8 @@ import json
 import starlette
 import server.websocket_events as websocket_events
 import server.django_urls as django_urls
+from server.connection_manager import ConnectionManager
+from server.websockets import notify_challenge_to_client
 
 os.environ['TOKEN_KEY'] = 'EDAGame$!2021'
 
@@ -98,12 +100,12 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
             })
         )
 
-    @patch.object(server.ConnectionManager, 'send', new_callable=AsyncMock)
+    @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
     async def test_notify_challenge_to_client(self, send_patched):
         challenge_sender = 'User 1'
         challenge_receiver = 'User 2'
         test_game_id = '00000000-0000-0000-0000-000000000001'
-        await server.notify_challenge_to_client(
+        await notify_challenge_to_client(
             challenge_receiver,
             challenge_sender,
             test_game_id,

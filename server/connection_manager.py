@@ -23,3 +23,6 @@ class ConnectionManager:
                 'event': event,
                 'data': data,
             }))
+
+
+manager = ConnectionManager()

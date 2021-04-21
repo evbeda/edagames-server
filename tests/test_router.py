@@ -11,7 +11,7 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
     ])
     async def test_challenge(self, data, status):
         with patch('uuid.uuid4', return_value='810a84e7'):
-            with patch('server.server.notify_challenge_to_client', new_callable=AsyncMock) as mock:
+            with patch('server.websockets.notify_challenge_to_client', new_callable=AsyncMock) as mock:
                 async with AsyncClient(app=app, base_url="http://test") as ac:
                     response = await ac.post(
                         "/challenge",

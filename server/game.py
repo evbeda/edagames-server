@@ -1,5 +1,7 @@
 import uuid
 
+games = []
+
 
 class Game:
     def __init__(self, player, challenged_player):
