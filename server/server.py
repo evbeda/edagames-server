@@ -12,12 +12,7 @@ from .router import router
 
 app = FastAPI()
 app.include_router(router)
-
-users_connected = set()
-
-# @app.get("/")
-# async def read_root():
-#     return {"Hello": "World"}
+manager = ConnectionManager()
 
 
 async def notify_challenge_to_client(client: str, opponent: str, game_id: str):
@@ -66,9 +61,6 @@ def notify_game_created(challenge_id, game_id):
             'game_id': game_id,
         })
     )
-
-
-manager = ConnectionManager()
 
 
 @app.websocket("/ws/")
