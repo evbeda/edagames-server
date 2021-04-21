@@ -96,7 +96,7 @@ class Challenge(BaseModel):
 
 @app.post("/challenge")
 async def challenge(challenge: Challenge):
-    return {challenge.challenged}
+    return {'Challenge received OK'}
 
 
 if __name__ == '__main__':
