@@ -84,11 +84,9 @@ async def session(websocket: WebSocket, token):
     try:
         while True:
             msg = await websocket.receive_text()
-            print(f"Received {msg}")
             await manager.broadcast(f'Your msg is {msg}')
     except starlette.websockets.WebSocketDisconnect:
         remove_user(client)
-        print(f"User {client} disconnected")
 
 
 if __name__ == '__main__':
