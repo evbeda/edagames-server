@@ -68,10 +68,6 @@ def notify_game_created(challenge_id, game_id):
     )
 
 
-# def true_func():
-#     return True
-
-
 manager = ConnectionManager()
 
 
