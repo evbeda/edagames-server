@@ -42,31 +42,6 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         server.add_user(token)
         self.assertNotIn(expected, server.manager.connections)
 
-    @parameterized.expand([
-        (
-            'Test Client 1',
-        )
-    ])
-    async def test_connect(self, client):
-        websocket = MagicMock()
-        websocket.accept = AsyncMock()
-
-        await server.manager.connect(websocket, client)
-        websocket.accept.assert_called()
-
-    @parameterized.expand([
-        (
-            'Test Message 1',
-        )
-    ])
-    async def test_broadcast(self, data):
-        connection = MagicMock()
-        connection.send_text = AsyncMock()
-        server.manager.connections = {'Test Client 1': connection}
-
-        await server.manager.broadcast(data)
-        connection.send_text.assert_called()
-
     async def test_session_open_close(self):
         websocket = MagicMock()
         websocket.receive_text = AsyncMock()

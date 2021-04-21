@@ -5,10 +5,10 @@ import uvicorn
 from fastapi import FastAPI, WebSocket
 import requests
 import json
-from typing import Dict
 from pydantic import BaseModel
 import server.websocket_events as websocket_events
 import server.django_urls as django_urls
+from server.connection_manager import ConnectionManager
 
 app = FastAPI()
 users_connected = set()
@@ -16,27 +16,6 @@ users_connected = set()
 # @app.get("/")
 # async def read_root():
 #     return {"Hello": "World"}
-
-
-class ConnectionManager:
-    def __init__(self):
-        self.connections = {}
-
-    async def connect(self, websocket: WebSocket, client):
-        await websocket.accept()
-        self.connections[client] = websocket
-
-    async def broadcast(self, data: str):
-        for user, connection in self.connections.items():
-            await connection.send_text(data)
-
-    async def send(self, client: str, event: str, data: Dict[str, str]):
-        client_websocket = self.connections.get(client)
-        if client_websocket is not None:
-            await client_websocket.send_text(json.dumps({
-                'event': event,
-                'data': data,
-            }))
 
 
 async def notify_challenge_to_client(client: str, opponent: str, game_id: str):
