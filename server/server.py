@@ -13,9 +13,9 @@ app = FastAPI()
 users_connected = set()
 
 
-@app.get("/")
-async def read_root():
-    return {"Hello": "World"}
+# @app.get("/")
+# async def read_root():
+#     return {"Hello": "World"}
 
 
 class ConnectionManager:
@@ -68,8 +68,8 @@ def notify_game_created(challenge_id, game_id):
     )
 
 
-def true_func():
-    return True
+# def true_func():
+#     return True
 
 
 manager = ConnectionManager()
@@ -82,7 +82,7 @@ async def session(websocket: WebSocket, token):
         await websocket.close()
     await manager.connect(websocket, client)
     try:
-        while true_func():
+        while True:
             msg = await websocket.receive_text()
             print(f"Received {msg}")
             await manager.broadcast(f'Your msg is {msg}')
