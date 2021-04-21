@@ -7,12 +7,8 @@ import requests
 import json
 from typing import Dict
 from pydantic import BaseModel
-
-
-DJANGO_USERS_URI = 'http://localhost:8000/users'
-DJANGO_GAME_URI = 'http://localhost:8000/games'
-
-EVENT_SEND_CHALLENGE = 'challenge'
+import server.websocket_events as websocket_events
+import server.django_urls as django_urls
 
 app = FastAPI()
 users_connected = set()
@@ -46,7 +42,7 @@ class ConnectionManager:
 async def notify_challenge_to_client(client: str, opponent: str, game_id: str):
     await manager.send(
         client,
-        EVENT_SEND_CHALLENGE,
+        websocket_events.EVENT_SEND_CHALLENGE,
         {
             'opponent': opponent,
             'game_id': game_id,
@@ -74,7 +70,7 @@ def remove_user(users_to_disconnect):
 
 def update_users_in_django():
     requests.post(
-        DJANGO_USERS_URI,
+        django_urls.USERS_URL,
         json=json.dumps({
             'users': list(manager.connections.keys()),
         }),
@@ -83,7 +79,7 @@ def update_users_in_django():
 
 def notify_game_created(challenge_id, game_id):
     requests.post(
-        DJANGO_GAME_URI,
+        django_urls.GAME_URL,
         json=json.dumps({
             'challenge_id': challenge_id,
             'game_id': game_id,
