@@ -97,6 +97,16 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         server.manager.connect.assert_called_with(websocket, 'User 1')
         server.remove_user.assert_called_with('User 1')
 
+    async def test_session_invalid_client(self):
+        websocket = MagicMock()
+        websocket.close = AsyncMock()
+
+        add_user_patched = MagicMock()
+        add_user_patched.return_value = None
+        server.add_user = add_user_patched
+
+        await server.session(websocket, 'token')
+
     @patch('requests.post')
     def test_update_users_in_django(self, post_patched):
         user_list = {"users": ["User 1"]}

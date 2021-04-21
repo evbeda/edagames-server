@@ -80,6 +80,7 @@ async def session(websocket: WebSocket, token):
     client = add_user(token)
     if client is None:
         await websocket.close()
+        return
     await manager.connect(websocket, client)
     try:
         while True:
@@ -87,6 +88,7 @@ async def session(websocket: WebSocket, token):
             await manager.broadcast(f'Your msg is {msg}')
     except starlette.websockets.WebSocketDisconnect:
         remove_user(client)
+        return
 
 
 if __name__ == '__main__':
