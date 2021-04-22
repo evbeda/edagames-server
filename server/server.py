@@ -1,6 +1,4 @@
 import starlette
-import jwt
-import os
 import uvicorn
 from fastapi import FastAPI, WebSocket
 import requests
@@ -11,24 +9,6 @@ from .router import router
 
 app = FastAPI()
 app.include_router(router)
-
-
-def add_user(token):
-    token_key = os.environ.get('TOKEN_KEY')
-    encoded_token = token.encode()
-    try:
-        user_to_connect = jwt.decode(
-            encoded_token,
-            token_key,
-            algorithms=["HS256"],
-        )
-    except jwt.exceptions.InvalidTokenError:
-        return
-    return user_to_connect.get('user')
-
-
-def remove_user(users_to_disconnect):
-    del manager.connections[users_to_disconnect]
 
 
 def update_users_in_django():
@@ -52,17 +32,15 @@ def notify_game_created(challenge_id, game_id):
 
 @app.websocket("/ws/")
 async def session(websocket: WebSocket, token):
-    client = add_user(token)
+    client = await manager.connect(websocket, token)
     if client is None:
-        await websocket.close()
         return
-    await manager.connect(websocket, client)
     try:
         while True:
             msg = await websocket.receive_text()
             await manager.broadcast(f'Your msg is {msg}')
     except starlette.websockets.WebSocketDisconnect:
-        remove_user(client)
+        manager.remove_user(client)
         return
 
 
