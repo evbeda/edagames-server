@@ -1,15 +1,12 @@
 import unittest
 import server.server as server
 from unittest.mock import MagicMock, patch, AsyncMock
-import os
 import json
 import starlette
 import server.websocket_events as websocket_events
 import server.django_urls as django_urls
 from server.connection_manager import ConnectionManager
 from server.websockets import notify_challenge_to_client
-
-os.environ['TOKEN_KEY'] = 'EDAGame$!2021'
 
 
 class TestServer(unittest.IsolatedAsyncioTestCase):
