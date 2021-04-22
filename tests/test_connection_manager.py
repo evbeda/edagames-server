@@ -1,15 +1,11 @@
 import unittest
 from parameterized import parameterized
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock, AsyncMock, patch
 from server.connection_manager import ConnectionManager
 import json
-import os
 
 
 class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
-
-    def setUpClass(self):
-        os.environ['TOKEN_KEY'] = 'EDAGame$!2021'
 
     def setUp(self):
         self.manager = ConnectionManager()
@@ -23,7 +19,8 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
     ])
     async def test_connect_valid(self, token, expected):
         websocket = AsyncMock()
-        client = await self.manager.connect(websocket, token)
+        with patch('server.connection_manager.JWT_TOKEN_KEY', 'EDAGame$!2021'):
+            client = await self.manager.connect(websocket, token)
         self.assertEqual(client, expected)
         websocket.accept.assert_called()
 
@@ -37,7 +34,8 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
     ])
     async def test_connect_invalid(self, token, expected):
         websocket = AsyncMock()
-        await self.manager.connect(websocket, token)
+        with patch('server.connection_manager.JWT_TOKEN_KEY', 'EDAGame$!2021'):
+            await self.manager.connect(websocket, token)
         self.assertNotIn(expected, self.manager.connections)
         websocket.close.assert_called()
 
