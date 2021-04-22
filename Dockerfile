@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 5000
 
-ENTRYPOINT ["python", "-m", "server.server"]
+ENTRYPOINT ["python", "run.py"]
