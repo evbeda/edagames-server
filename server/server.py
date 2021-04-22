@@ -11,15 +11,6 @@ app = FastAPI()
 app.include_router(router)
 
 
-def update_users_in_django():
-    requests.post(
-        django_urls.USERS_URL,
-        json=json.dumps({
-            'users': list(manager.connections.keys()),
-        }),
-    )
-
-
 def notify_game_created(challenge_id, game_id):
     requests.post(
         django_urls.GAME_URL,

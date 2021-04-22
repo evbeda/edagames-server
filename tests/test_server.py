@@ -33,20 +33,6 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         await server.session(websocket, 'token')
 
     @patch('requests.post')
-    def test_update_users_in_django(self, post_patched):
-        user_list = {"users": ["User 1"]}
-        user_dict = {'User 1': 'websockets'}
-
-        server.manager.connections = user_dict
-
-        server.update_users_in_django()
-
-        post_patched.assert_called_with(
-            django_urls.USERS_URL,
-            json=json.dumps(user_list)
-        )
-
-    @patch('requests.post')
     def test_notify_game_created(self, post_patched):
         server.notify_game_created(
             '00000000-0000-0000-0000-000000000001',
