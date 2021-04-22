@@ -6,6 +6,8 @@ import server.django_urls as django_urls
 from server.connection_manager import manager
 from .router import router
 from server.game import games
+from server.websockets import notify_error_to_client
+from server.exception import GameIdException
 
 app = FastAPI()
 app.include_router(router)
@@ -21,8 +23,13 @@ def notify_game_created(challenge_id, game_id):
     )
 
 
-def accept_challenge(data):
-    game_id = data['data']['game_id']
+async def accept_challenge(data, client):
+    game_id = data.get('data', {}).get('game_id')
+    if game_id is None:
+        await notify_error_to_client(
+            client,
+            str(GameIdException),
+        )
     for game in games:
         if game.uuid_game == game_id:
             game.state = 'accepted'
@@ -38,7 +45,7 @@ async def session(websocket: WebSocket, token):
         while True:
             msg = await websocket.receive_text()
             if msg['action'] == 'accept_challenge':
-                accept_challenge(msg)
+                accept_challenge(msg, client)
             await manager.broadcast(f'Your msg is {msg}')
     except starlette.websockets.WebSocketDisconnect:
         manager.remove_user(client)

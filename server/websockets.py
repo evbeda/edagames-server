@@ -11,3 +11,13 @@ async def notify_challenge_to_client(client: str, opponent: str, game_id: str):
             'game_id': game_id,
         },
     )
+
+
+async def notify_error_to_client(client: str, error: str):
+    await manager.send(
+        client,
+        websocket_events.EVENT_SEND_ERROR,
+        {
+            'Error': error,
+        },
+    )

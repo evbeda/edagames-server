@@ -71,10 +71,12 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
     @parameterized.expand([
         ({"action": "accept_challenge", "data": {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
     ])
-    def test_accept_challenge(self, data):
+    async def test_accept_challenge(self, data):
+        client = {'Test Client 1'}
         game = Game('player1', 'player2', 123213123)
         game.uuid_game = "c303282d-f2e6-46ca-a04a-35d3d873712d"
         server.games = [game]
         with patch('server.server.notify_game_created'):
-            server.accept_challenge(data)
-            self.assertEqual(game.state, 'accepted')
+            with patch('server.websockets.notify_error_to_client', new_callable=AsyncMock):
+                await server.accept_challenge(data, client)
+                self.assertEqual(game.state, 'accepted')
