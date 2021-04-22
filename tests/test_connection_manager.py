@@ -3,9 +3,14 @@ from parameterized import parameterized
 from unittest.mock import MagicMock, AsyncMock
 from server.connection_manager import ConnectionManager
 import json
+import os
 
 
 class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
+
+    def setUpClass(self):
+        os.environ['TOKEN_KEY'] = 'EDAGame$!2021'
+
     def setUp(self):
         self.manager = ConnectionManager()
 
