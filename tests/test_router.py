@@ -29,7 +29,7 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
         manager.connections = user_dict
 
         async with AsyncClient(app=app, base_url="http://test") as ac:
-            response = await ac.get("/user-list")
+            response = await ac.get("/users")
 
         assert response.status_code == 200
         assert response.json() == user_list
