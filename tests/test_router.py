@@ -3,6 +3,7 @@ from httpx import AsyncClient
 from server.server import app
 import unittest
 from unittest.mock import patch, AsyncMock
+from server.server import manager
 
 
 class TestRouter(unittest.IsolatedAsyncioTestCase):
@@ -20,3 +21,15 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                 mock.assert_called_once_with('Ana', 'Pepe', '810a84e7')
         assert response.status_code == status
         assert response.json() == data
+
+    async def test_update_users_in_django(self):
+        user_list = {"users": ["User 1"]}
+        user_dict = {'User 1': 'websockets'}
+
+        manager.connections = user_dict
+
+        async with AsyncClient(app=app, base_url="http://test") as ac:
+            response = await ac.get("/user-list")
+
+        assert response.status_code == 200
+        assert response.json() == user_list
