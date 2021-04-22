@@ -1,1 +1,2 @@
 EVENT_SEND_CHALLENGE = 'challenge'
+EVENT_SEND_ERROR = 'error'
