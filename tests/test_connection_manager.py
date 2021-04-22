@@ -11,15 +11,35 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
 
     @parameterized.expand([
         (
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiVGVzdCBDbGllbnQgMSJ9'
+            '.zrXQiT77v9jnUVsZHr41HAZVDnJtRa84t8hmRVdzPck',
             'Test Client 1',
         )
     ])
-    async def test_connect(self, client):
-        websocket = MagicMock()
-        websocket.accept = AsyncMock()
-
-        await self.manager.connect(websocket, client)
+    async def test_connect_valid(self, token, expected):
+        websocket = AsyncMock()
+        client = await self.manager.connect(websocket, token)
+        self.assertEqual(client, expected)
         websocket.accept.assert_called()
+
+    @parameterized.expand([
+        (
+            '/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
+            'eyJ1c2VyIjoiVXNlciBUZXN0NCJ9.'
+            'p6MnNJLD5jwTH1C0PvqUb-spfc7XW7xf6gQjSiDrktg&action=NULL&msg=NULL',
+            'Test Client 1',
+        )
+    ])
+    async def test_connect_invalid(self, token, expected):
+        websocket = AsyncMock()
+        await self.manager.connect(websocket, token)
+        self.assertNotIn(expected, self.manager.connections)
+        websocket.close.assert_called()
+
+    def test_remove_user(self):
+        self.manager.connections = {'Test Client 1': 'websocket'}
+        self.manager.remove_user('Test Client 1')
+        self.assertEqual({}, self.manager.connections)
 
     @parameterized.expand([
         (
