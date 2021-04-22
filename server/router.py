@@ -20,6 +20,6 @@ async def challenge(challenge: Challenge):
     return challenge
 
 
-@router.get("/user-list")
+@router.get("/users")
 async def user_list():
     return JSONResponse({'users': list(manager.connections.keys())})
