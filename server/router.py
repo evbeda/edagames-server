@@ -13,8 +13,8 @@ async def challenge(challenge: Challenge):
     game = Game(challenge.challenger, challenge.challenged, challenge.challenge_id)
     games.append(game)
     await server.websockets.notify_challenge_to_client(
-        game.player,
         game.challenged_player,
+        game.player,
         game.uuid_game,
     )
     return challenge
