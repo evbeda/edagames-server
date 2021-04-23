@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch, AsyncMock
 import json
 import starlette
 import server.websocket_events as websocket_events
-import server.django_urls as django_urls
+import server.web_urls as web_urls
 from server.connection_manager import ConnectionManager
 from server.websockets import notify_challenge_to_client
 from parameterized import parameterized
@@ -42,7 +42,7 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         )
 
         post_patched.assert_called_with(
-            django_urls.GAME_URL,
+            web_urls.GAME_URL,
             json=json.dumps({
                 'challenge_id': '00000000-0000-0000-0000-000000000001',
                 'game_id': '123e4567-e89b-12d3-a456-426614174000',
