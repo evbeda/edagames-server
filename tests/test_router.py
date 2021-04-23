@@ -18,7 +18,11 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                         "/challenge",
                         json=data
                     )
-                mock.assert_called_once_with('Ana', 'Pepe', '810a84e7')
+                mock.assert_called_once_with(
+                    'Pepe',
+                    'Ana',
+                    '810a84e7',
+                )
         assert response.status_code == status
         assert response.json() == data
 
