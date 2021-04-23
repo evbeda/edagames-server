@@ -1,7 +1,7 @@
 from fastapi import WebSocket
 import json
 import jwt
-from .secrets import JWT_TOKEN_KEY
+from .environment import JWT_TOKEN_KEY
 
 from typing import Dict
 

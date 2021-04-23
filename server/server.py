@@ -2,7 +2,7 @@ import starlette
 from fastapi import FastAPI, WebSocket
 import requests
 import json
-import server.django_urls as django_urls
+import server.web_urls as web_urls
 from server.connection_manager import manager
 from .router import router
 from server.game import games
@@ -15,7 +15,7 @@ app.include_router(router)
 
 def notify_game_created(challenge_id, game_id):
     requests.post(
-        django_urls.GAME_URL,
+        web_urls.GAME_URL,
         json=json.dumps({
             'challenge_id': challenge_id,
             'game_id': game_id,
