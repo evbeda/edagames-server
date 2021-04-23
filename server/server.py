@@ -44,9 +44,13 @@ async def session(websocket: WebSocket, token):
     try:
         while True:
             msg = await websocket.receive_text()
-            if msg['action'] == 'accept_challenge':
-                accept_challenge(msg, client)
-            await manager.broadcast(f'Your msg is {msg}')
+            try:
+                data = json.loads(msg)
+            except json.decoder.JSONDecodeError:
+                data = {}
+            if data.get('action') == 'accept_challenge':
+                accept_challenge(data, client)
+            await manager.broadcast(f'Your msg is {data}')
     except starlette.websockets.WebSocketDisconnect:
         manager.remove_user(client)
         return
