@@ -1,26 +1,14 @@
 import starlette
 from fastapi import FastAPI, WebSocket
-import requests
-import json
-import server.web_urls as web_urls
 from server.connection_manager import manager
 from .router import router
 from server.game import games
-from server.websockets import notify_error_to_client
+from server.websockets import notify_error_to_client, notify_game_created
 from server.exception import GameIdException
+import json
 
 app = FastAPI()
 app.include_router(router)
-
-
-def notify_game_created(challenge_id, game_id):
-    requests.post(
-        web_urls.GAME_URL,
-        json=json.dumps({
-            'challenge_id': challenge_id,
-            'game_id': game_id,
-        })
-    )
 
 
 async def accept_challenge(data, client):
