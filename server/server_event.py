@@ -1,7 +1,6 @@
 from server.game import games
-from server.websockets import notify_error_to_client
+from server.websockets import notify_error_to_client, notify_game_created
 from server.exception import GameIdException
-from server.server import notify_game_created
 
 
 class ServerEvent(object):
@@ -18,7 +17,7 @@ class AcceptChallenge(ServerEvent):
     async def run(self):
         game_id = self.response.get('data', {}).get('game_id')
         if game_id is None:
-            await notify_error_to_client(
+            return await notify_error_to_client(
                 self.client,
                 str(GameIdException),
             )
