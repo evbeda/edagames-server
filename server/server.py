@@ -2,41 +2,11 @@ import starlette
 from fastapi import FastAPI, WebSocket
 from server.connection_manager import manager
 from .router import router
-<<<<<<< HEAD
-from server.game import games
-from server.websockets import notify_error_to_client, notify_game_created
-from server.exception import GameIdException
+from server.factory_event_server import FactoryServerEvent
 import json
-=======
-from server.factoryEventServer import FactoryServerEvent
->>>>>>> create factory
 
 app = FastAPI()
 app.include_router(router)
-
-
-<<<<<<< HEAD
-async def accept_challenge(data, client):
-    game_id = data.get('data', {}).get('game_id')
-    if game_id is None:
-        await notify_error_to_client(
-            client,
-            str(GameIdException),
-        )
-    for game in games:
-        if game.uuid_game == game_id:
-            game.state = 'accepted'
-            notify_game_created(game.challenge_id, game_id)
-=======
-def notify_game_created(challenge_id, game_id):
-    requests.post(
-        web_urls.GAME_URL,
-        json=json.dumps({
-            'challenge_id': challenge_id,
-            'game_id': game_id,
-        })
-    )
->>>>>>> create factory
 
 
 @app.websocket("/ws/")

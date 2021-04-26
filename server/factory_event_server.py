@@ -1,4 +1,4 @@
-from server.severEvent import AcceptChallenge
+from server.server_event import AcceptChallenge
 
 
 class FactoryServerEvent(object):
