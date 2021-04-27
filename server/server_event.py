@@ -1,7 +1,8 @@
-from server.game import games
+from server.game import games, Game
 from server.websockets import notify_error_to_client
 from server.web_requests import notify_game_created
 from server.exception import GameIdException
+from server.grpc_adapter import GRPCAdapterFactory
 
 
 class ServerEvent(object):
@@ -24,8 +25,13 @@ class AcceptChallenge(ServerEvent):
             )
         for game in games:
             if game.uuid_game == game_id:
-                game.state = 'accepted'
+                await self.start_game(game)
                 notify_game_created(game.challenge_id, game_id)
+
+    async def start_game(self, game: Game):
+        game.state = 'accepted'
+        adapter = await GRPCAdapterFactory.get_adapter(game.name)
+        await adapter.create_game(game.players)
 
 
 class Movements(ServerEvent):
