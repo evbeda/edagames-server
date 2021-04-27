@@ -1,5 +1,6 @@
 from server.game import games
-from server.websockets import notify_error_to_client, notify_game_created
+from server.websockets import notify_error_to_client
+from server.web_requests import notify_game_created
 from server.exception import GameIdException
 
 
