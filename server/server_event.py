@@ -27,11 +27,11 @@ class AcceptChallenge(ServerEvent):
                 notify_game_created(game.challenge_id, game_id)
 
 
-class Movents(ServerEvent):
+class Movements(ServerEvent):
     def __init__(self, response, client):
         self.response = response
         self.client = client
-        self.nameEvent = 'Challenge accepted'
+        self.nameEvent = 'movements'
 
     async def run(self):
         pass
