@@ -36,11 +36,9 @@ def notify_game_created(challenge_id, game_id):
     )
 
 
-async def notify_your_turn(client: str, data: str):
+async def notify_your_turn(client: str, data: dict):
     await manager.send(
         client,
         websocket_events.EVENT_SEND_YOUR_TURN,
-        {
-            'data': data
-        },
+        data
     )
