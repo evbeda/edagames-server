@@ -66,7 +66,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
         )
 
     @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
-    async def test_notify_notify_your_turn(self, send_patched):
+    async def test_notify_your_turn(self, send_patched):
         challenge_sender = 'User 1'
         data = {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}
         await notify_your_turn(
@@ -76,7 +76,5 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
         send_patched.assert_called_with(
             challenge_sender,
             websocket_events.EVENT_SEND_YOUR_TURN,
-            {
-                'data': data
-            },
+            data
         )
