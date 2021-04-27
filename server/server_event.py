@@ -25,3 +25,13 @@ class AcceptChallenge(ServerEvent):
             if game.uuid_game == game_id:
                 game.state = 'accepted'
                 notify_game_created(game.challenge_id, game_id)
+
+
+class Movents(ServerEvent):
+    def __init__(self, response, client):
+        self.response = response
+        self.client = client
+        self.nameEvent = 'Challenge accepted'
+
+    async def run(self):
+        pass
