@@ -1,10 +1,17 @@
 import unittest
+import json
 from unittest.mock import AsyncMock, patch
+
 from server.connection_manager import ConnectionManager
-from server.websockets import notify_error_to_client, notify_challenge_to_client, notify_game_created
+from server.websockets import (
+    notify_error_to_client,
+    notify_challenge_to_client,
+    notify_game_created,
+    notify_your_turn
+)
+
 import server.websocket_events as websocket_events
 import server.web_urls as web_urls
-import json
 
 
 class TestWebsockets(unittest.IsolatedAsyncioTestCase):
@@ -55,5 +62,21 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             {
                 'opponent': challenge_sender,
                 'game_id': test_game_id,
+            },
+        )
+
+    @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
+    async def test_notify_notify_your_turn(self, send_patched):
+        challenge_sender = 'User 1'
+        data = {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}
+        await notify_your_turn(
+            challenge_sender,
+            data
+        )
+        send_patched.assert_called_with(
+            challenge_sender,
+            websocket_events.EVENT_SEND_YOUR_TURN,
+            {
+                'data': data
             },
         )

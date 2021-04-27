@@ -1,4 +1,5 @@
 EVENT_SEND_CHALLENGE = 'challenge'
 EVENT_SEND_ERROR = 'error'
+EVENT_SEND_YOUR_TURN = 'your_turn'
 ACCEPT_CHALLENGE = 'accept_challenge'
 MOVEMENTS = 'movements'
