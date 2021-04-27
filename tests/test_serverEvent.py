@@ -1,11 +1,17 @@
 import unittest
-from server.server_event import AcceptChallenge
-from parameterized import parameterized
-from server.game import Game, games
 from unittest.mock import patch, AsyncMock
+from parameterized import parameterized
+
+from server.game import Game, games
+from server.grpc_adapter import GRPCAdapterFactory
+
+from server.server_event import AcceptChallenge
 
 
 class TestServerEvent(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.game = Game('player1', 'player2', 123213123)
+
     @parameterized.expand([
         ({"action": "accept_challenge", "data": {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
     ])
@@ -16,5 +22,12 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 with patch('uuid.uuid4', return_value='c303282d-f2e6-46ca-a04a-35d3d873712d'):
                     game = Game('player1', 'player2', 123213123)
                     games.append(game)
-                    await AcceptChallenge(data, client).run()
-                    self.assertEqual(game.state, 'accepted')
+                    with patch.object(AcceptChallenge, 'start_game') as start_patched:
+                        await AcceptChallenge(data, client).run()
+                        start_patched.assert_called()
+
+    async def test_start_game(self):
+        with patch.object(GRPCAdapterFactory, 'get_adapter') as get_adapter_patched:
+            await AcceptChallenge({}, 'client').start_game(self.game)
+            self.assertEqual(self.game.state, 'accepted')
+            get_adapter_patched.assert_called_with(self.game.name)

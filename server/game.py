@@ -1,12 +1,19 @@
 import uuid
+from typing import List
+
 
 games = []
 
 
 class Game:
-    def __init__(self, player, challenged_player, challenge_id):
-        self.player = player
-        self.challenged_player = challenged_player
+    def __init__(
+        self,
+        players: List[str],
+        challenge_id: str,
+        name: str = 'quoridor'
+    ):
+        self.name = name
+        self.players = players
         self.uuid_game = str(uuid.uuid4())
         self.state = 'pending'
         self.challenge_id = challenge_id
