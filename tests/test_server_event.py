@@ -41,14 +41,14 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 notify_patched.assert_called()
 
     @parameterized.expand([
-        ({"action": "accept_challenge", "data": {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
+        ({"action": "accept_challenge", "data": {"turn_token": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
     ])
     async def test_Movements(self, data):
         client = 'Test Client 1'
         with patch('server.server_event.notify_error_to_client', new_callable=AsyncMock):
             with patch('server.server_event.notify_your_turn', new_callable=AsyncMock):
                 game = Game('player1', 'player2', 123213123)
-                game.game_id = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
+                game.turn_token = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
                 games.append(game)
                 with patch.object(Movements, 'execute_action') as start_patched:
                     await Movements(data, client).run()
