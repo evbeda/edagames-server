@@ -1,7 +1,9 @@
+from server.connection_manager import manager
 from server.game import games, Game
 from server.websockets import (
     notify_error_to_client,
-    notify_your_turn
+    notify_your_turn,
+    notify_user_list_to_client,
 )
 from server.web_requests import notify_game_created
 from server.exception import GameIdException
@@ -9,14 +11,17 @@ from server.grpc_adapter import GRPCAdapterFactory
 
 
 class ServerEvent(object):
+    def __init__(self, response, client):
+        self.response = response
+        self.client = client
+
     def run(self):
         raise NotImplementedError
 
 
 class AcceptChallenge(ServerEvent):
     def __init__(self, response, client):
-        self.response = response
-        self.client = client
+        super().__init__(response, client)
         self.nameEvent = 'Challenge accepted'
 
     async def run(self):
@@ -42,10 +47,19 @@ class AcceptChallenge(ServerEvent):
         )
 
 
+class ListUsers(ServerEvent):
+    def __init__(self, response, client):
+        super().__init__(response, client)
+        self.nameEvent = 'List users'
+
+    async def run(self):
+        users = list(manager.connections.keys())
+        await notify_user_list_to_client(self.client, users)
+
+
 class Movements(ServerEvent):
     def __init__(self, response, client):
-        self.response = response
-        self.client = client
+        super().__init__(response, client)
         self.nameEvent = 'movements'
 
     async def run(self):
