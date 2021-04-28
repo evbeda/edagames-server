@@ -1,13 +1,13 @@
 import unittest
 from unittest.mock import patch
 
-from server.grpc_adapter import GRPCAdapterFactory, Client, cached_adapters
+from server.grpc_adapter import GRPCAdapterFactory, ClientGRPC, cached_adapters
 
 
 class TestGRPCAdapterFactory(unittest.IsolatedAsyncioTestCase):
 
     async def test_get_adapter_cached(self):
-        adapter_mock = Client('test:1234')
+        adapter_mock = ClientGRPC('test:1234')
         cached_adapters.update({'cached': adapter_mock})
         adapter = await GRPCAdapterFactory.get_adapter('cached')
         self.assertEqual(adapter, adapter_mock)

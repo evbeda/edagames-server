@@ -17,6 +17,7 @@ class Game:
         self.uuid_game = str(uuid.uuid4())
         self.state = 'pending'
         self.challenge_id = challenge_id
+        self.external_game_id = None
 
     def next_turn(self):
         # Start timeout timer
