@@ -1,4 +1,4 @@
-# from edagames_grpc.client import Client
+# from eda5grpc.client import Client
 
 from server.environment import FAKE_SERVICE_DISCOVERY_QUORIDOR_HOST_PORT
 
