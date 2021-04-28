@@ -1,9 +1,17 @@
-from server.server_event import AcceptChallenge, Movements
-from server.websocket_events import ACCEPT_CHALLENGE
+from server.server_event import (
+    AcceptChallenge,
+    Movements,
+    ListUsers,
+)
+from server.websocket_events import (
+    ACCEPT_CHALLENGE,
+    LIST_USERS,
+)
 
 
 EVENT = {
     ACCEPT_CHALLENGE: AcceptChallenge,
+    LIST_USERS: ListUsers,
 }
 
 
