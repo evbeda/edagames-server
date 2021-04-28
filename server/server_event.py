@@ -41,6 +41,7 @@ class AcceptChallenge(ServerEvent):
         adapter = await GRPCAdapterFactory.get_adapter(game.name)
         game_start_state = await adapter.create_game(game.players)
         game.next_turn()
+        game.game_id = game_start_state.game_id
         await notify_your_turn(
             game_start_state.current_player,
             game_start_state.turn_data.update({'turn_token': game.turn_token}),
