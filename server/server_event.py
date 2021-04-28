@@ -27,7 +27,7 @@ class AcceptChallenge(ServerEvent):
                 str(GameIdException),
             )
         for game in games:
-            if game.uuid_game == game_id:
+            if game.game_id == game_id:
                 await self.start_game(game)
                 notify_game_created(game.challenge_id, game_id)
 
@@ -35,11 +35,10 @@ class AcceptChallenge(ServerEvent):
         game.state = 'accepted'
         adapter = await GRPCAdapterFactory.get_adapter(game.name)
         game_start_state = await adapter.create_game(game.players)
-        game.external_game_id = game_start_state.id_game
-        extra_turn_data = game.next_turn()
+        game.next_turn()
         await notify_your_turn(
             game_start_state.current_player,
-            game_start_state.turn_data.update(extra_turn_data),
+            game_start_state.turn_data.update({'turn_token': game.turn_token}),
         )
 
 
@@ -57,15 +56,14 @@ class Movements(ServerEvent):
                 str(GameIdException),
             )
         for game in games:
-            if game.uuid_game == game_id:
-                data_received = await self.execute_action(game)
-                client = data_received.get('data', {}).get('current_player')
-                data_received.update({'id_game': game.uuid_game})
-                return await notify_your_turn(
-                    client,
-                    data_received
-                )
+            if game.game_id == game_id:
+                await self.execute_action(game)
 
     async def execute_action(self, game: Game):
         adapter = await GRPCAdapterFactory.get_adapter(game.name)
-        return await adapter.execute_action(game.uuid_game, self.response)
+        data_received = await adapter.execute_action(game.game_id, self.response)
+        game.next_turn()
+        return await notify_your_turn(
+            data_received.current_player,
+            data_received.turn_data.update({'turn_token': game.turn_token}),
+        )
