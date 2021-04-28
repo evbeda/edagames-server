@@ -7,6 +7,7 @@ from server.game import Game, games
 from server.server_event import (
     AcceptChallenge,
     Movements,
+    ListUsers,
 )
 
 
@@ -52,6 +53,17 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 with patch.object(Movements, 'execute_action') as start_patched:
                     await Movements(data, client).run()
                     start_patched.assert_called()
+
+    async def test_list_users(self):
+        data = {'action': 'list_users'}
+        client = 'User 1'
+        users = ['User 1', 'User 2', 'User 3']
+
+        with patch('server.server_event.notify_user_list_to_client', new_callable=AsyncMock) as notify_patched,\
+                patch('server.server_event.manager') as manager_patched:
+            manager_patched.connections.keys.return_value = users
+            await ListUsers(data, client).run()
+            notify_patched.assert_called_with(client, users)
 
     async def test_execute_action(self):
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched:

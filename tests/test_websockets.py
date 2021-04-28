@@ -6,7 +6,7 @@ from server.websockets import (
     notify_error_to_client,
     notify_challenge_to_client,
     notify_your_turn,
-    notify_user_list,
+    notify_user_list_to_client,
 )
 
 import server.websocket_events as websocket_events
@@ -63,10 +63,10 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
         )
 
     @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
-    async def test_notify_user_list(self, send_patched):
+    async def test_notify_user_list_to_client(self, send_patched):
         client = 'User 1'
         users = ['User 1', 'User 2', 'User 3']
-        await notify_user_list(client, users)
+        await notify_user_list_to_client(client, users)
         send_patched.assert_called_with(
             client,
             websocket_events.EVENT_LIST_USERS,

@@ -32,7 +32,7 @@ async def notify_your_turn(client: str, data: Dict):
     )
 
 
-async def notify_user_list(client: str, users: List[str]):
+async def notify_user_list_to_client(client: str, users: List[str]):
     await manager.send(
         client,
         websocket_events.EVENT_LIST_USERS,
