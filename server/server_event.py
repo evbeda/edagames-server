@@ -64,19 +64,22 @@ class Movements(ServerEvent):
         self.nameEvent = 'movements'
 
     async def run(self):
-        game_id = self.response.get('data', {}).get('game_id')
-        if game_id is None:
+        turn_token = self.response.get('data', {}).get('turn_token')
+        if turn_token is None:
             return await notify_error_to_client(
                 self.client,
                 str(GameIdException),
             )
         for game in games:
-            if game.game_id == game_id:
+            if game.turn_token == turn_token:
                 await self.execute_action(game)
 
     async def execute_action(self, game: Game):
         adapter = await GRPCAdapterFactory.get_adapter(game.name)
-        data_received = await adapter.execute_action(game.game_id, self.response)
+        data_received = await adapter.execute_action(
+            game.game_id,
+            self.response
+        )
         game.next_turn()
         return await notify_your_turn(
             data_received.current_player,
