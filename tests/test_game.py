@@ -15,3 +15,9 @@ class TestGame(unittest.TestCase):
         game = Game([user, challenged_player], challenge_id)
         self.assertIn(user, game.players)
         self.assertIn(challenged_player, game.players)
+
+    def test_next_turn(self):
+        game = Game(['p1', 'p2'], 123)
+        turn_token = {'turn_token': '0000001'}
+        token = game.next_turn()
+        self.assertEqual(token, turn_token)

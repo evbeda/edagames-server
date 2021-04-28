@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 from parameterized import parameterized
 
 from server.game import Game, games
@@ -30,10 +30,15 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                         start_patched.assert_called()
 
     async def test_start_game(self):
-        with patch.object(GRPCAdapterFactory, 'get_adapter', new_callable=AsyncMock) as get_adapter_patched:
+        with patch('server.server_event.GRPCAdapterFactory.get_adapter') as get_adapter_patched,\
+                patch('server.server_event.notify_your_turn') as notify_patched:
+            adapter_patched = AsyncMock()
+            adapter_patched.create_game.return_value = MagicMock()
+            get_adapter_patched.return_value = adapter_patched
             await AcceptChallenge({}, 'client').start_game(self.game)
             self.assertEqual(self.game.state, 'accepted')
             get_adapter_patched.assert_called_with(self.game.name)
+            notify_patched.assert_called()
 
     @parameterized.expand([
         ({"action": "accept_challenge", "data": {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
