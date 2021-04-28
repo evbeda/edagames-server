@@ -34,7 +34,13 @@ class AcceptChallenge(ServerEvent):
     async def start_game(self, game: Game):
         game.state = 'accepted'
         adapter = await GRPCAdapterFactory.get_adapter(game.name)
-        await adapter.create_game(game.players)
+        game_start_state = await adapter.create_game(game.players)
+        game.external_game_id = game_start_state.id_game
+        extra_turn_data = game.next_turn()
+        notify_your_turn(
+            game_start_state.current_player,
+            game_start_state.turn_data.update(extra_turn_data),
+        )
 
 
 class Movements(ServerEvent):
