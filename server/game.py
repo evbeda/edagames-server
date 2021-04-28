@@ -15,7 +15,7 @@ class Game:
         self.name = name
         self.players = players
         self.state = 'pending'
-        self.game_id = None
+        self.game_id = str(uuid.uuid4())
         self.challenge_id = challenge_id
         self.turn_token = None
 
