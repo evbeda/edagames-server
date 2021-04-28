@@ -1,8 +1,10 @@
 import unittest
+import json
 from parameterized import parameterized
 from unittest.mock import MagicMock, AsyncMock, patch
+
 from server.connection_manager import ConnectionManager
-import json
+import server.websocket_events as websocket_events
 
 
 class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
@@ -83,3 +85,18 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
                 'data': data
             })
         )
+
+    @patch.object(ConnectionManager, 'broadcast')
+    async def test_notify_user_list_changed(self, broadcast_patched):
+        self.manager.connections = {
+            'client 1': 'websocket',
+            'client 2': 'websocket',
+            'client 3': 'websocket',
+        }
+        await self.manager.notify_user_list_changed()
+        broadcast_patched.assert_called_with({
+            'event': websocket_events.EVENT_LIST_USERS,
+            'data': {
+                'users': ['client 1', 'client 2', 'client 3'],
+            },
+        })

@@ -1,6 +1,8 @@
 from fastapi import WebSocket
 import json
 import jwt
+
+import server.websocket_events as websocket_events
 from .environment import JWT_TOKEN_KEY
 
 from typing import Dict
@@ -26,11 +28,11 @@ class ConnectionManager:
         self.connections[client] = websocket
         return client
 
-    async def broadcast(self, data: str):
-        for user, connection in self.connections.items():
-            await connection.send_text(data)
+    async def broadcast(self, data: Dict):
+        for connection in self.connections.values():
+            await connection.send_text(json.dumps(data))
 
-    async def send(self, client: str, event: str, data: Dict[str, str]):
+    async def send(self, client: str, event: str, data: Dict):
         client_websocket = self.connections.get(client)
         if client_websocket is not None:
             await client_websocket.send_text(json.dumps({
@@ -43,6 +45,15 @@ class ConnectionManager:
             del self.connections[user]
         except KeyError:
             pass
+
+    async def notify_user_list_changed(self):
+        data = {
+            'event': websocket_events.EVENT_LIST_USERS,
+            'data': {
+                'users': list(self.connections.keys()),
+            },
+        }
+        await self.broadcast(data)
 
 
 manager = ConnectionManager()
