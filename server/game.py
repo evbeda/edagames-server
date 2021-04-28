@@ -14,13 +14,10 @@ class Game:
     ):
         self.name = name
         self.players = players
-        self.uuid_game = str(uuid.uuid4())
         self.state = 'pending'
+        self.game_id = None
         self.challenge_id = challenge_id
-        self.external_game_id = None
+        self.turn_token = None
 
     def next_turn(self):
-        # Start timeout timer
-        # Build turn_token
-        # Return dict with turn_token
-        return {'turn_token': '0000001'}
+        self.turn_token = str(uuid.uuid4())

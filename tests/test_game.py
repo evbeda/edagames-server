@@ -1,6 +1,7 @@
 import unittest
 from server.game import Game
 from parameterized import parameterized
+from unittest.mock import patch
 
 
 class TestGame(unittest.TestCase):
@@ -16,8 +17,13 @@ class TestGame(unittest.TestCase):
         self.assertIn(user, game.players)
         self.assertIn(challenged_player, game.players)
 
-    def test_next_turn(self):
+    @parameterized.expand([
+        (
+            'c303282d-f2e6-46ca-a04a-35d3d873712d',
+        )
+    ])
+    def test_next_turn(self, turn_token):
         game = Game(['p1', 'p2'], 123)
-        turn_token = {'turn_token': '0000001'}
-        token = game.next_turn()
-        self.assertEqual(token, turn_token)
+        with patch('uuid.uuid4', return_value='c303282d-f2e6-46ca-a04a-35d3d873712d'):
+            game.next_turn()
+            self.assertEqual(game.turn_token, turn_token)

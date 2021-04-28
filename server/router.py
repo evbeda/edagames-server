@@ -15,7 +15,7 @@ async def challenge(challenge: Challenge):
     await server.websockets.notify_challenge_to_client(
         challenge.challenged,
         challenge.challenger,
-        game.uuid_game,
+        game.game_id,
     )
     return challenge
 
