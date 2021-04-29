@@ -19,6 +19,16 @@ class ServerEvent(object):
         raise NotImplementedError
 
 
+class ListUsers(ServerEvent):
+    def __init__(self, response, client):
+        super().__init__(response, client)
+        self.nameEvent = 'List users'
+
+    async def run(self):
+        users = list(manager.connections.keys())
+        await notify_user_list_to_client(self.client, users)
+
+
 class AcceptChallenge(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
@@ -49,16 +59,6 @@ class AcceptChallenge(ServerEvent):
         )
 
 
-class ListUsers(ServerEvent):
-    def __init__(self, response, client):
-        super().__init__(response, client)
-        self.nameEvent = 'List users'
-
-    async def run(self):
-        users = list(manager.connections.keys())
-        await notify_user_list_to_client(self.client, users)
-
-
 class Movements(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
@@ -82,7 +82,8 @@ class Movements(ServerEvent):
             self.response
         )
         game.next_turn()
+        data_received.turn_data.update({'turn_token': game.turn_token})
         return await notify_your_turn(
             data_received.current_player,
-            data_received.turn_data.update({'turn_token': game.turn_token}),
+            data_received.turn_data,
         )
