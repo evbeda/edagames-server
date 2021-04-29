@@ -15,8 +15,8 @@ class ServerEvent(object):
         self.response = response
         self.client = client
 
-    def run(self):
-        raise NotImplementedError
+    # def run(self):
+    #     raise NotImplementedError
 
 
 class ListUsers(ServerEvent):
