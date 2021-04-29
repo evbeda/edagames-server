@@ -3,13 +3,17 @@ from server.connection_manager import manager
 from typing import Dict, List
 
 
-async def notify_challenge_to_client(client: str, opponent: str, game_id: str):
+async def notify_challenge_to_client(
+    client: str,
+    opponent: str,
+    challenge_id: str,
+):
     await manager.send(
         client,
         websocket_events.EVENT_SEND_CHALLENGE,
         {
             'opponent': opponent,
-            'game_id': game_id,
+            'game_id': challenge_id,
         },
     )
 
