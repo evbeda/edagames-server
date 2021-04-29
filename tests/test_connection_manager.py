@@ -27,7 +27,6 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
             client = await self.manager.connect(websocket, token)
         self.assertEqual(client, expected)
         websocket.accept.assert_called()
-        print(notify_patched)
         notify_patched.assert_called()
 
     @parameterized.expand([
