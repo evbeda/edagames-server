@@ -26,6 +26,7 @@ class ConnectionManager:
         await websocket.accept()
         client = user_to_connect.get('user')
         self.connections[client] = websocket
+        await self.notify_user_list_changed()
         return client
 
     async def broadcast(self, data: Dict):
@@ -40,9 +41,10 @@ class ConnectionManager:
                 'data': data,
             }))
 
-    def remove_user(self, user):
+    async def remove_user(self, user):
         try:
             del self.connections[user]
+            await self.notify_user_list_changed()
         except KeyError:
             pass
 

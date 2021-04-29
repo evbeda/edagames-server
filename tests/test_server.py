@@ -12,7 +12,6 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
 
         with patch('server.server.manager', new_callable=AsyncMock) as manager_patched:
             manager_patched.connect.return_value = 'User 1'
-            manager_patched.remove_user = MagicMock()
             await server.session(websocket, 'token')
             manager_patched.connect.assert_called_with(websocket, 'token')
             manager_patched.remove_user.assert_called_with('User 1')
