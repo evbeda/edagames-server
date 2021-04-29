@@ -29,26 +29,25 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                         await AcceptChallenge(data, client).run()
                         start_patched.assert_called()
 
-    async def test_start_game(self):
+    @patch('server.server_event.notify_game_created')
+    @patch('server.server_event.notify_your_turn')
+    @patch.object(Game, 'next_turn')
+    async def test_start_game(self, mock_next_turn, n_your_turn, n_created):
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
-            with patch('server.server_event.notify_game_created') as n_created:
-                with patch('server.server_event.notify_your_turn') as n_your_turn:
-                    with patch.object(Game, 'next_turn') as mock_next_turn:
-                        adapter_patched = AsyncMock()
-                        adapter_patched.create_game.return_value = MagicMock(
-                            game_id='123987',
-                            current_player='Juan',
-                            turn_data={},
-                        )
-                        g_adapter_patched.return_value = adapter_patched
-                        self.game.turn_token = 'asd123'
-                        await AcceptChallenge({}, 'client').start_game(self.game)
-                        n_created.assert_called_with('123987')
-                        n_your_turn.assert_called_with('Juan', {'turn_token': 'asd123'})
-                        mock_next_turn.assert_called_with()
-                        self.assertEqual(self.game.turn_token, 'asd123')
-                        self.assertEqual(self.game.state, 'accepted')
-                        g_adapter_patched.assert_called_with(self.game.name)
+            adapter_patched = AsyncMock()
+            adapter_patched.create_game.return_value = MagicMock(
+                game_id='123987',
+                current_player='Juan',
+                turn_data={},
+            )
+            g_adapter_patched.return_value = adapter_patched
+            self.game.turn_token = 'asd123'
+            await AcceptChallenge({}, 'client').start_game(self.game)
+            g_adapter_patched.assert_called_with(self.game.name)
+            mock_next_turn.assert_called_with()
+            n_created.assert_called_with('123987')
+            n_your_turn.assert_called_with('Juan', {'turn_token': 'asd123'})
+            self.assertEqual(self.game.state, 'accepted')
 
     @parameterized.expand([
         ({"action": "accept_challenge", "data": {"turn_token": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
