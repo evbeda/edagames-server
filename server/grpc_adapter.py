@@ -7,7 +7,7 @@ cached_adapters = {}
 
 
 def discover_game(game_name: str):
-    return FAKE_SERVICE_DISCOVERY_QUORIDOR_HOST_PORT
+    return FAKE_SERVICE_DISCOVERY_QUORIDOR_HOST_PORT.split(':')
 
 
 class GRPCAdapterFactory:
@@ -17,6 +17,6 @@ class GRPCAdapterFactory:
             adapter = cached_adapters[game_name]
         except KeyError:
             # Service discovery goes here (?
-            adapter = ClientGRPC(discover_game(game_name))
+            adapter = ClientGRPC(*discover_game(game_name))
             cached_adapters[game_name] = adapter
         return adapter
