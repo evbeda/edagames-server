@@ -34,7 +34,6 @@ class AcceptChallenge(ServerEvent):
         for game in games:
             if game.challenge_id == challenge_id:
                 await self.start_game(game)
-                notify_game_created(game.challenge_id, game.challenge_id)
 
     async def start_game(self, game: Game):
         game.state = 'accepted'
@@ -42,6 +41,7 @@ class AcceptChallenge(ServerEvent):
         game_start_state = await adapter.create_game(game.players)
         game.next_turn()
         game.game_id = game_start_state.game_id
+        # notify_game_created(game.challenge_id, game.challenge_id)
         await notify_your_turn(
             game_start_state.current_player,
             game_start_state.turn_data.update({'turn_token': game.turn_token}),
