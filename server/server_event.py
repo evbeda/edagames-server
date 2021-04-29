@@ -25,16 +25,16 @@ class AcceptChallenge(ServerEvent):
         self.nameEvent = 'Challenge accepted'
 
     async def run(self):
-        game_id = self.response.get('data', {}).get('game_id')
-        if game_id is None:
+        challenge_id = self.response.get('data', {}).get('game_id')
+        if challenge_id is None:
             return await notify_error_to_client(
                 self.client,
                 str(GameIdException),
             )
         for game in games:
-            if game.game_id == game_id:
+            if game.challenge_id == challenge_id:
                 await self.start_game(game)
-                notify_game_created(game.challenge_id, game_id)
+                notify_game_created(game.challenge_id, game.challenge_id)
 
     async def start_game(self, game: Game):
         game.state = 'accepted'
