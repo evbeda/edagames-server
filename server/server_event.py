@@ -1,3 +1,5 @@
+import logging
+
 from server.connection_manager import manager
 from server.game import games, Game
 from server.websockets import (
@@ -8,6 +10,8 @@ from server.websockets import (
 from server.web_requests import notify_game_created
 from server.exception import GameIdException
 from server.grpc_adapter import GRPCAdapterFactory
+
+logging.basicConfig(level=logging.INFO)
 
 
 class ServerEvent(object):
@@ -55,6 +59,7 @@ class ListUsers(ServerEvent):
 
     async def run(self):
         users = list(manager.connections.keys())
+        logging.info('Users: {}'.format(users))
         await notify_user_list_to_client(self.client, users)
 
 
