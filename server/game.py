@@ -12,11 +12,12 @@ class Game:
         challenge_id: str,
         name: str = 'quoridor'
     ):
+        # to do: clean the challenge_id from web (not used)
         self.name = name
         self.players = players
         self.state = 'pending'
-        self.game_id = str(uuid.uuid4())
-        self.challenge_id = challenge_id
+        self.game_id = None
+        self.challenge_id = str(uuid.uuid4())
         self.turn_token = None
 
     def next_turn(self):
