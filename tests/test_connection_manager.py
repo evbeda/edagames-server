@@ -21,10 +21,14 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
     ])
     async def test_connect_valid(self, token, expected):
         websocket = AsyncMock()
+        notify_patched = AsyncMock()
+        self.manager.notify_user_list_changed = notify_patched
         with patch('server.connection_manager.JWT_TOKEN_KEY', 'EDAGame$!2021'):
             client = await self.manager.connect(websocket, token)
         self.assertEqual(client, expected)
         websocket.accept.assert_called()
+        print(notify_patched)
+        notify_patched.assert_called()
 
     @parameterized.expand([
         (
@@ -36,15 +40,20 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
     ])
     async def test_connect_invalid(self, token, expected):
         websocket = AsyncMock()
+        notify_patched = AsyncMock()
+        self.manager.notify_user_list_changed = notify_patched
         with patch('server.connection_manager.JWT_TOKEN_KEY', 'EDAGame$!2021'):
             await self.manager.connect(websocket, token)
         self.assertNotIn(expected, self.manager.connections)
         websocket.close.assert_called()
+        notify_patched.assert_not_called()
 
-    def test_remove_user(self):
+    @patch.object(ConnectionManager, 'notify_user_list_changed')
+    async def test_remove_user(self, notify_patched):
         self.manager.connections = {'Test Client 1': 'websocket'}
-        self.manager.remove_user('Test Client 1')
+        await self.manager.remove_user('Test Client 1')
         self.assertEqual({}, self.manager.connections)
+        notify_patched.assert_called()
 
     @parameterized.expand([
         (
