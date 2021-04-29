@@ -9,7 +9,7 @@ class Game:
     def __init__(
         self,
         players: List[str],
-        challenge_id: str,
+        challenge_id: str = None,
         name: str = 'quoridor'
     ):
         # to do: clean the challenge_id from web (not used)
