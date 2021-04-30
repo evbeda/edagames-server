@@ -29,6 +29,7 @@ async def notify_error_to_client(client: str, error: str):
 
 
 async def notify_your_turn(client: str, data: Dict):
+    print(data)
     await manager.send(
         client,
         websocket_events.EVENT_SEND_YOUR_TURN,
