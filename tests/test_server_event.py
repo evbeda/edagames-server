@@ -46,7 +46,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             await AcceptChallenge({}, 'client').start_game(self.game)
             g_adapter_patched.assert_called_with(self.game.name)
             mock_next_turn.assert_called_with()
-            n_created.assert_called_with('123987')
+            # n_created.assert_called_with('123987')
             n_your_turn.assert_called_with('Juan', {'turn_token': 'asd123'})
             self.assertEqual(self.game.state, 'accepted')
 
