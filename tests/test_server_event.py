@@ -30,10 +30,9 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 await AcceptChallenge(data, client).run()
                 mock_run.assert_called()
 
-    @patch('server.server_event.notify_game_created')
     @patch('server.server_event.notify_your_turn')
     @patch.object(Game, 'next_turn')
-    async def test_start_game(self, mock_next_turn, n_your_turn, n_created):
+    async def test_start_game(self, mock_next_turn, n_your_turn):
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
             adapter_patched = AsyncMock()
             adapter_patched.create_game.return_value = MagicMock(
