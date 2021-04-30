@@ -5,7 +5,7 @@ from server.websockets import (
     notify_your_turn,
     notify_user_list_to_client,
 )
-from server.web_requests import notify_game_created
+# from server.web_requests import notify_game_created
 from server.exception import GameIdException
 from server.grpc_adapter import GRPCAdapterFactory
 
