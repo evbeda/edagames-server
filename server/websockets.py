@@ -29,7 +29,6 @@ async def notify_error_to_client(client: str, error: str):
 
 
 async def notify_your_turn(client: str, data: Dict):
-    print(data)
     await manager.send(
         client,
         websocket_events.EVENT_SEND_YOUR_TURN,
@@ -44,4 +43,12 @@ async def notify_user_list_to_client(client: str, users: List[str]):
         {
             'users': users,
         },
+    )
+
+
+async def notify_end_game(players: List[str], data: Dict):
+    await manager.send(
+        client,
+        websocket_events.EVENT_END_GAME,
+        data,
     )
