@@ -4,6 +4,7 @@ from server.websockets import (
     notify_error_to_client,
     notify_your_turn,
     notify_user_list_to_client,
+    notify_end_game,
 )
 # from server.web_requests import notify_game_created
 from server.exception import GameIdException
@@ -81,9 +82,15 @@ class Movements(ServerEvent):
             game.game_id,
             self.response
         )
-        game.next_turn()
-        data_received.turn_data.update({'turn_token': game.turn_token})
-        return await notify_your_turn(
-            data_received.current_player,
-            data_received.turn_data,
-        )
+        if data_received.current_player == '':
+            await notify_end_game(
+                game.players,
+                data_received,
+            )
+        else:
+            game.next_turn()
+            data_received.turn_data.update({'turn_token': game.turn_token})
+            await notify_your_turn(
+                data_received.current_player,
+                data_received.turn_data,
+            )
