@@ -7,7 +7,6 @@ from server.websockets import (
     notify_end_game_to_client,
 )
 from server.web_requests import (
-    # notify_game_created,
     notify_end_game_to_web,
 )
 from server.exception import GameIdException
@@ -56,7 +55,6 @@ class AcceptChallenge(ServerEvent):
         game.next_turn()
         game.game_id = game_start_state.game_id
         game_start_state.turn_data.update({'turn_token': game.turn_token})
-        # notify_game_created(game.game_id)
         await notify_your_turn(
             game_start_state.current_player,
             game_start_state.turn_data,
@@ -91,7 +89,8 @@ class Movements(ServerEvent):
                 game.players,
                 data_received.turn_data,
             )
-            notify_end_game_to_web()
+            end_data = self.end_data(data_received.turn_data)
+            notify_end_game_to_web(game.game_id, end_data)
         else:
             game.next_turn()
             data_received.turn_data.update({'turn_token': game.turn_token})
@@ -99,3 +98,6 @@ class Movements(ServerEvent):
                 data_received.current_player,
                 data_received.turn_data,
             )
+
+    def end_data(self, data):
+        pass
