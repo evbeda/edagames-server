@@ -60,12 +60,16 @@ class AcceptChallenge(ServerEvent):
         game.next_turn()
         game.game_id = game_start_state.game_id
         game_start_state.turn_data.update({'turn_token': game.turn_token})
+        # game.set_timer(30, self.penalize(game))
+        # game.timer.start()
+        # notify_game_created(game.game_id)
         await notify_your_turn(
             game_start_state.current_player,
             game_start_state.turn_data,
         )
 
-    async def penalize(self, game, adapter):
+    async def penalize(self, game: Game):
+        adapter = await GRPCAdapterFactory.get_adapter(game.name)
         game_start_state = await adapter.penalize(game.game_id)
         game.next_turn()
         game_start_state.turn_data.update({'turn_token': game.turn_token})
@@ -73,7 +77,6 @@ class AcceptChallenge(ServerEvent):
             game_start_state.current_player,
             game_start_state.turn_data,
         )
-        # await notify_penalize_to_client
 
 
 class Movements(ServerEvent):

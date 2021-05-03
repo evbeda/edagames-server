@@ -130,3 +130,13 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         client = 'Test Client'
         res = await Movements({}, client).end_data_for_web(data)
         self.assertEqual(res, expected)
+
+    async def test_penalize(self):
+        with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched:
+            with patch('server.server_event.notify_your_turn') as notify_patched:
+                adapter_patched = AsyncMock()
+                adapter_patched.penalize.return_value = MagicMock()
+                Gadapter_patched.return_value = adapter_patched
+                await AcceptChallenge({}, 'client').penalize(self.game)
+                Gadapter_patched.assert_called_with(self.game.name)
+                notify_patched.assert_called()
