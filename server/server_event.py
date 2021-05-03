@@ -4,7 +4,7 @@ from server.websockets import (
     notify_error_to_client,
     notify_your_turn,
     notify_user_list_to_client,
-    notify_end_game,
+    notify_end_game_to_client,
 )
 from server.web_requests import (
     # notify_game_created,
@@ -87,9 +87,9 @@ class Movements(ServerEvent):
         )
         if data_received.current_player == '':
             game.state = 'ended'
-            await notify_end_game(
+            await notify_end_game_to_client(
                 game.players,
-                data_received,
+                data_received.turn_data,
             )
             notify_end_game_to_web()
         else:

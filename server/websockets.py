@@ -46,7 +46,7 @@ async def notify_user_list_to_client(client: str, users: List[str]):
     )
 
 
-async def notify_end_game(players: List[str], data: Dict):
+async def notify_end_game_to_client(players: List[str], data: Dict):
     for client in players:
         await manager.send(
             client,

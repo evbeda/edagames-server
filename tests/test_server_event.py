@@ -83,3 +83,21 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 await Movements({}, 'client').execute_action(self.game)
                 Gadapter_patched.assert_called_with(self.game.name)
                 notify_patched.assert_called()
+
+    @patch('server.server_event.notify_end_game_to_web')
+    @patch('server.server_event.notify_end_game_to_client')
+    async def test_end_game(self, mock_client, mock_web):
+        client = 'Test Client'
+        current_player = ''
+        turn_data = {'game_id': 'fjj020fjd21', 'winner': 'Player 2'}
+        with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
+            adapter_patched = AsyncMock()
+            adapter_patched.execute_action.return_value = MagicMock(
+                turn_data=turn_data,
+                current_player=current_player,
+            )
+            g_adapter_patched.return_value = adapter_patched
+            await Movements({}, client).execute_action(self.game)
+            mock_client.assert_called_once_with(self.game.players, turn_data)
+            mock_web.assert_called_once_with()
+            self.assertEqual(self.game.state, 'ended')
