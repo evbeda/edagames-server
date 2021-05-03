@@ -11,3 +11,7 @@ def notify_game_created(game_id):
             'game_id': game_id,
         })
     )
+
+
+def notify_end_game_to_web():
+    pass
