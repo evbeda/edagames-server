@@ -82,7 +82,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
         data = {'game_id': 'jf92j4-2jf', 'winner': 'User 2'}
         await notify_end_game_to_client(players, data)
         send_patched.assert_called_with(
-            players[len(players)-1],
+            players[len(players) - 1],
             websocket_events.EVENT_END_GAME,
             data,
         )
