@@ -47,8 +47,9 @@ async def notify_user_list_to_client(client: str, users: List[str]):
 
 
 async def notify_end_game(players: List[str], data: Dict):
-    await manager.send(
-        client,
-        websocket_events.EVENT_END_GAME,
-        data,
-    )
+    for client in players:
+        await manager.send(
+            client,
+            websocket_events.EVENT_END_GAME,
+            data,
+        )
