@@ -20,3 +20,4 @@ ACCEPT_CHALLENGE = 'accept_challenge'
 MOVEMENTS = 'movements'
 LIST_USERS = 'list_users'
 LAST_PLAYER = ''
+TIME_SLEEP = 4

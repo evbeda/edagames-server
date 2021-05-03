@@ -3,7 +3,6 @@ from typing import List
 
 from server.constants import GAME_STATE_PENDING
 
-import threading
 
 games = []
 
@@ -26,6 +25,3 @@ class Game:
 
     def next_turn(self):
         self.turn_token = str(uuid.uuid4())
-
-    def set_timer(self, time, func):
-        self.timer = threading.Timer(time, func)
