@@ -65,6 +65,16 @@ class AcceptChallenge(ServerEvent):
             game_start_state.turn_data,
         )
 
+    async def penalize(self, game, adapter):
+        game_start_state = await adapter.penalize(game.game_id)
+        game.next_turn()
+        game_start_state.turn_data.update({'turn_token': game.turn_token})
+        await notify_your_turn(
+            game_start_state.current_player,
+            game_start_state.turn_data,
+        )
+        # await notify_penalize_to_client
+
 
 class Movements(ServerEvent):
     def __init__(self, response, client):
@@ -80,6 +90,7 @@ class Movements(ServerEvent):
             )
         for game in games:
             if game.turn_token == turn_token:
+                # game.timer.cancel()
                 await self.execute_action(game)
 
     async def execute_action(self, game: Game):

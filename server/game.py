@@ -6,6 +6,7 @@ from server.constants import (
     DEFAULT_GAME
 )
 
+import threading
 
 games = []
 
@@ -24,6 +25,10 @@ class Game:
         self.game_id = None
         self.challenge_id = str(uuid.uuid4())
         self.turn_token = None
+        self.timer = None
 
     def next_turn(self):
         self.turn_token = str(uuid.uuid4())
+
+    def set_timer(self, time, func):
+        self.timer = threading.Timer(time, func)

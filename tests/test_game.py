@@ -29,3 +29,15 @@ class TestGame(unittest.TestCase):
         with patch('uuid.uuid4', return_value=turn_token):
             game.next_turn()
             self.assertEqual(game.turn_token, turn_token)
+
+    @parameterized.expand([
+        (
+            30,
+            'penalize',
+        )
+    ])
+    def test_set_timer(self, time, func):
+        game = Game(['p1', 'p2'], 123)
+        with patch('threading.Timer', return_value=True):
+            game.set_timer(time, func)
+            self.assertEqual(game.timer, True)
