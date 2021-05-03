@@ -3,7 +3,7 @@ import json
 import jwt
 from fastapi.logger import logger
 
-import server.websocket_events as websocket_events
+import server.constants as websocket_events
 from .environment import JWT_TOKEN_KEY
 
 from typing import Dict

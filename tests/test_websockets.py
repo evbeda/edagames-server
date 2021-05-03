@@ -10,7 +10,7 @@ from server.websockets import (
     notify_end_game_to_client,
 )
 
-import server.websocket_events as websocket_events
+import server.constants as websocket_events
 
 
 class TestWebsockets(unittest.IsolatedAsyncioTestCase):

@@ -1,9 +1,8 @@
 from parameterized import parameterized
 from httpx import AsyncClient
-from server.server import app
+from server.server import app, manager
 import unittest
 from unittest.mock import patch, AsyncMock
-from server.server import manager
 
 
 class TestRouter(unittest.IsolatedAsyncioTestCase):

@@ -11,6 +11,11 @@ from server.web_requests import (
 )
 from server.exception import GameIdException
 from server.grpc_adapter import GRPCAdapterFactory
+from server.constants import (
+    GAME_STATE_ACCEPTED,
+    GAME_STATE_ENDED,
+    LAST_PLAYER,
+)
 
 
 class ServerEvent(object):
@@ -49,7 +54,7 @@ class AcceptChallenge(ServerEvent):
                 await self.start_game(game)
 
     async def start_game(self, game: Game):
-        game.state = 'accepted'
+        game.state = GAME_STATE_ACCEPTED
         adapter = await GRPCAdapterFactory.get_adapter(game.name)
         game_start_state = await adapter.create_game(game.players)
         game.next_turn()
@@ -83,8 +88,8 @@ class Movements(ServerEvent):
             game.game_id,
             self.response
         )
-        if data_received.current_player == '':
-            game.state = 'ended'
+        if data_received.current_player == LAST_PLAYER:
+            game.state = GAME_STATE_ENDED
             await notify_end_game_to_client(
                 game.players,
                 data_received.turn_data,
@@ -100,4 +105,4 @@ class Movements(ServerEvent):
             )
 
     def end_data(self, data):
-        pass
+        return 'nada'

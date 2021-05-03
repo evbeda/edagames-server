@@ -3,7 +3,7 @@ from server.server_event import (
     Movements,
     ListUsers,
 )
-from server.websocket_events import (
+from server.constants import (
     ACCEPT_CHALLENGE,
     LIST_USERS,
 )
