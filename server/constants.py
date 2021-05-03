@@ -21,3 +21,4 @@ MOVEMENTS = 'movements'
 LIST_USERS = 'list_users'
 LAST_PLAYER = ''
 DEFAULT_GAME = 'quoridor'
+TIME_SLEEP = 4

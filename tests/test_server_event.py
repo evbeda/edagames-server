@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, AsyncMock, MagicMock
 from parameterized import parameterized
+import asyncio
 
 from server.game import Game, games
 from server.server_event import (
@@ -38,19 +39,21 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     @patch.object(Game, 'next_turn')
     async def test_start_game(self, mock_next_turn, n_your_turn):
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
-            adapter_patched = AsyncMock()
-            adapter_patched.create_game.return_value = MagicMock(
-                game_id='123987',
-                current_player='Juan',
-                turn_data={},
-            )
-            g_adapter_patched.return_value = adapter_patched
-            self.game.turn_token = 'asd123'
-            await AcceptChallenge({}, 'client').start_game(self.game)
-            g_adapter_patched.assert_called_with(self.game.name)
-            mock_next_turn.assert_called_with()
-            n_your_turn.assert_called_with('Juan', {'turn_token': 'asd123'})
-            self.assertEqual(self.game.state, GAME_STATE_ACCEPTED)
+            with patch.object(AcceptChallenge, 'penalize') as mock_penalize:
+                adapter_patched = AsyncMock()
+                adapter_patched.create_game.return_value = MagicMock(
+                    game_id='123987',
+                    current_player='Juan',
+                    turn_data={},
+                )
+                g_adapter_patched.return_value = adapter_patched
+                self.game.turn_token = 'asd123'
+                await AcceptChallenge({}, 'client').start_game(self.game)
+                mock_penalize.assert_called()
+                g_adapter_patched.assert_called_with(self.game.name)
+                mock_next_turn.assert_called_with()
+                n_your_turn.assert_called_with('Juan', {'turn_token': 'asd123'})
+                self.assertEqual(self.game.state, GAME_STATE_ACCEPTED)
 
     @parameterized.expand([
         ({"action": "accept_challenge", "data": {"turn_token": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
@@ -59,12 +62,14 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         client = 'Test Client 1'
         with patch('server.server_event.notify_error_to_client', new_callable=AsyncMock):
             with patch('server.server_event.notify_your_turn', new_callable=AsyncMock):
-                game = Game(['mov_player1', 'mov_player2'])
-                game.turn_token = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
-                games.append(game)
-                with patch.object(Movements, 'execute_action') as start_patched:
-                    await Movements(data, client).run()
-                    start_patched.assert_called()
+                with patch('asyncio.create_task', new_callable=MagicMock):
+                    game = Game(['mov_player1', 'mov_player2'])
+                    game.timer = asyncio.create_task()
+                    game.turn_token = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
+                    games.append(game)
+                    with patch.object(Movements, 'execute_action') as start_patched:
+                        await Movements(data, client).run()
+                        start_patched.assert_called()
 
     async def test_list_users(self):
         data = {'action': 'list_users'}
@@ -151,6 +156,8 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 adapter_patched = AsyncMock()
                 adapter_patched.penalize.return_value = MagicMock()
                 Gadapter_patched.return_value = adapter_patched
-                await AcceptChallenge({}, 'client').penalize(self.game)
-                Gadapter_patched.assert_called_with(self.game.name)
-                notify_patched.assert_called()
+                with patch('server.server_event.asyncio.sleep') as sleep_pached:
+                    await AcceptChallenge({}, 'client').penalize(self.game)
+                    sleep_pached.assert_called()
+                    Gadapter_patched.assert_called_with(self.game.name)
+                    notify_patched.assert_called()
