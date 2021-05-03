@@ -7,6 +7,7 @@ from server.websockets import (
     notify_challenge_to_client,
     notify_your_turn,
     notify_user_list_to_client,
+    notify_end_game_to_client,
 )
 
 import server.websocket_events as websocket_events
@@ -74,3 +75,15 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
                 'users': users,
             },
         )
+
+    @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
+    async def test_notify_end_game_to_client(self, send_patched):
+        players = ['User 1', 'User 2']
+        data = {'game_id': 'jf92j4-2jf', 'winner': 'User 2'}
+        await notify_end_game_to_client(players, data)
+        send_patched.assert_called_with(
+            players[len(players)-1],
+            websocket_events.EVENT_END_GAME,
+            data,
+        )
+        self.assertEqual(send_patched.call_count, len(players))
