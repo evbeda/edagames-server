@@ -1,7 +1,8 @@
 import unittest
-from server.game import Game
 from parameterized import parameterized
 from unittest.mock import patch
+
+from server.game import Game
 
 
 class TestGame(unittest.TestCase):

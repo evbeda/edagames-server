@@ -1,4 +1,4 @@
-from server.exception_code import GAMEIDERROR
+from server.constants import GAMEIDERROR
 
 
 class GameIdException(Exception):

@@ -3,11 +3,15 @@ from unittest.mock import patch, AsyncMock, MagicMock
 from parameterized import parameterized
 
 from server.game import Game, games
-
 from server.server_event import (
     AcceptChallenge,
     Movements,
     ListUsers,
+)
+from server.constants import (
+    GAME_STATE_ACCEPTED,
+    GAME_STATE_ENDED,
+    LAST_PLAYER,
 )
 
 
@@ -45,9 +49,8 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             await AcceptChallenge({}, 'client').start_game(self.game)
             g_adapter_patched.assert_called_with(self.game.name)
             mock_next_turn.assert_called_with()
-            # n_created.assert_called_with('123987')
             n_your_turn.assert_called_with('Juan', {'turn_token': 'asd123'})
-            self.assertEqual(self.game.state, 'accepted')
+            self.assertEqual(self.game.state, GAME_STATE_ACCEPTED)
 
     @parameterized.expand([
         ({"action": "accept_challenge", "data": {"turn_token": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
@@ -84,20 +87,22 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 Gadapter_patched.assert_called_with(self.game.name)
                 notify_patched.assert_called()
 
+    @patch.object(Movements, 'end_data', return_value={'player_1': 1000})
     @patch('server.server_event.notify_end_game_to_web')
     @patch('server.server_event.notify_end_game_to_client')
-    async def test_end_game(self, mock_client, mock_web):
+    async def test_end_game(self, mock_client, mock_web, mock_end_data):
         client = 'Test Client'
-        current_player = ''
         turn_data = {'game_id': 'fjj020fjd21', 'winner': 'Player 2'}
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
             adapter_patched = AsyncMock()
             adapter_patched.execute_action.return_value = MagicMock(
                 turn_data=turn_data,
-                current_player=current_player,
+                current_player=LAST_PLAYER,
             )
             g_adapter_patched.return_value = adapter_patched
             await Movements({}, client).execute_action(self.game)
             mock_client.assert_called_once_with(self.game.players, turn_data)
-            mock_web.assert_called_once_with()
-            self.assertEqual(self.game.state, 'ended')
+            mock_web.assert_called_once_with(
+                self.game.game_id, {'player_1': 1000}
+            )
+            self.assertEqual(self.game.state, GAME_STATE_ENDED)

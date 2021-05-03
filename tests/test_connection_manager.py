@@ -4,7 +4,7 @@ from parameterized import parameterized
 from unittest.mock import MagicMock, AsyncMock, patch
 
 from server.connection_manager import ConnectionManager
-import server.websocket_events as websocket_events
+import server.constants as websocket_events
 
 
 class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
