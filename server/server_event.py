@@ -1,5 +1,6 @@
 from server.connection_manager import manager
 from server.game import games, Game
+import asyncio
 from server.websockets import (
     notify_error_to_client,
     notify_your_turn,
@@ -16,6 +17,8 @@ from server.constants import (
     GAME_STATE_ENDED,
     LAST_PLAYER,
 )
+
+from server.websocket_events import TIME_SLEEP
 
 
 class ServerEvent(object):
@@ -60,15 +63,16 @@ class AcceptChallenge(ServerEvent):
         game.next_turn()
         game.game_id = game_start_state.game_id
         game_start_state.turn_data.update({'turn_token': game.turn_token})
-        # game.set_timer(30, self.penalize(game))
-        # game.timer.start()
         # notify_game_created(game.game_id)
         await notify_your_turn(
             game_start_state.current_player,
             game_start_state.turn_data,
         )
+        game.timer = asyncio.create_task(self.penalize(game))
+        await game.timer
 
     async def penalize(self, game: Game):
+        await asyncio.sleep(TIME_SLEEP)
         adapter = await GRPCAdapterFactory.get_adapter(game.name)
         game_start_state = await adapter.penalize(game.game_id)
         game.next_turn()
@@ -93,7 +97,7 @@ class Movements(ServerEvent):
             )
         for game in games:
             if game.turn_token == turn_token:
-                # game.timer.cancel()
+                game.timer.close()
                 await self.execute_action(game)
 
     async def execute_action(self, game: Game):
