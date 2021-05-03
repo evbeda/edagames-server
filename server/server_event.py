@@ -94,7 +94,7 @@ class Movements(ServerEvent):
                 game.players,
                 data_received.turn_data,
             )
-            end_data = self.end_data(data_received.turn_data)
+            end_data = await self.end_data_for_web(data_received.turn_data)
             notify_end_game_to_web(game.game_id, end_data)
         else:
             game.next_turn()
@@ -104,5 +104,7 @@ class Movements(ServerEvent):
                 data_received.turn_data,
             )
 
-    def end_data(self, data):
-        return 'nada'
+    async def end_data_for_web(self, data):
+        players = [value for key, value in data.items() if 'player' in key]
+        scores = [value for key, value in data.items() if 'score' in key]
+        return list(zip(players, scores))
