@@ -1,6 +1,7 @@
 # Websocket events
 EVENT_SEND_CHALLENGE = 'challenge'
 EVENT_SEND_ERROR = 'error'
+EVENT_SEND_PENALIZE = 'penalize'
 EVENT_SEND_YOUR_TURN = 'your_turn'
 EVENT_LIST_USERS = 'list_users'
 EVENT_GAME_OVER = 'game_over'
