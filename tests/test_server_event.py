@@ -114,6 +114,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(self.game.state, GAME_STATE_ENDED)
 
     @parameterized.expand([
+        # Dicctionary in order
         (
             {
                 'player_1': 'pedro',
@@ -123,7 +124,20 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 'score_2': 2000,
                 'remaining_moves': 130,
             },
-            [('pedro', 1000), ('pablo', 2000)],
+            [('pablo', 2000), ('pedro', 1000)],
+        ),
+        # untidy players in dicctionary
+        (
+            {
+                'player_2': 'pablo',
+                'player_1': 'pedro',
+                'game_id': 'f932jf',
+                'score_1': 1000,
+                'score_2': 2000,
+                'remaining_moves': 130,
+            },
+            [('pablo', 2000), ('pedro', 1000)],
+
         ),
     ])
     async def test_end_data_for_web(self, data, expected):
