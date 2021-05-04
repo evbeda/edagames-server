@@ -8,13 +8,11 @@ from server.server_event import (
     AcceptChallenge,
     Movements,
     ListUsers,
-    penalize
 )
 from server.constants import (
     GAME_STATE_ACCEPTED,
     GAME_STATE_ENDED,
     LAST_PLAYER,
-    TIME_SLEEP
 )
 
 
@@ -120,18 +118,6 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             )
             mock_end_data.assert_awaited_once_with(turn_data)
             self.assertEqual(self.game.state, GAME_STATE_ENDED)
-
-    async def test_penalize(self):
-        with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched:
-            with patch('server.server_event.notify_your_turn') as notify_patched:
-                adapter_patched = AsyncMock()
-                adapter_patched.penalize.return_value = MagicMock()
-                Gadapter_patched.return_value = adapter_patched
-                with patch('server.server_event.asyncio.sleep') as sleep_pached:
-                    await penalize(self.game)
-                    sleep_pached.assert_called_with(TIME_SLEEP)
-                    Gadapter_patched.assert_called_with(self.game.name)
-                    notify_patched.assert_called()
 
     @parameterized.expand([
         # Dicctionary in order
