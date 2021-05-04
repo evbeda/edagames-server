@@ -37,7 +37,7 @@ class ConnectionManager:
                 'data': data,
             }))
 
-    async def send(self, client: str, event: str, data: Dict):
+    async def send_client(self, client: str, event: str, data: Dict):
         client_websocket = self.connections.get(client)
         logger.info('[Websocket]Send: Client : {} Event:{} ,data :{}'.format(client, event, data))
         if client_websocket is not None:
