@@ -8,11 +8,13 @@ from server.server_event import (
     AcceptChallenge,
     Movements,
     ListUsers,
+    penalize
 )
 from server.constants import (
     GAME_STATE_ACCEPTED,
     GAME_STATE_ENDED,
     LAST_PLAYER,
+    TIME_SLEEP
 )
 
 
@@ -39,7 +41,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     @patch.object(Game, 'next_turn')
     async def test_start_game(self, mock_next_turn, n_your_turn):
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
-            with patch.object(AcceptChallenge, 'penalize') as mock_penalize:
+            with patch('server.server_event.penalize') as mock_penalize:
                 adapter_patched = AsyncMock()
                 adapter_patched.create_game.return_value = MagicMock(
                     game_id='123987',
@@ -49,7 +51,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 g_adapter_patched.return_value = adapter_patched
                 self.game.turn_token = 'asd123'
                 await AcceptChallenge({}, 'client').start_game(self.game)
-                mock_penalize.assert_called()
+                mock_penalize.assert_called_with(self.game)
                 g_adapter_patched.assert_called_with(self.game.name)
                 mock_next_turn.assert_called_with()
                 n_your_turn.assert_called_with('Juan', {'turn_token': 'asd123'})
@@ -75,7 +77,6 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         data = {'action': 'list_users'}
         client = 'User 1'
         users = ['User 1', 'User 2', 'User 3']
-
         with patch('server.server_event.notify_user_list_to_client', new_callable=AsyncMock) as notify_patched,\
                 patch('server.server_event.manager') as manager_patched:
             manager_patched.connections.keys.return_value = users
@@ -85,12 +86,14 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     async def test_execute_action(self):
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched:
             with patch('server.server_event.notify_your_turn') as notify_patched:
-                adapter_patched = AsyncMock()
-                adapter_patched.execute_action.return_value = MagicMock()
-                Gadapter_patched.return_value = adapter_patched
-                await Movements({}, 'client').execute_action(self.game)
-                Gadapter_patched.assert_called_with(self.game.name)
-                notify_patched.assert_called()
+                with patch('server.server_event.penalize') as mock_penalize:
+                    adapter_patched = AsyncMock()
+                    adapter_patched.execute_action.return_value = MagicMock()
+                    Gadapter_patched.return_value = adapter_patched
+                    await Movements({}, 'client').execute_action(self.game)
+                    Gadapter_patched.assert_called_with(self.game.name)
+                    mock_penalize.assert_called()
+                    notify_patched.assert_called()
 
     @patch.object(Movements, 'end_data_for_web', return_value={'player_1': 1000}, new_callable=AsyncMock)
     @patch('server.server_event.notify_end_game_to_web', new_callable=AsyncMock)
@@ -117,6 +120,18 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             )
             mock_end_data.assert_awaited_once_with(turn_data)
             self.assertEqual(self.game.state, GAME_STATE_ENDED)
+
+    async def test_penalize(self):
+        with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched:
+            with patch('server.server_event.notify_your_turn') as notify_patched:
+                adapter_patched = AsyncMock()
+                adapter_patched.penalize.return_value = MagicMock()
+                Gadapter_patched.return_value = adapter_patched
+                with patch('server.server_event.asyncio.sleep') as sleep_pached:
+                    await penalize(self.game)
+                    sleep_pached.assert_called_with(TIME_SLEEP)
+                    Gadapter_patched.assert_called_with(self.game.name)
+                    notify_patched.assert_called()
 
     @parameterized.expand([
         # Dicctionary in order
@@ -149,15 +164,3 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         client = 'Test Client'
         res = await Movements({}, client).end_data_for_web(data)
         self.assertEqual(res, expected)
-
-    async def test_penalize(self):
-        with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched:
-            with patch('server.server_event.notify_your_turn') as notify_patched:
-                adapter_patched = AsyncMock()
-                adapter_patched.penalize.return_value = MagicMock()
-                Gadapter_patched.return_value = adapter_patched
-                with patch('server.server_event.asyncio.sleep') as sleep_pached:
-                    await AcceptChallenge({}, 'client').penalize(self.game)
-                    sleep_pached.assert_called()
-                    Gadapter_patched.assert_called_with(self.game.name)
-                    notify_patched.assert_called()
