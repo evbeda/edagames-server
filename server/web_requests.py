@@ -4,7 +4,7 @@ import json
 import server.web_urls as web_urls
 
 
-def notify_end_game_to_web(game_id, data):
+async def notify_end_game_to_web(game_id, data):
     requests.post(
         web_urls.GAME_URL,
         json=json.dumps({
