@@ -90,11 +90,6 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         ),
     ])
     async def test_broadcast(self, connections):
-        connections = {
-            'Test Client 1': 'websocket1',
-            'Test Client 2': 'websocket2',
-            'Test Client 3': 'websocket3',
-        }
         event = 'event'
         data = {'data': "Test Message 1"}
         self.manager.connections = connections
