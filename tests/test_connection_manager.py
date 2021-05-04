@@ -17,7 +17,19 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiVGVzdCBDbGllbnQgMSJ9'
             '.zrXQiT77v9jnUVsZHr41HAZVDnJtRa84t8hmRVdzPck',
             'Test Client 1',
-        )
+        ),
+        (
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
+            'eyJ1c2VyIjoiUGVkcm8ifQ.'
+            'h85yCXGm1BdXbKKnLgOJ52vHAdGmcUpJ5gfCgjYyAJQ',
+            'Pedro',
+        ),
+        (
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
+            'eyJ1c2VyIjoiUGFibG8ifQ.'
+            '3qIB7M-S34ALo1XQQ-7V4Zvzou3SPL5lJsWbINHOFBc',
+            'Pablo',
+        ),
     ])
     async def test_connect_valid(self, token, expected):
         websocket = AsyncMock()
@@ -31,19 +43,26 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
 
     @parameterized.expand([
         (
-            '/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
             'eyJ1c2VyIjoiVXNlciBUZXN0NCJ9.'
-            'p6MnNJLD5jwTH1C0PvqUb-spfc7XW7xf6gQjSiDrktg&action=NULL&msg=NULL',
-            'Test Client 1',
-        )
+            'p6MnNJLD5jwTH1C0PvqUb-spfc7XW7xf6gQjSiDrktg',
+        ),
+        (
+            'eyJhbGciOiJIUzsInR5cCI6IkpXVCJ9.'
+            'eyJ1c2VyIjoiciBUZXN0NCJ9.'
+            'p6MnNJLD5jwTH1C0PvqUb-sp',
+        ),
+        (
+            '',
+        ),
     ])
-    async def test_connect_invalid(self, token, expected):
+    async def test_connect_invalid(self, token):
         websocket = AsyncMock()
         notify_patched = AsyncMock()
         self.manager.notify_user_list_changed = notify_patched
         with patch('server.connection_manager.JWT_TOKEN_KEY', 'EDAGame$!2021'):
             await self.manager.connect(websocket, token)
-        self.assertNotIn(expected, self.manager.connections)
+        self.assertEqual({}, self.manager.connections)
         websocket.close.assert_called()
         notify_patched.assert_not_called()
 
