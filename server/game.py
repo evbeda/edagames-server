@@ -1,7 +1,10 @@
 import uuid
 from typing import List
 
-from server.constants import GAME_STATE_PENDING
+from server.constants import (
+    GAME_STATE_PENDING,
+    DEFAULT_GAME
+)
 
 
 games = []
@@ -12,7 +15,7 @@ class Game:
         self,
         players: List[str],
         challenge_id: str = None,
-        name: str = 'quoridor'
+        name: str = DEFAULT_GAME
     ):
         # to do: clean the challenge_id from web (not used)
         self.name = name
