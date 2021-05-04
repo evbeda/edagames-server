@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import WebSocket
 import json
 import jwt
@@ -6,7 +7,7 @@ from uvicorn.config import logger
 import server.constants as websocket_events
 from .environment import JWT_TOKEN_KEY
 
-from typing import Dict
+from typing import Dict, List
 
 
 class ConnectionManager:
@@ -32,19 +33,36 @@ class ConnectionManager:
 
     async def broadcast(self, event: str, data: Dict):
         for client_websocket in self.connections.values():
-            await client_websocket.send_text(json.dumps({
-                'event': event,
-                'data': data,
-            }))
+            asyncio.create_task(self.send(
+                client_websocket,
+                event,
+                data,
+            ))
+
+    async def bulk_send(self, clients: List[str], event: str, data: Dict):
+        for client in clients:
+            asyncio.create_task(self.send(
+                self.connections.get(client),
+                event,
+                data,
+            ))
 
     async def send_client(self, client: str, event: str, data: Dict):
-        client_websocket = self.connections.get(client)
-        logger.info('[Websocket]Send: Client : {} Event:{} ,data :{}'.format(client, event, data))
-        if client_websocket is not None:
-            await client_websocket.send_text(json.dumps({
+        await self.send(
+            self.connections.get(client),
+            event,
+            data,
+        )
+
+    async def send(self, client_ws: WebSocket, event: str, data: Dict):
+        logger.info(f'[Websocket] Send: Event: {event}, data: {data}')
+        try:
+            await client_ws.send_text(json.dumps({
                 'event': event,
                 'data': data,
             }))
+        except Exception as e:
+            logger.info(str(e))
 
     async def remove_user(self, user):
         try:
