@@ -105,6 +105,7 @@ class Movements(ServerEvent):
             )
 
     async def end_data_for_web(self, data):
-        return sorted(
-            [(value, data.get('score_'+key[7])) for key, value in data.items() if 'player' in key]
-        )
+        return sorted([
+            (value, data.get('score_'+key[7]))
+            for key, value in data.items() if 'player' in key
+        ])

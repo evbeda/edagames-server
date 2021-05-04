@@ -1,30 +1,31 @@
 import unittest
-from parameterized import parameterized
 from unittest.mock import patch
 
 from server.game import Game
+from server.constants import (
+    DEFAULT_GAME,
+    GAME_STATE_PENDING,
+)
 
 
 class TestGame(unittest.TestCase):
-    @parameterized.expand([
-        (
-            'User 1',
-            'User 2',
-            393923,
-        )
-    ])
-    def test_game(self, user, challenged_player, challenge_id):
-        game = Game([user, challenged_player], challenge_id)
-        self.assertIn(user, game.players)
-        self.assertIn(challenged_player, game.players)
 
-    @parameterized.expand([
-        (
-            'c303282d-f2e6-46ca-a04a-35d3d873712d',
-        )
-    ])
-    def test_next_turn(self, turn_token):
+    def test_game(self):
+        challenge_id = 'id_test'
+        challenger = 'User 1'
+        challenged = 'User 2'
+        with patch('uuid.uuid4', return_value=challenge_id):
+            game = game = Game([challenger, challenged], 393923)
+            self.assertEqual([challenger, challenged], game.players)
+            self.assertEqual(DEFAULT_GAME, game.name)
+            self.assertEqual(challenge_id, game.challenge_id)
+            self.assertEqual(None, game.game_id)
+            self.assertEqual(None, game.turn_token)
+            self.assertEqual(GAME_STATE_PENDING, game.state)
+
+    def test_next_turn(self):
+        turn_token = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
         game = Game(['p1', 'p2'], 123)
-        with patch('uuid.uuid4', return_value='c303282d-f2e6-46ca-a04a-35d3d873712d'):
+        with patch('uuid.uuid4', return_value=turn_token):
             game.next_turn()
             self.assertEqual(game.turn_token, turn_token)
