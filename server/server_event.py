@@ -16,9 +16,20 @@ from server.constants import (
     GAME_STATE_ACCEPTED,
     GAME_STATE_ENDED,
     LAST_PLAYER,
+    TIME_SLEEP
 )
 
-from server.websocket_events import TIME_SLEEP
+
+async def penalize(game: Game):
+    await asyncio.sleep(TIME_SLEEP)
+    adapter = await GRPCAdapterFactory.get_adapter(game.name)
+    game_start_state = await adapter.penalize(game.game_id)
+    game.next_turn()
+    game_start_state.turn_data.update({'turn_token': game.turn_token})
+    await notify_your_turn(
+        game_start_state.current_player,
+        game_start_state.turn_data,
+    )
 
 
 class ServerEvent(object):
@@ -68,19 +79,8 @@ class AcceptChallenge(ServerEvent):
             game_start_state.current_player,
             game_start_state.turn_data,
         )
-        game.timer = asyncio.create_task(self.penalize(game))
+        game.timer = asyncio.create_task(penalize(game))
         await game.timer
-
-    async def penalize(self, game: Game):
-        await asyncio.sleep(TIME_SLEEP)
-        adapter = await GRPCAdapterFactory.get_adapter(game.name)
-        game_start_state = await adapter.penalize(game.game_id)
-        game.next_turn()
-        game_start_state.turn_data.update({'turn_token': game.turn_token})
-        await notify_your_turn(
-            game_start_state.current_player,
-            game_start_state.turn_data,
-        )
 
 
 class Movements(ServerEvent):
@@ -121,6 +121,8 @@ class Movements(ServerEvent):
                 data_received.current_player,
                 data_received.turn_data,
             )
+            game.timer = asyncio.create_task(penalize(game))
+            await game.timer
 
     async def end_data_for_web(self, data):
         players = [value for key, value in data.items() if 'player' in key]
