@@ -98,7 +98,7 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         await self.manager.broadcast(event, data)
         connection.send_text.assert_called_with(expected)
 
-    async def test_manager_send(self):
+    async def test_manager_send_client(self):
         user = 'User'
         event = 'event'
         data = {
@@ -112,7 +112,7 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
             user: websocket_patched,
         }
 
-        await self.manager.send(
+        await self.manager.send_client(
             user,
             event,
             data,
