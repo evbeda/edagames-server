@@ -22,7 +22,6 @@ async def session(websocket: WebSocket, token):
             except json.decoder.JSONDecodeError:
                 data = {}
             await FactoryServerEvent.get_event(data, client).run()
-            # await manager.broadcast(f'Your msg is {data}')
     except starlette.websockets.WebSocketDisconnect:
         await manager.remove_user(client)
         return

@@ -1,7 +1,7 @@
 from fastapi import WebSocket
 import json
 import jwt
-from fastapi.logger import logger
+from uvicorn.config import logger
 
 import server.constants as websocket_events
 from .environment import JWT_TOKEN_KEY
@@ -36,7 +36,7 @@ class ConnectionManager:
 
     async def send(self, client: str, event: str, data: Dict):
         client_websocket = self.connections.get(client)
-        logger.info('[Websocket]Send: Event:{} ,data :{}'.format(event, data))
+        logger.info('[Websocket]Send: Client : {} Event:{} ,data :{}'.format(client, event, data))
         if client_websocket is not None:
             await client_websocket.send_text(json.dumps({
                 'event': event,
