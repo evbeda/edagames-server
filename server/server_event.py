@@ -12,7 +12,7 @@ from server.web_requests import (
 )
 from server.exception import GameIdException
 from server.grpc_adapter import GRPCAdapterFactory
-from server.utilities_server_event import penalize
+from server.utilities_server_event import penalize, search_value
 from server.constants import (
     GAME_STATE_ACCEPTED,
     GAME_STATE_ENDED,
@@ -45,12 +45,7 @@ class AcceptChallenge(ServerEvent):
         self.nameEvent = 'Challenge accepted'
 
     async def run(self):
-        challenge_id = self.response.get('data', {}).get('game_id')
-        if challenge_id is None:
-            return await notify_error_to_client(
-                self.client,
-                str(GameIdException),
-            )
+        challenge_id = await search_value(self.response, self.client, 'challenge_id')
         for game in games:
             if game.challenge_id == challenge_id:
                 await self.start_game(game)
@@ -62,7 +57,6 @@ class AcceptChallenge(ServerEvent):
         game.next_turn()
         game.game_id = game_start_state.game_id
         game_start_state.turn_data.update({'turn_token': game.turn_token})
-        # notify_game_created(game.game_id)
         await notify_your_turn(
             game_start_state.current_player,
             game_start_state.turn_data,
