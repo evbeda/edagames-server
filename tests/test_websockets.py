@@ -88,16 +88,3 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             data,
         )
         self.assertEqual(send_patched.call_count, len(players))
-
-    async def test_notify_penalize(self, send_patched):
-        challenge_sender = 'User 1'
-        data = {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d", "state": "invalid movement"}
-        await notify_your_turn(
-            challenge_sender,
-            data
-        )
-        send_patched.assert_called_with(
-            challenge_sender,
-            websocket_events.EVENT_SEND_YOUR_TURN,
-            data
-        )
