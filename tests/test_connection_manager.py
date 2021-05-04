@@ -1,7 +1,6 @@
 import unittest
-import json
 from parameterized import parameterized
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, AsyncMock, patch, call
 
 from server.connection_manager import ConnectionManager
 import server.constants as websocket_events
@@ -75,55 +74,75 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
 
     @parameterized.expand([
         (
-            'some_event',
-            {'data': 'Test Message 1'},
-            '{"event": "some_event", "data": {"data": "Test Message 1"}}',
+            {
+                'Test Client 1': 'websocket1',
+                'Test Client 2': 'websocket2',
+                'Test Client 3': 'websocket3',
+            },
         ),
         (
-            'empty',
+            {
+                'Test Client 1': 'websocket1',
+            },
+        ),
+        (
             {},
-            '{"event": "empty", "data": {}}',
-        ),
-        (
-            '',
-            '',
-            '{"event": "", "data": ""}',
         ),
     ])
-    async def test_broadcast(self, event, data, expected):
-        connection = MagicMock()
-        connection.send_text = AsyncMock()
-        self.manager.connections = {'Test Client 1': connection}
+    async def test_broadcast(self, connections):
+        connections = {
+            'Test Client 1': 'websocket1',
+            'Test Client 2': 'websocket2',
+            'Test Client 3': 'websocket3',
+        }
+        event = 'event'
+        data = {'data': "Test Message 1"}
+        self.manager.connections = connections
+        with patch('asyncio.create_task') as create_task_patched,\
+                patch.object(ConnectionManager, 'send', new_callable=MagicMock) as send_patched:
+            await self.manager.broadcast(event, data)
+        self.assertEqual(len(create_task_patched.mock_calls), len(connections))
+        send_patched.assert_has_calls(
+            [call(ws, event, data) for ws in connections.values()]
+        )
 
-        await self.manager.broadcast(event, data)
-        connection.send_text.assert_called_with(expected)
-
-    async def test_manager_send_client(self):
+    @patch.object(ConnectionManager, 'send')
+    async def test_manager_send_client(self, send_patched):
         user = 'User'
         event = 'event'
         data = {
             'data': 'some data',
             'other_data': 'some other data',
         }
-
-        websocket_patched = MagicMock()
-        websocket_patched.send_text = AsyncMock()
-        self.manager.connections = {
-            user: websocket_patched,
-        }
-
-        await self.manager.send_client(
-            user,
+        self.manager.connections = {user: 'user_websocket'}
+        await self.manager.send_client(user, event, data)
+        send_patched.assert_called_with(
+            'user_websocket',
             event,
             data,
         )
 
-        websocket_patched.send_text.assert_called_with(
-            json.dumps({
-                'event': event,
-                'data': data
-            })
-        )
+    # async def test_manager_send_bulk(self):
+    #     pass
+
+    # async def test_manager_send(self):
+    #     websocket_patched = AsyncMock()
+    #     self.manager.connections = {
+    #         user: websocket_patched,
+    #     }
+
+    #     await self.manager.send_client(
+    #         user,
+    #         event,
+    #         data,
+    #     )
+
+    #     websocket_patched.send_text.assert_called_with(
+    #         json.dumps({
+    #             'event': event,
+    #             'data': data
+    #         })
+    #     )
 
     @patch.object(ConnectionManager, 'broadcast')
     async def test_notify_user_list_changed(self, broadcast_patched):
