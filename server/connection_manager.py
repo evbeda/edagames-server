@@ -30,9 +30,12 @@ class ConnectionManager:
         await self.notify_user_list_changed()
         return client
 
-    async def broadcast(self, data: Dict):
-        for connection in self.connections.values():
-            await connection.send_text(json.dumps(data))
+    async def broadcast(self, event: str, data: Dict):
+        for client_websocket in self.connections.values():
+            await client_websocket.send_text(json.dumps({
+                'event': event,
+                'data': data,
+            }))
 
     async def send(self, client: str, event: str, data: Dict):
         client_websocket = self.connections.get(client)
@@ -51,14 +54,13 @@ class ConnectionManager:
             logger.info('[Websocket]exception {}'.format(e))
 
     async def notify_user_list_changed(self):
-        data = {
-            'event': websocket_events.EVENT_LIST_USERS,
-            'data': {
+        logger.info('[Websocket]Users {}'.format(list(self.connections.keys())))
+        await self.broadcast(
+            websocket_events.EVENT_LIST_USERS,
+            {
                 'users': list(self.connections.keys()),
             },
-        }
-        logger.info('[Websocket]Users {}'.format(list(self.connections.keys())))
-        await self.broadcast(data)
+        )
 
 
 manager = ConnectionManager()
