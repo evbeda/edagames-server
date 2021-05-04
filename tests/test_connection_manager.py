@@ -75,16 +75,17 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
 
     @parameterized.expand([
         (
-            'Test Message 1',
-        )
+            {'data': 'Test Message 1'},
+            '{"data": "Test Message 1"}',
+        ),
     ])
-    async def test_broadcast(self, data):
+    async def test_broadcast(self, data, expected):
         connection = MagicMock()
         connection.send_text = AsyncMock()
         self.manager.connections = {'Test Client 1': connection}
 
         await self.manager.broadcast(data)
-        connection.send_text.assert_called()
+        connection.send_text.assert_called_with(expected)
 
     async def test_manager_send(self):
         user = 'User'
