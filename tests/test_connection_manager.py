@@ -75,16 +75,27 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
 
     @parameterized.expand([
         (
+            'some_event',
             {'data': 'Test Message 1'},
-            '{"data": "Test Message 1"}',
+            '{"event": "some_event", "data": {"data": "Test Message 1"}}',
+        ),
+        (
+            'empty',
+            {},
+            '{"event": "empty", "data": {}}',
+        ),
+        (
+            '',
+            '',
+            '{"event": "", "data": ""}',
         ),
     ])
-    async def test_broadcast(self, data, expected):
+    async def test_broadcast(self, event, data, expected):
         connection = MagicMock()
         connection.send_text = AsyncMock()
         self.manager.connections = {'Test Client 1': connection}
 
-        await self.manager.broadcast(data)
+        await self.manager.broadcast(event, data)
         connection.send_text.assert_called_with(expected)
 
     async def test_manager_send(self):
@@ -122,9 +133,9 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
             'client 3': 'websocket',
         }
         await self.manager.notify_user_list_changed()
-        broadcast_patched.assert_called_with({
-            'event': websocket_events.EVENT_LIST_USERS,
-            'data': {
+        broadcast_patched.assert_called_with(
+            websocket_events.EVENT_LIST_USERS,
+            {
                 'users': ['client 1', 'client 2', 'client 3'],
             },
-        })
+        )
