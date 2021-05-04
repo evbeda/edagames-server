@@ -14,6 +14,7 @@ import server.constants as websocket_events
 
 
 class TestWebsockets(unittest.IsolatedAsyncioTestCase):
+
     @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
     async def test_notify_error_to_client(self, send_patched):
         client = 'User 1'
@@ -22,7 +23,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             client,
             error,
         )
-        send_patched.assert_called_with(
+        send_patched.assert_awaited_once_with(
             client,
             websocket_events.EVENT_SEND_ERROR,
             {
@@ -40,7 +41,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             challenge_sender,
             test_game_id,
         )
-        send_patched.assert_called_with(
+        send_patched.assert_awaited_once_with(
             challenge_receiver,
             websocket_events.EVENT_SEND_CHALLENGE,
             {
@@ -57,7 +58,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             challenge_sender,
             data
         )
-        send_patched.assert_called_with(
+        send_patched.assert_awaited_once_with(
             challenge_sender,
             websocket_events.EVENT_SEND_YOUR_TURN,
             data
@@ -68,7 +69,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
         client = 'User 1'
         users = ['User 1', 'User 2', 'User 3']
         await notify_user_list_to_client(client, users)
-        send_patched.assert_called_with(
+        send_patched.assert_awaited_once_with(
             client,
             websocket_events.EVENT_LIST_USERS,
             {
@@ -81,7 +82,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
         players = ['User 1', 'User 2']
         data = {'game_id': 'jf92j4-2jf', 'winner': 'User 2'}
         await notify_end_game_to_client(players, data)
-        send_patched.assert_called_with(
+        send_patched.assert_awaited_with(
             players[len(players) - 1],
             websocket_events.EVENT_GAME_OVER,
             data,

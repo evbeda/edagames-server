@@ -95,7 +95,7 @@ class Movements(ServerEvent):
                 data_received.turn_data,
             )
             end_data = await self.end_data_for_web(data_received.turn_data)
-            notify_end_game_to_web(game.game_id, end_data)
+            await notify_end_game_to_web(game.game_id, end_data)
         else:
             game.next_turn()
             data_received.turn_data.update({'turn_token': game.turn_token})
@@ -105,6 +105,7 @@ class Movements(ServerEvent):
             )
 
     async def end_data_for_web(self, data):
-        players = [value for key, value in data.items() if 'player' in key]
-        scores = [value for key, value in data.items() if 'score' in key]
-        return list(zip(players, scores))
+        return sorted([
+            (value, data.get('score_' + key[7]))
+            for key, value in data.items() if 'player' in key
+        ])
