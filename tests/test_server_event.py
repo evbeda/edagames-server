@@ -25,7 +25,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             self.game = Game(['player1', 'player2'])
 
     @parameterized.expand([
-        ({"action": "accept_challenge", "data": {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
+        ({"action": "accept_challenge", "data": {"challenge_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
     ])
     async def test_accept_challenge(self, data):
         client = 'Test Client 1'
@@ -108,15 +108,15 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             )
             g_adapter_patched.return_value = adapter_patched
             await Movements({}, client).execute_action(self.game)
-            mock_client.assert_awaited_once_with(
+            mock_client.assert_called_once_with(
                 self.game.players,
                 turn_data,
             )
-            mock_web.assert_awaited_once_with(
+            mock_web.assert_called_once_with(
                 self.game.game_id,
                 end_data,
             )
-            mock_end_data.assert_awaited_once_with(turn_data)
+            mock_end_data.assert_called_once_with(turn_data)
             self.assertEqual(self.game.state, GAME_STATE_ENDED)
 
     @parameterized.expand([
