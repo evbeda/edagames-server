@@ -3,16 +3,21 @@ from unittest.mock import patch, AsyncMock, MagicMock
 from parameterized import parameterized
 
 from server.utilities_server_event import (
-    penalize,
     MovesActions,
+    EndActions,
+    penalize,
+    end_data_for_web,
 )
 from server.game import Game
 from server.exception import GameIdException
 
-from server.constants import TIME_SLEEP
+from server.constants import (
+    TIME_SLEEP,
+    GAME_STATE_ENDED,
+)
 
 
-class TestUtilitiesServerEvent(unittest.IsolatedAsyncioTestCase):
+class TestMovesActions(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.game = Game(['player1', 'player2'])
 
@@ -85,3 +90,71 @@ class TestUtilitiesServerEvent(unittest.IsolatedAsyncioTestCase):
             )
             mock_penalize.assert_called_once_with(self.game)
             mock_asyncio.assert_called_once_with(10)
+
+
+class TestEndActions(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.game = Game(['Pedro', 'Pablo'])
+
+    @patch('server.utilities_server_event.notify_end_game_to_web')
+    @patch('server.utilities_server_event.notify_end_game_to_client')
+    async def test_game_over(
+        self,
+        mock_notify_end_to_client,
+        mock_notify_end_to_web,
+    ):
+        test_data = {
+            'player_1': 'Pedro',
+            'score_1': 1000,
+            'player_2': 'Pablo',
+            'score_2': 2000,
+        }
+        data = MagicMock(
+            game_id='f34i3f',
+            current_player='',
+            turn_data=test_data,
+        )
+        test_end_data = [('pablo', 2000), ('pedro', 1000)]
+        with patch('server.utilities_server_event.end_data_for_web', return_value=test_end_data) as mock_end_data:
+            await EndActions.game_over(self, self.game, data)
+            self.assertEqual(self.game.state, GAME_STATE_ENDED)
+            mock_notify_end_to_client.assert_called_once_with(
+                self.game.players,
+                data.turn_data
+            )
+            mock_end_data.assert_called_once_with(data.turn_data)
+            mock_notify_end_to_web.assert_called_once_with(
+                self.game.game_id,
+                test_end_data
+            )
+
+    @parameterized.expand([
+        # Dicctionary in order
+        (
+            {
+                'player_1': 'pedro',
+                'player_2': 'pablo',
+                'game_id': 'f932jf',
+                'score_1': 1000,
+                'score_2': 2000,
+                'remaining_moves': 130,
+            },
+            [('pablo', 2000), ('pedro', 1000)],
+        ),
+        # untidy players in dicctionary
+        (
+            {
+                'player_2': 'pablo',
+                'player_1': 'pedro',
+                'game_id': 'f932jf',
+                'score_1': 1000,
+                'score_2': 2000,
+                'remaining_moves': 130,
+            },
+            [('pablo', 2000), ('pedro', 1000)],
+
+        ),
+    ])
+    async def test_end_data_for_web(self, data, expected):
+        res = await end_data_for_web(data)
+        self.assertEqual(res, expected)

@@ -5,10 +5,15 @@ from server.grpc_adapter import GRPCAdapterFactory
 from server.exception import GameIdException
 from server.websockets import (
     notify_your_turn,
-    notify_error_to_client
+    notify_error_to_client,
+    notify_end_game_to_client,
 )
+from server.web_requests import notify_end_game_to_web
 
-from server.constants import TIME_SLEEP
+from server.constants import (
+    TIME_SLEEP,
+    GAME_STATE_ENDED,
+)
 
 
 async def penalize(game: Game):
@@ -21,6 +26,13 @@ async def penalize(game: Game):
         game_start_state.current_player,
         game_start_state.turn_data,
     )
+
+
+async def end_data_for_web(data):
+    return sorted([
+        (value, data.get('score_' + key[7]))
+        for key, value in data.items() if 'player' in key
+    ])
 
 
 class MovesActions:
@@ -41,3 +53,14 @@ class MovesActions:
                 str(GameIdException),
             )
         return value_search
+
+
+class EndActions:
+    async def game_over(self, game, data):
+        game.state = GAME_STATE_ENDED
+        await notify_end_game_to_client(
+            game.players,
+            data.turn_data,
+        )
+        end_data = await end_data_for_web(data.turn_data)
+        await notify_end_game_to_web(game.game_id, end_data)

@@ -18,7 +18,7 @@ from server.constants import (
     LAST_PLAYER,
     LIST_USERS,
     CHALLENGE_ACCEPTED,
-    MOVEMENTS
+    MOVEMENTS,
 )
 
 
