@@ -67,7 +67,6 @@ class AcceptChallenge(ServerEvent, MovesActions):
             game_start_state.turn_data,
         )
         game.timer = asyncio.create_task(penalize(game))
-        await game.timer
 
 
 class Movements(ServerEvent, MovesActions):
@@ -97,14 +96,7 @@ class Movements(ServerEvent, MovesActions):
             end_data = await self.end_data_for_web(data_received.turn_data)
             await notify_end_game_to_web(game.game_id, end_data)
         else:
-            game.next_turn()
-            data_received.turn_data.update({'turn_token': game.turn_token})
-            await notify_your_turn(
-                data_received.current_player,
-                data_received.turn_data,
-            )
-            game.timer = asyncio.create_task(penalize(game))
-            await game.timer
+            await self.make_move(game, data_received)
 
     async def end_data_for_web(self, data):
         return sorted([

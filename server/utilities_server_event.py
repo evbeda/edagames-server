@@ -33,7 +33,7 @@ async def search_value(response, client, value):
 
 
 class MovesActions:
-    async def make_move(game, data):
+    async def make_move(self, game, data):
         game.next_turn()
         data.turn_data.update({'turn_token': game.turn_token})
         await notify_your_turn(

@@ -16,6 +16,9 @@ from server.constants import (
     GAME_STATE_ENDED,
     LAST_PLAYER,
 )
+from server.utilities_server_event import (
+    MovesActions,
+)
 
 
 class TestServerEvent(unittest.IsolatedAsyncioTestCase):
@@ -80,17 +83,22 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             await ListUsers(data, client).run()
             notify_patched.assert_called_with(client, users)
 
-    async def test_execute_action(self):
+    @patch.object(MovesActions, 'make_move')
+    async def test_execute_action(self, mock_make_move):
+        turn_data = {'game_id': 'fjj02', 'player_1': 'Mark', 'score_1': 1000}
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched:
-            with patch('server.server_event.notify_your_turn') as notify_patched:
-                with patch('server.server_event.penalize') as mock_penalize:
-                    adapter_patched = AsyncMock()
-                    adapter_patched.execute_action.return_value = MagicMock()
-                    Gadapter_patched.return_value = adapter_patched
-                    await Movements({}, 'client').execute_action(self.game)
-                    Gadapter_patched.assert_called_with(self.game.name)
-                    mock_penalize.assert_called()
-                    notify_patched.assert_called()
+            adapter_patched = AsyncMock()
+            adapter_patched.execute_action.return_value = MagicMock(
+                turn_data=turn_data,
+                current_player='Mark',
+            )
+            Gadapter_patched.return_value = adapter_patched
+            await Movements({}, 'client').execute_action(self.game)
+            Gadapter_patched.assert_called_with(self.game.name)
+            mock_make_move.assert_called_once_with(
+                self.game,
+                adapter_patched.execute_action.return_value,
+            )
 
     @patch.object(Movements, 'end_data_for_web', return_value={'player_1': 1000}, new_callable=AsyncMock)
     @patch('server.server_event.notify_end_game_to_web', new_callable=AsyncMock)
