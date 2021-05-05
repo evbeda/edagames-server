@@ -69,7 +69,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             games.append(game)
             with patch.object(Movements, 'execute_action') as start_patched:
                 await Movements(data, client).run()
-                start_patched.assert_called()
+                start_patched.assert_called_with(game)
 
     async def test_list_users(self):
         data = {'action': 'list_users'}
