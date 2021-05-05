@@ -2,7 +2,6 @@ from server.connection_manager import manager
 from server.game import games, Game
 import asyncio
 from server.websockets import (
-    notify_error_to_client,
     notify_your_turn,
     notify_user_list_to_client,
     notify_end_game_to_client,
@@ -10,7 +9,6 @@ from server.websockets import (
 from server.web_requests import (
     notify_end_game_to_web,
 )
-from server.exception import GameIdException
 from server.grpc_adapter import GRPCAdapterFactory
 from server.utilities_server_event import penalize, search_value
 from server.constants import (
@@ -71,12 +69,7 @@ class Movements(ServerEvent):
         self.nameEvent = 'movements'
 
     async def run(self):
-        turn_token = self.response.get('data', {}).get('turn_token')
-        if turn_token is None:
-            return await notify_error_to_client(
-                self.client,
-                str(GameIdException),
-            )
+        turn_token = await search_value(self.response, self.client, 'turn_token')
         for game in games:
             if game.turn_token == turn_token:
                 game.timer.close()
