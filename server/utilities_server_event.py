@@ -19,12 +19,12 @@ from server.constants import (
 async def penalize(game: Game):
     await asyncio.sleep(TIME_SLEEP)
     adapter = await GRPCAdapterFactory.get_adapter(game.name)
-    game_start_state = await adapter.penalize(game.game_id)
+    data = await adapter.penalize(game.game_id)
     game.next_turn()
-    game_start_state.turn_data.update({'turn_token': game.turn_token})
+    data.turn_data.update({'turn_token': game.turn_token, 'board_id': game.game_id})
     await notify_your_turn(
-        game_start_state.current_player,
-        game_start_state.turn_data,
+        data.current_player,
+        data.turn_data,
     )
 
 
