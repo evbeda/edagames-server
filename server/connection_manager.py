@@ -36,20 +36,20 @@ class ConnectionManager:
 
     async def bulk_send(self, clients: List[str], event: str, data: Dict):
         for client in clients:
-            asyncio.create_task(self.send(
+            asyncio.create_task(self._send(
                 self.connections.get(client),
                 event,
                 data,
             ))
 
-    async def send_client(self, client: str, event: str, data: Dict):
-        await self.send(
+    async def send(self, client: str, event: str, data: Dict):
+        await self._send(
             self.connections.get(client),
             event,
             data,
         )
 
-    async def send(self, client_ws: WebSocket, event: str, data: Dict):
+    async def _send(self, client_ws: WebSocket, event: str, data: Dict):
         logger.info(f'[Websocket] Send: Event: {event}, data: {data}')
         try:
             await client_ws.send_text(json.dumps({

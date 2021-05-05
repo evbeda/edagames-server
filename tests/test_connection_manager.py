@@ -101,8 +101,8 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
             data,
         )
 
-    @patch.object(ConnectionManager, 'send')
-    async def test_manager_send_client(self, send_patched):
+    @patch.object(ConnectionManager, '_send')
+    async def test_manager_send(self, send_patched):
         user = 'User'
         event = 'event'
         data = {
@@ -110,7 +110,7 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
             'other_data': 'some other data',
         }
         self.manager.connections = {user: 'user_websocket'}
-        await self.manager.send_client(user, event, data)
+        await self.manager.send(user, event, data)
         send_patched.assert_called_with(
             'user_websocket',
             event,
@@ -130,8 +130,9 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         event = 'event'
         data = {'data': "Test Message 1"}
         with patch('asyncio.create_task') as create_task_patched,\
-                patch.object(ConnectionManager, 'send', new_callable=MagicMock) as send_patched:
+                patch.object(ConnectionManager, '_send', new_callable=MagicMock) as send_patched:
             await self.manager.bulk_send(clients, event, data)
+        await self.manager.bulk_send(clients, event, data)
         self.assertEqual(len(create_task_patched.mock_calls), len(clients))
         send_patched.assert_has_calls(
             [call(ws, event, data) for ws in connections.values()]
@@ -143,7 +144,7 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
     #         user: websocket_patched,
     #     }
 
-    #     await self.manager.send_client(
+    #     await self.manager.send(
     #         user,
     #         event,
     #         data,
