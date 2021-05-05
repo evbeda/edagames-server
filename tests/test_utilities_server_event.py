@@ -47,6 +47,7 @@ class TestUtilitiesServerEvent(unittest.IsolatedAsyncioTestCase):
             value = 'game_id'
             await search_value(response, client, value)
             notify_patched.assert_called()
+
     @patch('server.utilities_server_event.penalize', new_callable=MagicMock, return_value=10)
     @patch('asyncio.create_task')
     @patch('server.utilities_server_event.notify_your_turn', new_callable=AsyncMock)
