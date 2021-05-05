@@ -22,15 +22,9 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.game = Game(['player1', 'player2'])
 
+    @patch('server.utilities_server_event.move')
     @patch('server.utilities_server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock)
-    @patch('server.utilities_server_event.notify_your_turn', new_callable=AsyncMock)
-    @patch('uuid.uuid4', return_value='c303282d-f2e6-46ca-a04a-35d3d873712d')
-    async def test_penalize(self, uuiid_mock, notify_patched, gadapter_patched):
-        data = MagicMock(
-            game_id='123987',
-            current_player='Juan',
-            turn_data={'turn_token': 'c303282d-f2e6-46ca-a04a-35d3d873712d', 'board_id': None},
-        )
+    async def test_penalize(self, gadapter_patched, mock_move):
         adapter_patched = AsyncMock()
         adapter_patched.penalize.return_value = MagicMock(
             game_id='123987',
@@ -42,9 +36,9 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
             await penalize(self.game)
             sleep_pached.assert_called_with(TIME_SLEEP)
             gadapter_patched.assert_called_with(self.game.name)
-            notify_patched.assert_awaited_once_with(
-                data.current_player,
-                data.turn_data,
+            mock_move.assert_awaited_once_with(
+                self.game,
+                adapter_patched.penalize.return_value,
             )
 
     @parameterized.expand([
