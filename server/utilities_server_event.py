@@ -33,7 +33,7 @@ class MovesActions:
         )
         game.timer = asyncio.create_task(penalize(game))
 
-    async def search_value(response, client, value):
+    async def search_value(self, response, client, value):
         value_search = response.get('data', {}).get(value)
         if value_search is None:
             await notify_error_to_client(

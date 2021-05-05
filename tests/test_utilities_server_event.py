@@ -47,7 +47,7 @@ class TestUtilitiesServerEvent(unittest.IsolatedAsyncioTestCase):
     async def test_search_value(self, response):
         client = 'User 1'
         value = 'game_id'
-        value_search = await MovesActions.search_value(response, client, value)
+        value_search = await MovesActions.search_value(self, response, client, value)
         value_expected = "c303282d-f2e6-46ca-a04a-35d3d873712d"
         self.assertEqual(value_search, value_expected)
 
@@ -58,7 +58,7 @@ class TestUtilitiesServerEvent(unittest.IsolatedAsyncioTestCase):
         with patch('server.utilities_server_event.notify_error_to_client') as notify_patched:
             client = 'User 1'
             value = 'game_id'
-            await MovesActions.search_value(response, client, value)
+            await MovesActions.search_value(self, response, client, value)
             notify_patched.assert_called_with(client, str(GameIdException))
 
     @patch('server.utilities_server_event.penalize', new_callable=MagicMock, return_value=10)
