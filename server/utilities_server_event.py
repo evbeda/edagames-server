@@ -32,13 +32,7 @@ async def penalize(game: Game):
     await asyncio.sleep(TIME_SLEEP)
     adapter = await GRPCAdapterFactory.get_adapter(game.name)
     data = await adapter.penalize(game.game_id)
-    # move(game, data)
-    game.next_turn()
-    data.turn_data.update({'turn_token': game.turn_token, 'board_id': game.game_id})
-    await notify_your_turn(
-        data.current_player,
-        data.turn_data,
-    )
+    await move(game, data)
 
 
 async def end_data_for_web(data):
