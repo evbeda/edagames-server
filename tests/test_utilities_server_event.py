@@ -7,6 +7,7 @@ from server.utilities_server_event import (
     EndActions,
     penalize,
     end_data_for_web,
+    move,
 )
 from server.game import Game
 from server.exception import GameIdException
@@ -90,6 +91,24 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
             )
             mock_penalize.assert_called_once_with(self.game)
             mock_asyncio.assert_called_once_with(10)
+
+    @patch('server.utilities_server_event.notify_your_turn', new_callable=AsyncMock)
+    async def test_move(self, mock_notify_your_turn):
+        data = MagicMock(
+            game_id='123987',
+            current_player='Juan',
+            turn_data={},
+        )
+        uuid_value = 'c303282d'
+        test_game_id = 'fk340of3'
+        self.game.game_id = test_game_id
+        with patch('uuid.uuid4', return_value=uuid_value):
+            await move(self.game, data)
+            self.assertEqual(data.turn_data, {'board_id': test_game_id, 'turn_token': uuid_value})
+            mock_notify_your_turn.assert_awaited_once_with(
+                data.current_player,
+                data.turn_data,
+            )
 
 
 class TestEndActions(unittest.IsolatedAsyncioTestCase):
