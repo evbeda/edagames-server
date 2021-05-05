@@ -29,11 +29,10 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     ])
     async def test_accept_challenge(self, data):
         client = 'Test Client 1'
-        with patch('server.server_event.notify_error_to_client', new_callable=AsyncMock):
-            games.append(self.game)
-            with patch.object(AcceptChallenge, 'start_game') as mock_run:
-                await AcceptChallenge(data, client).run()
-                mock_run.assert_called()
+        games.append(self.game)
+        with patch.object(AcceptChallenge, 'start_game') as mock_run:
+            await AcceptChallenge(data, client).run()
+            mock_run.assert_called()
 
     @patch('server.server_event.notify_your_turn')
     @patch.object(Game, 'next_turn')
@@ -60,16 +59,15 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     ])
     async def test_Movements(self, data):
         client = 'Test Client 1'
-        with patch('server.server_event.notify_error_to_client', new_callable=AsyncMock):
-            with patch('server.server_event.notify_your_turn', new_callable=AsyncMock):
-                with patch('asyncio.create_task', new_callable=MagicMock):
-                    game = Game(['mov_player1', 'mov_player2'])
-                    game.timer = asyncio.create_task()
-                    game.turn_token = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
-                    games.append(game)
-                    with patch.object(Movements, 'execute_action') as start_patched:
-                        await Movements(data, client).run()
-                        start_patched.assert_called()
+        with patch('server.server_event.notify_your_turn', new_callable=AsyncMock):
+            with patch('asyncio.create_task', new_callable=MagicMock):
+                game = Game(['mov_player1', 'mov_player2'])
+                game.timer = asyncio.create_task()
+                game.turn_token = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
+                games.append(game)
+                with patch.object(Movements, 'execute_action') as start_patched:
+                    await Movements(data, client).run()
+                    start_patched.assert_called()
 
     async def test_list_users(self):
         data = {'action': 'list_users'}
