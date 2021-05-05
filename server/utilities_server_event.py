@@ -29,3 +29,14 @@ async def search_value(response, client, value):
             str(GameIdException),
         )
     return value_search
+
+
+class MovesActions:
+    async def make_move(game, data):
+        game.next_turn()
+        data.turn_data.update({'turn_token': game.turn_token})
+        await notify_your_turn(
+            data.current_player,
+            data.turn_data,
+        )
+        game.timer = asyncio.create_task(penalize(game))

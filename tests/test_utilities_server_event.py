@@ -2,7 +2,11 @@ import unittest
 from unittest.mock import patch, AsyncMock, MagicMock
 from parameterized import parameterized
 
-from server.utilities_server_event import penalize, search_value
+from server.utilities_server_event import (
+    penalize,
+    search_value,
+    MovesActions,
+)
 from server.game import Game
 
 from server.constants import TIME_SLEEP
@@ -43,3 +47,27 @@ class TestUtilitiesServerEvent(unittest.IsolatedAsyncioTestCase):
             value = 'game_id'
             await search_value(response, client, value)
             notify_patched.assert_called()
+    @patch('server.utilities_server_event.penalize', new_callable=MagicMock, return_value=10)
+    @patch('asyncio.create_task')
+    @patch('server.utilities_server_event.notify_your_turn', new_callable=AsyncMock)
+    async def test_make_move(
+        self,
+        mock_notify_your_turn,
+        mock_asyncio,
+        mock_penalize,
+    ):
+        data = MagicMock(
+            game_id='123987',
+            current_player='Juan',
+            turn_data={},
+        )
+        uuid_value = 'c303282d'
+        with patch('uuid.uuid4', return_value=uuid_value):
+            await MovesActions.make_move(self.game, data)
+            self.assertEqual(data.turn_data, {'turn_token': uuid_value})
+            mock_notify_your_turn.assert_awaited_once_with(
+                data.current_player,
+                data.turn_data,
+            )
+            mock_penalize.assert_called_once_with(self.game)
+            mock_asyncio.assert_called_once_with(10)
