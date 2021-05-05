@@ -32,12 +32,7 @@ class ConnectionManager:
         return client
 
     async def broadcast(self, event: str, data: Dict):
-        for client_websocket in self.connections.values():
-            asyncio.create_task(self.send(
-                client_websocket,
-                event,
-                data,
-            ))
+        await self.bulk_send(self.connections.keys(), event, data)
 
     async def bulk_send(self, clients: List[str], event: str, data: Dict):
         for client in clients:

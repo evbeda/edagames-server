@@ -93,12 +93,12 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         event = 'event'
         data = {'data': "Test Message 1"}
         self.manager.connections = connections
-        with patch('asyncio.create_task') as create_task_patched,\
-                patch.object(ConnectionManager, 'send', new_callable=MagicMock) as send_patched:
+        with patch.object(ConnectionManager, 'bulk_send') as bulk_send_patched:
             await self.manager.broadcast(event, data)
-        self.assertEqual(len(create_task_patched.mock_calls), len(connections))
-        send_patched.assert_has_calls(
-            [call(ws, event, data) for ws in connections.values()]
+        bulk_send_patched.assert_called_with(
+            connections.keys(),
+            event,
+            data,
         )
 
     @patch.object(ConnectionManager, 'send')
@@ -117,8 +117,25 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
             data,
         )
 
-    # async def test_manager_send_bulk(self):
-    #     pass
+    @parameterized.expand([
+        ([],),
+        (['client 1'],),
+        (['client 1', 'client 2', 'client 3'],),
+    ])
+    async def test_manager_send_bulk(self, clients):
+        connections = {
+            client: f'websocket {i}' for i, client in enumerate(clients)
+        }
+        self.manager.connections = connections
+        event = 'event'
+        data = {'data': "Test Message 1"}
+        with patch('asyncio.create_task') as create_task_patched,\
+                patch.object(ConnectionManager, 'send', new_callable=MagicMock) as send_patched:
+            await self.manager.bulk_send(clients, event, data)
+        self.assertEqual(len(create_task_patched.mock_calls), len(clients))
+        send_patched.assert_has_calls(
+            [call(ws, event, data) for ws in connections.values()]
+        )
 
     # async def test_manager_send(self):
     #     websocket_patched = AsyncMock()
