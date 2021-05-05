@@ -1,13 +1,14 @@
 import asyncio
 
 from server.game import Game
-from server.constants import TIME_SLEEP
 from server.grpc_adapter import GRPCAdapterFactory
 from server.exception import GameIdException
 from server.websockets import (
     notify_your_turn,
     notify_error_to_client
 )
+
+from server.constants import TIME_SLEEP
 
 
 async def penalize(game: Game):
