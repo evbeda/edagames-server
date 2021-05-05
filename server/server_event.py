@@ -1,20 +1,25 @@
-from server.connection_manager import manager
-from server.game import games, Game
 import asyncio
+
 from server.websockets import (
     notify_your_turn,
     notify_user_list_to_client,
     notify_end_game_to_client,
 )
+from server.connection_manager import manager
+from server.game import games, Game
 from server.web_requests import (
     notify_end_game_to_web,
 )
 from server.grpc_adapter import GRPCAdapterFactory
 from server.utilities_server_event import penalize, search_value
+
 from server.constants import (
     GAME_STATE_ACCEPTED,
     GAME_STATE_ENDED,
     LAST_PLAYER,
+    LIST_USERS,
+    CHALLENGE_ACCEPTED,
+    MOVEMENTS
 )
 
 
@@ -30,7 +35,7 @@ class ServerEvent(object):
 class ListUsers(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
-        self.nameEvent = 'List users'
+        self.name_event = LIST_USERS
 
     async def run(self):
         users = list(manager.connections.keys())
@@ -40,7 +45,7 @@ class ListUsers(ServerEvent):
 class AcceptChallenge(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
-        self.nameEvent = 'Challenge accepted'
+        self.name_event = CHALLENGE_ACCEPTED
 
     async def run(self):
         challenge_id = await search_value(self.response, self.client, 'challenge_id')
@@ -66,13 +71,13 @@ class AcceptChallenge(ServerEvent):
 class Movements(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
-        self.nameEvent = 'movements'
+        self.name_event = MOVEMENTS
 
     async def run(self):
         turn_token = await search_value(self.response, self.client, 'turn_token')
         for game in games:
             if game.turn_token == turn_token:
-                game.timer.close()
+                game.timer.cancel()
                 await self.execute_action(game)
 
     async def execute_action(self, game: Game):

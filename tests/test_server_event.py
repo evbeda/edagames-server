@@ -9,6 +9,8 @@ from server.server_event import (
     Movements,
     ListUsers,
 )
+from server.utilities_server_event import penalize
+
 from server.constants import (
     GAME_STATE_ACCEPTED,
     GAME_STATE_ENDED,
@@ -60,14 +62,13 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     async def test_Movements(self, data):
         client = 'Test Client 1'
         with patch('server.server_event.notify_your_turn', new_callable=AsyncMock):
-            with patch('asyncio.create_task', new_callable=MagicMock):
-                game = Game(['mov_player1', 'mov_player2'])
-                game.timer = asyncio.create_task()
-                game.turn_token = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
-                games.append(game)
-                with patch.object(Movements, 'execute_action') as start_patched:
-                    await Movements(data, client).run()
-                    start_patched.assert_called()
+            game = Game(['mov_player1', 'mov_player2'])
+            game.timer = asyncio.create_task(penalize(game))
+            game.turn_token = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
+            games.append(game)
+            with patch.object(Movements, 'execute_action') as start_patched:
+                await Movements(data, client).run()
+                start_patched.assert_called()
 
     async def test_list_users(self):
         data = {'action': 'list_users'}
