@@ -72,6 +72,6 @@ class Movements(ServerEvent, MovesActions, EndActions):
             self.response
         )
         if data_received.current_player == LAST_PLAYER:
-            self.game_over(game, data_received)
+            await self.game_over(game, data_received)
         else:
             await self.make_move(game, data_received)
