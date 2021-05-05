@@ -19,6 +19,7 @@ GAME_STATE_ENDED = 2
 ACCEPT_CHALLENGE = 'accept_challenge'
 MOVEMENTS = 'movements'
 LIST_USERS = 'list_users'
+CHALLENGE_ACCEPTED = 'Challenge_accepted'
 LAST_PLAYER = ''
 DEFAULT_GAME = 'quoridor'
 TIME_SLEEP = 4
