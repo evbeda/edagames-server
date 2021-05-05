@@ -1,9 +1,23 @@
 import unittest
+import jwt
 from parameterized import parameterized
 from unittest.mock import MagicMock, AsyncMock, patch, call
 
 from server.connection_manager import ConnectionManager
 import server.constants as websocket_events
+
+
+TEST_TOKEN_KEY = 'EDAGame$!2021'
+
+
+def generate_token_invalid_signature():
+    return jwt.encode({"user": "cliente 1"}, "invalid_secret", algorithm="HS256")
+
+
+def generate_token_truncated():
+    token = jwt.encode({"user": "cliente 2"}, TEST_TOKEN_KEY, algorithm="HS256")
+    split_token = token.split('.')
+    return '.'.join([t[:15] for t in split_token])
 
 
 class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
@@ -34,7 +48,7 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         websocket = AsyncMock()
         notify_patched = AsyncMock()
         self.manager.notify_user_list_changed = notify_patched
-        with patch('server.connection_manager.JWT_TOKEN_KEY', 'EDAGame$!2021'):
+        with patch('server.connection_manager.JWT_TOKEN_KEY', TEST_TOKEN_KEY):
             client = await self.manager.connect(websocket, token)
         self.assertEqual(client, expected)
         websocket.accept.assert_called()
@@ -43,15 +57,11 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
     @parameterized.expand([
         (
             # Invalid signature
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
-            'eyJ1c2VyIjoiVXNlciBUZXN0NCJ9.'
-            'p6MnNJLD5jwTH1C0PvqUb-spfc7XW7xf6gQjSiDrktg',
+            generate_token_invalid_signature()
         ),
         (
-            # Malformed token
-            'eyJhbGciOiJIUzsInR5cCI6IkpXVCJ9.'
-            'eyJ1c2VyIjoiciBUZXN0NCJ9.'
-            'p6MnNJLD5jwTH1C0PvqUb-sp',
+            # Truncated token
+            generate_token_truncated()
         ),
         (
             # Empty token
@@ -62,7 +72,7 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         websocket = AsyncMock()
         notify_patched = AsyncMock()
         self.manager.notify_user_list_changed = notify_patched
-        with patch('server.connection_manager.JWT_TOKEN_KEY', 'EDAGame$!2021'):
+        with patch('server.connection_manager.JWT_TOKEN_KEY', TEST_TOKEN_KEY):
             await self.manager.connect(websocket, token)
         self.assertEqual({}, self.manager.connections)
         websocket.close.assert_called()
