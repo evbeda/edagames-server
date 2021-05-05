@@ -63,10 +63,10 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
 
     @patch('server.utilities_server_event.penalize', new_callable=MagicMock, return_value=10)
     @patch('asyncio.create_task')
-    @patch('server.utilities_server_event.notify_your_turn', new_callable=AsyncMock)
+    @patch('server.utilities_server_event.move')
     async def test_make_move(
         self,
-        mock_notify_your_turn,
+        mock_move,
         mock_asyncio,
         mock_penalize,
     ):
@@ -75,16 +75,10 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
             current_player='Juan',
             turn_data={},
         )
-        uuid_value = 'c303282d'
-        with patch('uuid.uuid4', return_value=uuid_value):
-            await MovesActions.make_move(self, self.game, data)
-            self.assertEqual(data.turn_data, {'board_id': self.game.game_id, 'turn_token': uuid_value})
-            mock_notify_your_turn.assert_awaited_once_with(
-                data.current_player,
-                data.turn_data,
-            )
-            mock_penalize.assert_called_once_with(self.game)
-            mock_asyncio.assert_called_once_with(10)
+        await MovesActions.make_move(self, self.game, data)
+        mock_move.assert_awaited_once_with(self.game, data)
+        mock_penalize.assert_called_once_with(self.game)
+        mock_asyncio.assert_called_once_with(10)
 
     @patch('server.utilities_server_event.notify_your_turn', new_callable=AsyncMock)
     async def test_move(self, mock_notify_your_turn):
@@ -168,6 +162,6 @@ class TestEndActions(unittest.IsolatedAsyncioTestCase):
 
         ),
     ])
-    async def test_end_data_for_web(self, data, expected):
-        res = await end_data_for_web(data)
+    def test_end_data_for_web(self, data, expected):
+        res = end_data_for_web(data)
         self.assertEqual(res, expected)
