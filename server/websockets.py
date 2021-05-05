@@ -8,7 +8,7 @@ async def notify_challenge_to_client(
     opponent: str,
     challenge_id: str,
 ):
-    await manager.send_client(
+    await manager.send(
         client,
         websocket_events.EVENT_SEND_CHALLENGE,
         {
@@ -19,7 +19,7 @@ async def notify_challenge_to_client(
 
 
 async def notify_error_to_client(client: str, error: str):
-    await manager.send_client(
+    await manager.send(
         client,
         websocket_events.EVENT_SEND_ERROR,
         {
@@ -29,7 +29,7 @@ async def notify_error_to_client(client: str, error: str):
 
 
 async def notify_your_turn(client: str, data: Dict):
-    await manager.send_client(
+    await manager.send(
         client,
         websocket_events.EVENT_SEND_YOUR_TURN,
         data,
@@ -37,7 +37,7 @@ async def notify_your_turn(client: str, data: Dict):
 
 
 async def notify_user_list_to_client(client: str, users: List[str]):
-    await manager.send_client(
+    await manager.send(
         client,
         websocket_events.EVENT_LIST_USERS,
         {

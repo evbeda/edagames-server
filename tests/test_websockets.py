@@ -14,7 +14,7 @@ import server.constants as websocket_events
 
 
 class TestWebsockets(unittest.IsolatedAsyncioTestCase):
-    @patch.object(ConnectionManager, 'send_client', new_callable=AsyncMock)
+    @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
     async def test_notify_error_to_client(self, send_patched):
         client = 'User 1'
         error = 'message error'
@@ -30,7 +30,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             },
         )
 
-    @patch.object(ConnectionManager, 'send_client', new_callable=AsyncMock)
+    @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
     async def test_notify_challenge_to_client(self, send_patched):
         challenge_sender = 'User 1'
         challenge_receiver = 'User 2'
@@ -49,7 +49,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             },
         )
 
-    @patch.object(ConnectionManager, 'send_client', new_callable=AsyncMock)
+    @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
     async def test_notify_your_turn(self, send_patched):
         challenge_sender = 'User 1'
         data = {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}
@@ -63,7 +63,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             data
         )
 
-    @patch.object(ConnectionManager, 'send_client', new_callable=AsyncMock)
+    @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
     async def test_notify_user_list_to_client(self, send_patched):
         client = 'User 1'
         users = ['User 1', 'User 2', 'User 3']
