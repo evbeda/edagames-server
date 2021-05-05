@@ -8,6 +8,7 @@ from server.utilities_server_event import (
     MovesActions,
 )
 from server.game import Game
+from server.exception import GameIdException
 
 from server.constants import TIME_SLEEP
 
@@ -18,7 +19,7 @@ class TestUtilitiesServerEvent(unittest.IsolatedAsyncioTestCase):
 
     @patch('server.utilities_server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock)
     async def test_penalize(self, gadapter_patched):
-        with patch('server.utilities_server_event.notify_your_turn') as notify_patched:
+        with patch('server.utilities_server_event.notify_your_turn', new_callable=AsyncMock) as notify_patched:
             adapter_patched = AsyncMock()
             adapter_patched.penalize.return_value = MagicMock()
             gadapter_patched.return_value = adapter_patched
@@ -26,7 +27,7 @@ class TestUtilitiesServerEvent(unittest.IsolatedAsyncioTestCase):
                 await penalize(self.game)
                 sleep_pached.assert_called_with(TIME_SLEEP)
                 gadapter_patched.assert_called_with(self.game.name)
-                notify_patched.assert_called()
+                notify_patched.assert_called_with()
 
     @parameterized.expand([
         ({"action": "accept_challenge", "data": {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
@@ -46,7 +47,7 @@ class TestUtilitiesServerEvent(unittest.IsolatedAsyncioTestCase):
             client = 'User 1'
             value = 'game_id'
             await search_value(response, client, value)
-            notify_patched.assert_called()
+            notify_patched.assert_called_with(client, str(GameIdException))
 
     @patch('server.utilities_server_event.penalize', new_callable=MagicMock, return_value=10)
     @patch('asyncio.create_task')
