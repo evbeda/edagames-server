@@ -50,6 +50,7 @@ class AcceptChallenge(ServerEvent, MovesActions):
         game.state = GAME_STATE_ACCEPTED
         adapter = await GRPCAdapterFactory.get_adapter(game.name)
         data_received = await adapter.create_game(game.players)
+        game.game_id = data_received.game_id
         await self.make_move(game, data_received)
 
 

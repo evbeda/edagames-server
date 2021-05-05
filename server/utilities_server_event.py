@@ -38,7 +38,7 @@ async def end_data_for_web(data):
 class MovesActions:
     async def make_move(self, game, data):
         game.next_turn()
-        data.turn_data.update({'turn_token': game.turn_token})
+        data.turn_data.update({'turn_token': game.turn_token, 'board_id': game.game_id})
         await notify_your_turn(
             data.current_player,
             data.turn_data,
