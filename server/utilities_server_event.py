@@ -1,6 +1,7 @@
+import asyncio
+
 from server.game import Game
 from server.constants import TIME_SLEEP
-import asyncio
 from server.grpc_adapter import GRPCAdapterFactory
 from server.exception import GameIdException
 from server.websockets import (
