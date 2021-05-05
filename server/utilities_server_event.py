@@ -26,7 +26,7 @@ async def penalize(game: Game):
 async def search_value(response, client, value):
     value_search = response.get('data', {}).get(value)
     if value_search is None:
-        return await notify_error_to_client(
+        await notify_error_to_client(
             client,
             str(GameIdException),
         )
