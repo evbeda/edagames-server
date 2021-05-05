@@ -42,16 +42,19 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
 
     @parameterized.expand([
         (
+            # Invalid signature
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
             'eyJ1c2VyIjoiVXNlciBUZXN0NCJ9.'
             'p6MnNJLD5jwTH1C0PvqUb-spfc7XW7xf6gQjSiDrktg',
         ),
         (
+            # Malformed token
             'eyJhbGciOiJIUzsInR5cCI6IkpXVCJ9.'
             'eyJ1c2VyIjoiciBUZXN0NCJ9.'
             'p6MnNJLD5jwTH1C0PvqUb-sp',
         ),
         (
+            # Empty token
             '',
         ),
     ])
