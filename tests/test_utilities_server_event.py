@@ -28,7 +28,7 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
         data = MagicMock(
             game_id='123987',
             current_player='Juan',
-            turn_data={'turn_token': 'c303282d-f2e6-46ca-a04a-35d3d873712d'},
+            turn_data={'turn_token': 'c303282d-f2e6-46ca-a04a-35d3d873712d', 'board_id': None},
         )
         adapter_patched = AsyncMock()
         adapter_patched.penalize.return_value = MagicMock(
