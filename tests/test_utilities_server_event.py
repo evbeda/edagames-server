@@ -63,7 +63,7 @@ class TestUtilitiesServerEvent(unittest.IsolatedAsyncioTestCase):
         )
         uuid_value = 'c303282d'
         with patch('uuid.uuid4', return_value=uuid_value):
-            await MovesActions.make_move(self.game, data)
+            await MovesActions.make_move(self, self.game, data)
             self.assertEqual(data.turn_data, {'turn_token': uuid_value})
             mock_notify_your_turn.assert_awaited_once_with(
                 data.current_player,
