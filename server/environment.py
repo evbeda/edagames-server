@@ -14,4 +14,4 @@ WEB_SERVER_URL = load_env_var('WEB_SERVER_URL', 'localhost')
 WEB_SERVER_PORT = load_env_var('WEB_SERVER_PORT', '8000')
 
 # Temporary?
-FAKE_SERVICE_DISCOVERY_QUORIDOR_HOST_PORT = load_env_var('QUORIDOR_HOST_PORT', 'localhost:50001')
+FAKE_SERVICE_DISCOVERY_QUORIDOR_HOST_PORT = load_env_var('QUORIDOR_HOST_PORT', 'localhost:50051')

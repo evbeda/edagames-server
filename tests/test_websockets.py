@@ -45,7 +45,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             websocket_events.EVENT_SEND_CHALLENGE,
             {
                 'opponent': challenge_sender,
-                'game_id': test_game_id,
+                'challenge_id': test_game_id,
             },
         )
 

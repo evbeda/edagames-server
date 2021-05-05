@@ -42,8 +42,9 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     async def test_start_game(self, mock_make_move):
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
             adapter_patched = AsyncMock()
+            game_id = '123987'
             adapter_patched.create_game.return_value = MagicMock(
-                game_id='123987',
+                game_id=game_id,
                 current_player='Juan',
                 turn_data={},
             )
@@ -56,6 +57,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 self.game,
                 adapter_patched.create_game.return_value,
             )
+            self.assertEqual(self.game.game_id, game_id)
 
     @parameterized.expand([
         ({"action": "accept_challenge", "data": {"turn_token": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),

@@ -13,7 +13,7 @@ async def notify_challenge_to_client(
         websocket_events.EVENT_SEND_CHALLENGE,
         {
             'opponent': opponent,
-            'game_id': challenge_id,
+            'challenge_id': challenge_id,
         },
     )
 
