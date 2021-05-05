@@ -11,11 +11,11 @@ from server.server_event import (
 )
 from server.utilities_server_event import (
     MovesActions,
+    EndActions,
 )
 
 from server.constants import (
     GAME_STATE_ACCEPTED,
-    GAME_STATE_ENDED,
     LAST_PLAYER,
 )
 
@@ -93,18 +93,15 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             Gadapter_patched.return_value = adapter_patched
             await Movements({}, 'client').execute_action(self.game)
             Gadapter_patched.assert_called_with(self.game.name)
-            mock_make_move.assert_called_once_with(
+            mock_make_move.assert_awaited_once_with(
                 self.game,
                 adapter_patched.execute_action.return_value,
             )
 
-    @patch.object(Movements, 'end_data_for_web', return_value={'player_1': 1000}, new_callable=AsyncMock)
-    @patch('server.server_event.notify_end_game_to_web', new_callable=AsyncMock)
-    @patch('server.server_event.notify_end_game_to_client', new_callable=AsyncMock)
-    async def test_end_game(self, mock_client, mock_web, mock_end_data):
+    @patch.object(EndActions, 'game_over')
+    async def test_end_game(self, mock_game_over):
         client = 'Test Client'
         turn_data = {'game_id': 'fjj02', 'player_1': 'Mark', 'score_1': 1000}
-        end_data = {'player_1': 1000}
         with patch('server.server_event.GRPCAdapterFactory.get_adapter') as g_adapter_patched:
             adapter_patched = AsyncMock()
             adapter_patched.execute_action.return_value = MagicMock(
@@ -113,45 +110,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             )
             g_adapter_patched.return_value = adapter_patched
             await Movements({}, client).execute_action(self.game)
-            mock_client.assert_called_once_with(
-                self.game.players,
-                turn_data,
+            mock_game_over.assert_awaited_once_with(
+                self.game,
+                adapter_patched.execute_action.return_value
             )
-            mock_web.assert_called_once_with(
-                self.game.game_id,
-                end_data,
-            )
-            mock_end_data.assert_called_once_with(turn_data)
-            self.assertEqual(self.game.state, GAME_STATE_ENDED)
-
-    @parameterized.expand([
-        # Dicctionary in order
-        (
-            {
-                'player_1': 'pedro',
-                'player_2': 'pablo',
-                'game_id': 'f932jf',
-                'score_1': 1000,
-                'score_2': 2000,
-                'remaining_moves': 130,
-            },
-            [('pablo', 2000), ('pedro', 1000)],
-        ),
-        # untidy players in dicctionary
-        (
-            {
-                'player_2': 'pablo',
-                'player_1': 'pedro',
-                'game_id': 'f932jf',
-                'score_1': 1000,
-                'score_2': 2000,
-                'remaining_moves': 130,
-            },
-            [('pablo', 2000), ('pedro', 1000)],
-
-        ),
-    ])
-    async def test_end_data_for_web(self, data, expected):
-        client = 'Test Client'
-        res = await Movements({}, client).end_data_for_web(data)
-        self.assertEqual(res, expected)
