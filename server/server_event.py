@@ -11,8 +11,10 @@ from server.web_requests import (
     notify_end_game_to_web,
 )
 from server.grpc_adapter import GRPCAdapterFactory
-from server.utilities_server_event import penalize, search_value
-
+from server.utilities_server_event import (
+    MovesActions,
+    search_value,
+)
 from server.constants import (
     GAME_STATE_ACCEPTED,
     GAME_STATE_ENDED,
@@ -42,7 +44,7 @@ class ListUsers(ServerEvent):
         await notify_user_list_to_client(self.client, users)
 
 
-class AcceptChallenge(ServerEvent):
+class AcceptChallenge(ServerEvent, MovesActions):
     def __init__(self, response, client):
         super().__init__(response, client)
         self.name_event = CHALLENGE_ACCEPTED
@@ -68,7 +70,7 @@ class AcceptChallenge(ServerEvent):
         await game.timer
 
 
-class Movements(ServerEvent):
+class Movements(ServerEvent, MovesActions):
     def __init__(self, response, client):
         super().__init__(response, client)
         self.name_event = MOVEMENTS
