@@ -1,12 +1,9 @@
-import asyncio
-
+from server.connection_manager import manager
+from server.game import games, Game
 from server.websockets import (
-    notify_your_turn,
     notify_user_list_to_client,
     notify_end_game_to_client,
 )
-from server.connection_manager import manager
-from server.game import games, Game
 from server.web_requests import (
     notify_end_game_to_web,
 )
@@ -15,6 +12,7 @@ from server.utilities_server_event import (
     MovesActions,
     search_value,
 )
+
 from server.constants import (
     GAME_STATE_ACCEPTED,
     GAME_STATE_ENDED,
@@ -58,15 +56,8 @@ class AcceptChallenge(ServerEvent, MovesActions):
     async def start_game(self, game: Game):
         game.state = GAME_STATE_ACCEPTED
         adapter = await GRPCAdapterFactory.get_adapter(game.name)
-        game_start_state = await adapter.create_game(game.players)
-        game.next_turn()
-        game.game_id = game_start_state.game_id
-        game_start_state.turn_data.update({'turn_token': game.turn_token})
-        await notify_your_turn(
-            game_start_state.current_player,
-            game_start_state.turn_data,
-        )
-        game.timer = asyncio.create_task(penalize(game))
+        data_received = await adapter.create_game(game.players)
+        await self.make_move(game, data_received)
 
 
 class Movements(ServerEvent, MovesActions):
