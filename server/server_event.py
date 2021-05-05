@@ -1,20 +1,14 @@
 from server.connection_manager import manager
 from server.game import games, Game
-from server.websockets import (
-    notify_user_list_to_client,
-    notify_end_game_to_client,
-)
-from server.web_requests import (
-    notify_end_game_to_web,
-)
+from server.websockets import notify_user_list_to_client
 from server.grpc_adapter import GRPCAdapterFactory
 from server.utilities_server_event import (
     MovesActions,
+    EndActions,
 )
 
 from server.constants import (
     GAME_STATE_ACCEPTED,
-    GAME_STATE_ENDED,
     LAST_PLAYER,
     LIST_USERS,
     CHALLENGE_ACCEPTED,
@@ -59,7 +53,7 @@ class AcceptChallenge(ServerEvent, MovesActions):
         await self.make_move(game, data_received)
 
 
-class Movements(ServerEvent, MovesActions):
+class Movements(ServerEvent, MovesActions, EndActions):
     def __init__(self, response, client):
         super().__init__(response, client)
         self.name_event = MOVEMENTS
@@ -78,18 +72,6 @@ class Movements(ServerEvent, MovesActions):
             self.response
         )
         if data_received.current_player == LAST_PLAYER:
-            game.state = GAME_STATE_ENDED
-            await notify_end_game_to_client(
-                game.players,
-                data_received.turn_data,
-            )
-            end_data = await self.end_data_for_web(data_received.turn_data)
-            await notify_end_game_to_web(game.game_id, end_data)
+            self.game_over(game, data_received)
         else:
             await self.make_move(game, data_received)
-
-    async def end_data_for_web(self, data):
-        return sorted([
-            (value, data.get('score_' + key[7]))
-            for key, value in data.items() if 'player' in key
-        ])
