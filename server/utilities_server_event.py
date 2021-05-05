@@ -35,7 +35,7 @@ async def penalize(game: Game):
     await move(game, data)
 
 
-async def end_data_for_web(data):
+def end_data_for_web(data):
     return sorted([
         (value, data.get('score_' + key[7]))
         for key, value in data.items() if 'player' in key
@@ -44,13 +44,7 @@ async def end_data_for_web(data):
 
 class MovesActions:
     async def make_move(self, game, data):
-        # move(game, data)
-        game.next_turn()
-        data.turn_data.update({'turn_token': game.turn_token, 'board_id': game.game_id})
-        await notify_your_turn(
-            data.current_player,
-            data.turn_data,
-        )
+        await move(game, data)
         game.timer = asyncio.create_task(penalize(game))
 
     async def search_value(self, response, client, value):
@@ -70,5 +64,5 @@ class EndActions:
             game.players,
             data.turn_data,
         )
-        end_data = await end_data_for_web(data.turn_data)
+        end_data = end_data_for_web(data.turn_data)
         await notify_end_game_to_web(game.game_id, end_data)
