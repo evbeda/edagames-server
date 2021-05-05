@@ -138,24 +138,41 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
             [call(ws, event, data) for ws in connections.values()]
         )
 
-    # async def test_manager_send(self):
-    #     websocket_patched = AsyncMock()
-    #     self.manager.connections = {
-    #         user: websocket_patched,
-    #     }
-
-    #     await self.manager.send(
-    #         user,
-    #         event,
-    #         data,
-    #     )
-
-    #     websocket_patched.send_text.assert_called_with(
-    #         json.dumps({
-    #             'event': event,
-    #             'data': data
-    #         })
-    #     )
+    @parameterized.expand([
+        (
+            'event',
+            {'field': 'Test Message 1'},
+            '{"event": "event", "data": {"field": "Test Message 1"}}',
+        ),
+        (
+            'event',
+            {'field': 'Test Message 1', 'field2': 'Other message'},
+            '{"event": "event", "data": {"field": "Test Message 1", "field2": "Other message"}}',
+        ),
+        (
+            '',
+            {'field': 'Test Message 1'},
+            '{"event": "", "data": {"field": "Test Message 1"}}',
+        ),
+        (
+            'event',
+            {},
+            '{"event": "event", "data": {}}',
+        ),
+        (
+            '',
+            {},
+            '{"event": "", "data": {}}',
+        ),
+    ])
+    async def test_manager_send_internal(self, event, data, expected):
+        websocket_patched = AsyncMock()
+        await self.manager._send(
+            websocket_patched,
+            event,
+            data,
+        )
+        websocket_patched.send_text.assert_called_with(expected)
 
     @patch.object(ConnectionManager, 'broadcast')
     async def test_notify_user_list_changed(self, broadcast_patched):
