@@ -10,7 +10,6 @@ from server.web_requests import (
 from server.grpc_adapter import GRPCAdapterFactory
 from server.utilities_server_event import (
     MovesActions,
-    search_value,
 )
 
 from server.constants import (
@@ -48,7 +47,7 @@ class AcceptChallenge(ServerEvent, MovesActions):
         self.name_event = CHALLENGE_ACCEPTED
 
     async def run(self):
-        challenge_id = await search_value(self.response, self.client, 'challenge_id')
+        challenge_id = await MovesActions.search_value(self.response, self.client, 'challenge_id')
         for game in games:
             if game.challenge_id == challenge_id:
                 await self.start_game(game)
@@ -66,7 +65,7 @@ class Movements(ServerEvent, MovesActions):
         self.name_event = MOVEMENTS
 
     async def run(self):
-        turn_token = await search_value(self.response, self.client, 'turn_token')
+        turn_token = await MovesActions.search_value(self.response, self.client, 'turn_token')
         for game in games:
             if game.turn_token == turn_token:
                 game.timer.cancel()

@@ -23,16 +23,6 @@ async def penalize(game: Game):
     )
 
 
-async def search_value(response, client, value):
-    value_search = response.get('data', {}).get(value)
-    if value_search is None:
-        await notify_error_to_client(
-            client,
-            str(GameIdException),
-        )
-    return value_search
-
-
 class MovesActions:
     async def make_move(self, game, data):
         game.next_turn()
@@ -42,3 +32,12 @@ class MovesActions:
             data.turn_data,
         )
         game.timer = asyncio.create_task(penalize(game))
+
+    async def search_value(response, client, value):
+        value_search = response.get('data', {}).get(value)
+        if value_search is None:
+            await notify_error_to_client(
+                client,
+                str(GameIdException),
+            )
+        return value_search
