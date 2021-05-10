@@ -16,8 +16,12 @@ from server.constants import (
     LIST_USERS,
     CHALLENGE_ACCEPTED,
     MOVEMENTS,
+<<<<<<< HEAD
     OPPONENT,
     ASK_CHALLENGE,
+=======
+    ABORT_GAME
+>>>>>>> create eda_game
 )
 
 
@@ -91,6 +95,7 @@ class Movements(ServerEvent, MovesActions, EndActions):
             await self.make_move(game, data_received)
 
 
+<<<<<<< HEAD
 class Challenge(ServerEvent, MovesActions):
     def __init__(self, response, client):
         super().__init__(response, client)
@@ -109,3 +114,23 @@ class Challenge(ServerEvent, MovesActions):
             self.client,
             game.challenge_id,
         )
+=======
+class AbortGame(ServerEvent, MovesActions, EndActions):
+    def __init__(self, response, client):
+        super().__init__(response, client)
+        self.name_event = ABORT_GAME
+
+    async def run(self):
+        turn_token = await self.search_value(self.response, self.client, 'turn_token')
+        for game in games:
+            if game.turn_token == turn_token:
+                game.timer.cancel()
+                await self.end_game(game)
+
+    async def end_game(self, game: Game):
+        adapter = await GRPCAdapterFactory.get_adapter(game.name)
+        data_received = await adapter.end_game(
+            game.game_id
+        )
+        await self.game_over(game, data_received)
+>>>>>>> create eda_game

@@ -17,6 +17,11 @@ GAME_STATE_ENDED = 2
 
 # Constants
 MOVEMENTS = 'movements'
+<<<<<<< HEAD
+=======
+ABORT_GAME = 'abort_game'
+LIST_USERS = 'list_users'
+>>>>>>> create eda_game
 CHALLENGE_ACCEPTED = 'Challenge_accepted'
 LAST_PLAYER = ''
 DEFAULT_GAME = 'quoridor'
