@@ -2,16 +2,19 @@ from server.server_event import (
     AcceptChallenge,
     Movements,
     ListUsers,
+    Challenge,
 )
 from server.constants import (
     ACCEPT_CHALLENGE,
     LIST_USERS,
+    ASK_CHALLENGE,
 )
 
 
 EVENT = {
     ACCEPT_CHALLENGE: AcceptChallenge,
     LIST_USERS: ListUsers,
+    ASK_CHALLENGE: Challenge,
 }
 
 
