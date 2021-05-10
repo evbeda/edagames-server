@@ -1,6 +1,9 @@
 from server.connection_manager import manager
 from server.game import games, Game
-from server.websockets import notify_user_list_to_client
+from server.websockets import (
+    notify_user_list_to_client,
+    notify_challenge_to_client,
+)
 from server.grpc_adapter import GRPCAdapterFactory
 from server.utilities_server_event import (
     MovesActions,
@@ -13,6 +16,7 @@ from server.constants import (
     LIST_USERS,
     CHALLENGE_ACCEPTED,
     MOVEMENTS,
+    ASK_CHALLENGE,
 )
 
 
@@ -41,7 +45,11 @@ class AcceptChallenge(ServerEvent, MovesActions):
         self.name_event = CHALLENGE_ACCEPTED
 
     async def run(self):
-        challenge_id = await self.search_value(self.response, self.client, 'challenge_id')
+        challenge_id = await self.search_value(
+            self.response,
+            self.client,
+            'challenge_id',
+        )
         for game in games:
             if game.challenge_id == challenge_id:
                 await self.start_game(game)
@@ -60,7 +68,11 @@ class Movements(ServerEvent, MovesActions, EndActions):
         self.name_event = MOVEMENTS
 
     async def run(self):
-        turn_token = await self.search_value(self.response, self.client, 'turn_token')
+        turn_token = await self.search_value(
+            self.response,
+            self.client,
+            'turn_token',
+        )
         for game in games:
             if game.turn_token == turn_token:
                 game.timer.cancel()
@@ -76,3 +88,23 @@ class Movements(ServerEvent, MovesActions, EndActions):
             await self.game_over(game, data_received)
         else:
             await self.make_move(game, data_received)
+
+
+class Challenge(ServerEvent):
+    def __init__(self, response, client):
+        super().__init__(response, client)
+        self.name_event = ASK_CHALLENGE
+
+    async def run(self):
+        challenged = await self.search_value(
+            self.response,
+            self.client,
+            'opponent',
+        )
+        game = Game([self.client, challenged])
+        games.append(game)
+        await notify_challenge_to_client(
+            challenged,
+            self.client,
+            game.challenge_id,
+        )

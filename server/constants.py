@@ -16,10 +16,13 @@ GAME_STATE_ACCEPTED = 1
 GAME_STATE_ENDED = 2
 
 # Constants
-ACCEPT_CHALLENGE = 'accept_challenge'
 MOVEMENTS = 'movements'
-LIST_USERS = 'list_users'
 CHALLENGE_ACCEPTED = 'Challenge_accepted'
 LAST_PLAYER = ''
 DEFAULT_GAME = 'quoridor'
 TIME_SLEEP = 5
+
+# Factory Event
+ACCEPT_CHALLENGE = 'accept_challenge'
+LIST_USERS = 'list_users'
+ASK_CHALLENGE = 'challenge'
