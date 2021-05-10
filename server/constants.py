@@ -26,3 +26,6 @@ TIME_SLEEP = 5
 ACCEPT_CHALLENGE = 'accept_challenge'
 LIST_USERS = 'list_users'
 ASK_CHALLENGE = 'challenge'
+
+# search_value
+OPPONENT = 'opponent'

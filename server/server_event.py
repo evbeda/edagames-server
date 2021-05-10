@@ -17,6 +17,7 @@ from server.constants import (
     CHALLENGE_ACCEPTED,
     MOVEMENTS,
     ASK_CHALLENGE,
+    OPPONENT,
 )
 
 
@@ -90,7 +91,7 @@ class Movements(ServerEvent, MovesActions, EndActions):
             await self.make_move(game, data_received)
 
 
-class Challenge(ServerEvent):
+class Challenge(ServerEvent, MovesActions):
     def __init__(self, response, client):
         super().__init__(response, client)
         self.name_event = ASK_CHALLENGE
@@ -99,7 +100,7 @@ class Challenge(ServerEvent):
         challenged = await self.search_value(
             self.response,
             self.client,
-            'opponent',
+            OPPONENT,
         )
         game = Game([self.client, challenged])
         games.append(game)

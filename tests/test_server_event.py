@@ -8,6 +8,7 @@ from server.server_event import (
     AcceptChallenge,
     Movements,
     ListUsers,
+    Challenge,
 )
 from server.utilities_server_event import (
     MovesActions,
@@ -17,14 +18,16 @@ from server.utilities_server_event import (
 from server.constants import (
     GAME_STATE_ACCEPTED,
     LAST_PLAYER,
+    OPPONENT,
 )
 
 
 class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
+        self.uuid = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
         with patch(
             'uuid.uuid4',
-            return_value='c303282d-f2e6-46ca-a04a-35d3d873712d'
+            return_value=self.uuid
         ):
             self.game = Game(['player1', 'player2'])
 
@@ -116,3 +119,17 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 self.game,
                 adapter_patched.execute_action.return_value
             )
+
+    @patch('server.server_event.notify_challenge_to_client')
+    @patch.object(MovesActions, 'search_value', return_value='test_opponent')
+    async def test_challenge(self, mock_search, mock_notify_challenge):
+        client = 'Test Client'
+        opponent = 'test_opponent'
+        challenge_data = {'opponent': opponent}
+        response = {'data': challenge_data}
+        q_games = len(games)
+        with patch('uuid.uuid4', return_value=self.uuid):
+            await Challenge(response, client).run()
+            mock_search.assert_awaited_once_with(response, client, OPPONENT)
+            mock_notify_challenge.assert_awaited_once_with(opponent, client, self.uuid)
+            self.assertEqual(q_games + 1, len(games))
