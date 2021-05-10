@@ -16,12 +16,9 @@ from server.constants import (
     LIST_USERS,
     CHALLENGE_ACCEPTED,
     MOVEMENTS,
-<<<<<<< HEAD
     OPPONENT,
     ASK_CHALLENGE,
-=======
     ABORT_GAME
->>>>>>> create eda_game
 )
 
 
@@ -95,7 +92,6 @@ class Movements(ServerEvent, MovesActions, EndActions):
             await self.make_move(game, data_received)
 
 
-<<<<<<< HEAD
 class Challenge(ServerEvent, MovesActions):
     def __init__(self, response, client):
         super().__init__(response, client)
@@ -114,7 +110,8 @@ class Challenge(ServerEvent, MovesActions):
             self.client,
             game.challenge_id,
         )
-=======
+
+
 class AbortGame(ServerEvent, MovesActions, EndActions):
     def __init__(self, response, client):
         super().__init__(response, client)
@@ -133,4 +130,3 @@ class AbortGame(ServerEvent, MovesActions, EndActions):
             game.game_id
         )
         await self.game_over(game, data_received)
->>>>>>> create eda_game
