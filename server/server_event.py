@@ -16,8 +16,8 @@ from server.constants import (
     LIST_USERS,
     CHALLENGE_ACCEPTED,
     MOVEMENTS,
-    ASK_CHALLENGE,
     OPPONENT,
+    ASK_CHALLENGE,
 )
 
 
