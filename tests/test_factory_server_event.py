@@ -1,15 +1,29 @@
-from server.factory_event_server import FactoryServerEvent
 import unittest
 from parameterized import parameterized
-from server.server_event import AcceptChallenge, Movements, AbortGame, ListUsers
-from server.constants import ACCEPT_CHALLENGE, LIST_USERS, ABORT_GAME
+
+from server.factory_event_server import FactoryServerEvent
+from server.server_event import (
+    AcceptChallenge,
+    Movements,
+    AbortGame,
+    ListUsers,
+    Challenge
+)
+
+from server.constants import (
+    ACCEPT_CHALLENGE,
+    LIST_USERS,
+    ABORT_GAME,
+    ASK_CHALLENGE
+)
 
 
 class TestFactoryServerEvent(unittest.TestCase):
     @parameterized.expand([
-        ({'action': 'accept_challenge'}, ),
-        ({'action': 'abort_game'}, ),
-        ({'action': 'list_users'}, ),
+        ({'action': ACCEPT_CHALLENGE}, ),
+        ({'action': ABORT_GAME}, ),
+        ({'action': LIST_USERS}, ),
+        ({'action': ASK_CHALLENGE}, ),
     ])
     def test_factory_server_event(self, data):
         client = 'client'
@@ -17,6 +31,7 @@ class TestFactoryServerEvent(unittest.TestCase):
             ACCEPT_CHALLENGE: AcceptChallenge,
             LIST_USERS: ListUsers,
             ABORT_GAME: AbortGame,
+            ASK_CHALLENGE: Challenge
         }
         event = FactoryServerEvent().get_event(data, client)
         event_server = EVENT.get(data.get('action'), Movements)
