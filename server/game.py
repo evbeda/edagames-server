@@ -35,5 +35,4 @@ class Game:
             self,
             default=lambda o: o.__dict__,
             sort_keys=True,
-            indent=4,
         )

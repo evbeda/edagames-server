@@ -18,7 +18,7 @@ from server.constants import (
     MOVEMENTS,
     OPPONENT,
     ASK_CHALLENGE,
-    ABORT_GAME
+    ABORT_GAME,
 )
 
 
