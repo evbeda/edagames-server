@@ -7,7 +7,7 @@ EVENT_LIST_USERS = 'list_users'
 EVENT_GAME_OVER = 'game_over'
 
 
-# Errors
+# Exceptions
 GAMEIDERROR = 'GAMEID_ERROR'
 
 # Game states
