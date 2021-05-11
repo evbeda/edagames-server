@@ -2,7 +2,6 @@ import unittest
 from unittest.mock import patch
 from parameterized import parameterized
 import fakeredis
-from redis.exceptions import DataError
 
 from server.redis import (
     save_string,
