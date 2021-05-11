@@ -6,7 +6,7 @@ from server.constants import (
     DEFAULT_GAME,
     GAME_STATE_PENDING,
 )
-import json
+
 
 class TestGame(unittest.TestCase):
 
