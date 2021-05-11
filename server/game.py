@@ -1,4 +1,5 @@
 import uuid
+import json
 from typing import List
 
 from server.constants import (
@@ -28,3 +29,11 @@ class Game:
 
     def next_turn(self):
         self.turn_token = str(uuid.uuid4())
+
+    def to_JSON(self):
+        return json.dumps(
+            self,
+            default=lambda o: o.__dict__,
+            sort_keys=True,
+            indent=4,
+        )
