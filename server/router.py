@@ -14,6 +14,7 @@ router = APIRouter()
 async def challenge(challenge: Challenge):
     game = Game([challenge.challenger, challenge.challenged])
     games.append(game)
+    save_string(game.challenge_id, game.to_JSON())
     await notify_challenge_to_client(
         challenge.challenged,
         challenge.challenger,
