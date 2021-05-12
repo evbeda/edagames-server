@@ -23,7 +23,7 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                                 json=data
                             )
         mock_data.assert_called_once_with(['Ana', 'Pepe'])
-        mock_save.assert_called_once_with(challenge_id, to_json)
+        mock_save.assert_called_once_with('c_' + challenge_id, to_json)
         mock_notify_challenge.assert_awaited_once_with('Pepe', 'Ana', challenge_id)
         self.assertEqual(response.status_code, status)
         self.assertEqual(response.json(), data)
