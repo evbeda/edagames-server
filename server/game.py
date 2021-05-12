@@ -4,7 +4,7 @@ from typing import List
 
 from server.constants import (
     GAME_STATE_PENDING,
-    DEFAULT_GAME
+    DEFAULT_GAME,
 )
 
 
@@ -35,3 +35,17 @@ class Game:
             default=lambda o: o.__dict__,
             sort_keys=True,
         )
+
+
+def data_challenge(
+    players: List[str],
+    name: str = DEFAULT_GAME,
+):
+    return json.dumps({
+        'players': players,
+        'game': name,
+    })
+
+
+def identifier():
+    return str(uuid.uuid4())
