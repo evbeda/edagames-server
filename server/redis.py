@@ -24,12 +24,12 @@ async def get_string(key, client, caller):
         if data is None:
             notify_feedback(
                 client,
-                f'{caller}_id not found',
+                f'{caller} not found',
             )
         return data
     except DataError as e:
         logger.error(e)
         await notify_error_to_client(
             client,
-            f'DataError in {caller}_id, send a str',
+            f'DataError in {caller}, send a str',
         )

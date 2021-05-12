@@ -20,6 +20,7 @@ from server.constants import (
     GAME_STATE_ACCEPTED,
     LAST_PLAYER,
     OPPONENT,
+    CHALLENGE_ID,
 )
 
 
@@ -29,15 +30,19 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         with patch('uuid.uuid4', return_value=self.uuid):
             self.game = Game(['player1', 'player2'])
 
-    @parameterized.expand([
-        ({"action": "accept_challenge", "data": {"challenge_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
-    ])
-    async def test_accept_challenge(self, data):
+    @patch.object(AcceptChallenge, 'start_game')
+    @patch('server.server_event.get_string', return_value='data_from_redis')
+    @patch.object(MovesActions, 'search_value', return_value='challenge_id_from_request')
+    async def test_accept_challenge(self, mock_search, mock_get, mock_start):
+        data = {"action": "accept_challenge", "data": {"challenge_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}}
         client = 'Test Client 1'
-        games.append(self.game)
-        with patch.object(AcceptChallenge, 'start_game') as mock_run:
+        json_to_python = 'python data'
+        with patch('json.loads', return_value=json_to_python) as mock_json:
             await AcceptChallenge(data, client).run()
-            mock_run.assert_called()
+            mock_search.assert_called_with(data, client, CHALLENGE_ID)
+            mock_get.assert_called_with('challenge_id_from_request', client, CHALLENGE_ID)
+            mock_start.assert_called_with(json_to_python)
+            mock_json.assert_called_with('data_from_redis')
 
     @patch.object(MovesActions, 'make_move')
     async def test_start_game(self, mock_make_move):

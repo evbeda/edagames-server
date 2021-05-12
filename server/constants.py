@@ -32,4 +32,4 @@ ASK_CHALLENGE = 'challenge'
 OPPONENT = 'opponent'
 
 # IDs
-CHALLENGE = 'challenge'
+CHALLENGE_ID = 'challenge_id'
