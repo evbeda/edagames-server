@@ -20,9 +20,10 @@ def save_string(key, value, expire=None):
 
 async def get_string(key, client, caller):
     try:
-        data = r.getdel(key)
+        data = r.get(key)
+        r.delete(key)
         if data is None:
-            notify_feedback(
+            await notify_feedback(
                 client,
                 f'{caller} not found',
             )

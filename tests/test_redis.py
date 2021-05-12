@@ -5,10 +5,11 @@ import fakeredis
 
 from server.redis import (
     save_string,
+    get_string,
 )
 
 
-class TestRedis(unittest.TestCase):
+class TestRedis(unittest.IsolatedAsyncioTestCase):
 
     @parameterized.expand([
         # (value, expire, expected_value, expected_ttl)
@@ -33,3 +34,22 @@ class TestRedis(unittest.TestCase):
         with patch("server.redis.r", fakeredis.FakeStrictRedis()):
             save_string(key, value)
             mocked.assert_called_once()
+
+    @patch('server.redis.notify_feedback')
+    async def test_get_string_finded(self, mock_notify_feedback):
+        key = 'test_id'
+        value = 'test_value'
+        client = 'test_client'
+        default_caller = 'default_id'
+        with patch("server.redis.r", fakeredis.FakeStrictRedis()) as r_mock:
+            r_mock.set(key, value)
+            # first call gets and deletes the key
+            call_1 = await get_string(key, client, default_caller)
+            self.assertEqual(value, call_1.decode())
+            # second call doesnt find the key
+            call_2 = await get_string(key, client, default_caller)
+            self.assertEqual(None, call_2)
+            mock_notify_feedback.assert_called_once_with(
+                client,
+                f'{default_caller} not found',
+            )
