@@ -121,7 +121,7 @@ class Challenge(ServerEvent, MovesActions):
         games.append(game)
         challenge_id = identifier()
         save_string(
-            challenge_id,
+            'c_' + challenge_id,
             data_challenge([self.client, challenged]),
         )
         await notify_challenge_to_client(
