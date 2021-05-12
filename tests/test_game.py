@@ -20,15 +20,15 @@ class TestGame(unittest.TestCase):
             self.assertEqual(DEFAULT_GAME, game.name)
             self.assertEqual(challenge_id, game.challenge_id)
             self.assertEqual(None, game.game_id)
-            self.assertEqual(None, game.turn_token)
             self.assertEqual(GAME_STATE_PENDING, game.state)
 
     def test_next_turn(self):
         turn_token = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
         game = Game(['p1', 'p2'])
+        game.game_id = 'c303282d'
         with patch('uuid.uuid4', return_value=turn_token):
-            game.next_turn()
-            self.assertEqual(game.turn_token, turn_token)
+            turn_token_new = game.next_turn()
+            self.assertEqual(turn_token_new, turn_token)
 
     def test_to_JSON(self):
         expected = (
@@ -37,8 +37,7 @@ class TestGame(unittest.TestCase):
             '"name": "quoridor", ' +
             '"players": ["player_1", "player_2"], ' +
             '"state": 0, ' +
-            '"timer": null, ' +
-            '"turn_token": null}'
+            '"timer": null}'
         )
         turn_token = 'c303282d'
         with patch('uuid.uuid4', return_value=turn_token):
