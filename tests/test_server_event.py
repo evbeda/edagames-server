@@ -66,18 +66,27 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(self.game.game_id, game_id)
 
     @parameterized.expand([
-        ({"action": "accept_challenge", "data": {"turn_token": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
+        (
+            {
+                "action": "accept_challenge",
+                "data": {"turn_token": "303282d-f2e6-46ca-a04a-35d3d873712d", "board_id": 'c303282d'}
+            },
+        ),
     ])
     async def test_Movements(self, data):
         client = 'Test Client 1'
         with patch('asyncio.create_task', new_callable=MagicMock):
             game = Game(['mov_player1', 'mov_player2'])
             game.timer = asyncio.create_task()
-            game.turn_token = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
+            game.game_id = 'c303282d'
+            game.turn_token = '303282d-f2e6-46ca-a04a-35d3d873712d'
             games.append(game)
             with patch.object(Movements, 'execute_action') as start_patched:
-                await Movements(data, client).run()
-                start_patched.assert_called_with(game)
+                with patch("server.redis.r.get", new_callable=MagicMock) as mock:
+                    mock.return_value = '303282d-f2e6-46ca-a04a-35d3d873712d'
+                    await Movements(data, client).run()
+                    mock.assert_called_with(game.game_id)
+                    start_patched.assert_called_with(game)
 
     async def test_list_users(self):
         data = {'action': 'list_users'}
@@ -179,7 +188,12 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 mock_notify_challenge.assert_awaited_once_with(opponent, client, self.uuid)
 
     @parameterized.expand([
-        ({"action": "abort_game", "data": {"turn_token": "303282d-f2e6-46ca-a04a-35d3d873712d"}},),
+        (
+            {
+                "action": "accept_challenge",
+                "data": {"turn_token": "303282d-f2e6-46ca-a04a-35d3d873712d", "board_id": 'c303282d'}
+            },
+        ),
     ])
     async def test_abort_game(self, data):
         client = 'Test Client'
@@ -188,9 +202,13 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             game.timer = asyncio.create_task()
             game.turn_token = '303282d-f2e6-46ca-a04a-35d3d873712d'
             games.append(game)
+            game.game_id = 'c303282d'
             with patch.object(AbortGame, 'end_game') as start_patched:
-                await AbortGame(data, client).run()
-                start_patched.assert_called_with(game)
+                with patch("server.redis.r.get", new_callable=MagicMock) as mock:
+                    mock.return_value = '303282d-f2e6-46ca-a04a-35d3d873712d'
+                    await AbortGame(data, client).run()
+                    mock.assert_called_with(game.game_id)
+                    start_patched.assert_called_with(game)
 
     @patch.object(EndActions, 'game_over')
     async def test_abort_game_end_game(self, mock_game_over):
