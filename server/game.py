@@ -1,6 +1,7 @@
 import uuid
 import json
 from typing import List
+from .redis import r
 
 from server.constants import (
     GAME_STATE_PENDING,
@@ -23,11 +24,12 @@ class Game:
         self.state = GAME_STATE_PENDING
         self.game_id = None
         self.challenge_id = str(uuid.uuid4())
-        self.turn_token = None
         self.timer = None
 
     def next_turn(self):
-        self.turn_token = str(uuid.uuid4())
+        turn_token = str(uuid.uuid4())
+        r.set(self.game_id, turn_token, ex=30)
+        return turn_token
 
     def to_JSON(self):
         return json.dumps(

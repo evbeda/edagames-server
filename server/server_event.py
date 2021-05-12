@@ -17,6 +17,7 @@ from server.utilities_server_event import (
     EndActions,
 )
 from server.redis import save_string, get_string
+from .redis import r
 
 from server.constants import (
     GAME_STATE_ACCEPTED,
@@ -89,10 +90,17 @@ class Movements(ServerEvent, MovesActions, EndActions):
             self.client,
             'turn_token',
         )
-        for game in games:
-            if game.turn_token == turn_token:
-                game.timer.cancel()
-                await self.execute_action(game)
+        game_id = await self.search_value(
+            self.response,
+            self.client,
+            'board_id',
+        )
+        redis_game_id = r.get(game_id)
+        if redis_game_id == turn_token:
+            for game in games:
+                if game.game_id == game_id:
+                    game.timer.cancel()
+                    await self.execute_action(game)
 
     async def execute_action(self, game: Game):
         adapter = await GRPCAdapterFactory.get_adapter(game.name)
@@ -148,11 +156,22 @@ class AbortGame(ServerEvent, MovesActions, EndActions):
         self.name_event = ABORT_GAME
 
     async def run(self):
-        turn_token = await self.search_value(self.response, self.client, 'turn_token')
-        for game in games:
-            if game.turn_token == turn_token:
-                game.timer.cancel()
-                await self.end_game(game)
+        turn_token = await self.search_value(
+            self.response,
+            self.client,
+            'turn_token'
+        )
+        game_id = await self.search_value(
+            self.response,
+            self.client,
+            'board_id',
+        )
+        redis_game_id = r.get(game_id)
+        if redis_game_id == turn_token:
+            for game in games:
+                if game.game_id == game_id:
+                    game.timer.cancel()
+                    await self.end_game(game)
 
     async def end_game(self, game: Game):
         adapter = await GRPCAdapterFactory.get_adapter(game.name)
