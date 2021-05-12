@@ -18,7 +18,7 @@ def save_string(key, value, expire=None):
         logger.error(e)
 
 
-async def get_string(key, client, caller):
+async def get_string(key, client, caller='id'):
     try:
         data = r.get(key)
         r.delete(key)
