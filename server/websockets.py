@@ -53,3 +53,11 @@ async def notify_end_game_to_client(players: List[str], data: Dict):
             websocket_events.EVENT_GAME_OVER,
             data,
         )
+
+
+async def notify_feedback(client, feedback):
+    await manager.send(
+        client,
+        websocket_events.EVENT_FEEDBACK,
+        feedback,
+    )

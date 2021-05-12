@@ -1,3 +1,5 @@
+import json
+
 from server.connection_manager import manager
 from server.game import (
     games,
@@ -25,6 +27,7 @@ from server.constants import (
     OPPONENT,
     ASK_CHALLENGE,
     ABORT_GAME,
+    CHALLENGE,
 )
 
 
@@ -58,12 +61,14 @@ class AcceptChallenge(ServerEvent, MovesActions):
             self.client,
             'challenge_id',
         )
-        if challenge_id is None:
-            game_data = get_string(challenge_id)
-            if game_data is None:
-                notify id not found
-            else:
-                await self.start_game(json.loads(game_data))
+        if challenge_id is not None:
+            game_data = get_string(
+                challenge_id,
+                self.client,
+                CHALLENGE,
+            )
+            if game_data is not None:
+                await self.start_game(json.loads(game_data))   
             # for game in games:
             #     if game.challenge_id == challenge_id:
             #         await self.start_game(game)

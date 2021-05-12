@@ -5,7 +5,7 @@ EVENT_SEND_PENALIZE = 'penalize'
 EVENT_SEND_YOUR_TURN = 'your_turn'
 EVENT_LIST_USERS = 'list_users'
 EVENT_GAME_OVER = 'game_over'
-
+EVENT_FEEDBACK = 'feedback'
 
 # Exceptions
 GAMEIDERROR = 'GAMEID_ERROR'
@@ -30,3 +30,6 @@ ASK_CHALLENGE = 'challenge'
 
 # search_value
 OPPONENT = 'opponent'
+
+# IDs
+CHALLENGE = 'challenge'
