@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 from server.models import Challenge
 from server.game import Game, games
+from server.game import identifier, data_challenge
 from server.websockets import notify_challenge_to_client
 from server.connection_manager import manager
 from server.redis import save_string
@@ -14,11 +15,15 @@ router = APIRouter()
 async def challenge(challenge: Challenge):
     game = Game([challenge.challenger, challenge.challenged])
     games.append(game)
-    save_string(game.challenge_id, game.to_JSON())
+    challenge_id = identifier()
+    save_string(
+        challenge_id,
+        data_challenge([challenge.challenger, challenge.challenged]),
+    )
     await notify_challenge_to_client(
         challenge.challenged,
         challenge.challenger,
-        game.challenge_id,
+        challenge_id,
     )
     return challenge
 
