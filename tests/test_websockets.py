@@ -8,6 +8,7 @@ from server.websockets import (
     notify_your_turn,
     notify_user_list_to_client,
     notify_end_game_to_client,
+    notify_feedback,
 )
 
 import server.constants as websocket_events
@@ -87,3 +88,14 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             data,
         )
         self.assertEqual(send_patched.call_count, len(players))
+
+    @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
+    async def test_notify_feedback(self, send_patched):
+        client = 'User 1'
+        feedback = 'id not found'
+        await notify_feedback(client, feedback)
+        send_patched.assert_awaited_once_with(
+            client,
+            websocket_events.EVENT_FEEDBACK,
+            feedback,
+        )
