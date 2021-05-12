@@ -27,7 +27,7 @@ from server.constants import (
     OPPONENT,
     ASK_CHALLENGE,
     ABORT_GAME,
-    CHALLENGE,
+    CHALLENGE_ID,
 )
 
 
@@ -59,19 +59,16 @@ class AcceptChallenge(ServerEvent, MovesActions):
         challenge_id = await self.search_value(
             self.response,
             self.client,
-            'challenge_id',
+            CHALLENGE_ID,
         )
         if challenge_id is not None:
-            game_data = get_string(
+            game_data = await get_string(
                 challenge_id,
                 self.client,
-                CHALLENGE,
+                CHALLENGE_ID,
             )
             if game_data is not None:
-                await self.start_game(json.loads(game_data))   
-            # for game in games:
-            #     if game.challenge_id == challenge_id:
-            #         await self.start_game(game)
+                await self.start_game(json.loads(game_data))
 
     async def start_game(self, game: Game):
         game.state = GAME_STATE_ACCEPTED
