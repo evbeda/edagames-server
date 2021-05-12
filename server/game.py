@@ -15,7 +15,6 @@ class Game:
     def __init__(
         self,
         players: List[str],
-        challenge_id: str = None,
         name: str = DEFAULT_GAME
     ):
         # to do: clean the challenge_id from web (not used)
