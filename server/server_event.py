@@ -9,6 +9,7 @@ from server.utilities_server_event import (
     MovesActions,
     EndActions,
 )
+from server.redis import save_string
 
 from server.constants import (
     GAME_STATE_ACCEPTED,
@@ -105,6 +106,7 @@ class Challenge(ServerEvent, MovesActions):
         )
         game = Game([self.client, challenged])
         games.append(game)
+        save_string(game.challenge_id, game.to_JSON())
         await notify_challenge_to_client(
             challenged,
             self.client,

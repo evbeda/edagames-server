@@ -26,10 +26,7 @@ from server.constants import (
 class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.uuid = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
-        with patch(
-            'uuid.uuid4',
-            return_value=self.uuid
-        ):
+        with patch('uuid.uuid4', return_value=self.uuid):
             self.game = Game(['player1', 'player2'])
 
     @parameterized.expand([
@@ -123,17 +120,20 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
 
     @patch('server.server_event.notify_challenge_to_client')
     @patch.object(MovesActions, 'search_value', return_value='test_opponent')
-    async def test_challenge(self, mock_search, mock_notify_challenge):
+    @patch('server.server_event.save_string')
+    async def test_challenge(self, mock_save, mock_search, mock_notify_challenge):
         client = 'Test Client'
         opponent = 'test_opponent'
         challenge_data = {'opponent': opponent}
         response = {'data': challenge_data}
-        q_games = len(games)
+        to_json = '''{ players: [player_1, player_2]}'''
         with patch('uuid.uuid4', return_value=self.uuid):
-            await Challenge(response, client).run()
-            mock_search.assert_awaited_once_with(response, client, OPPONENT)
-            mock_notify_challenge.assert_awaited_once_with(opponent, client, self.uuid)
-            self.assertEqual(q_games + 1, len(games))
+            with patch.object(Game, 'to_JSON', return_value=to_json) as mock_to_JSON:
+                await Challenge(response, client).run()
+                mock_to_JSON.assert_called_once_with()
+                mock_save.assert_called_once_with(self.uuid, to_json)
+                mock_search.assert_awaited_once_with(response, client, OPPONENT)
+                mock_notify_challenge.assert_awaited_once_with(opponent, client, self.uuid)
 
     @parameterized.expand([
         ({"action": "abort_game", "data": {"turn_token": "303282d-f2e6-46ca-a04a-35d3d873712d"}},),
