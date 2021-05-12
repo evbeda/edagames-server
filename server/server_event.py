@@ -1,5 +1,10 @@
 from server.connection_manager import manager
-from server.game import games, Game
+from server.game import (
+    games,
+    Game,
+    identifier,
+    data_challenge,
+)
 from server.websockets import (
     notify_user_list_to_client,
     notify_challenge_to_client,
@@ -106,11 +111,15 @@ class Challenge(ServerEvent, MovesActions):
         )
         game = Game([self.client, challenged])
         games.append(game)
-        save_string(game.challenge_id, game.to_JSON())
+        challenge_id = identifier()
+        save_string(
+            challenge_id,
+            data_challenge([self.client, challenged]),
+        )
         await notify_challenge_to_client(
             challenged,
             self.client,
-            game.challenge_id,
+            challenge_id,
         )
 
 
