@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from server.game import Game
+from server.game import Game, data_challenge, identifier
 from server.constants import (
     DEFAULT_GAME,
     GAME_STATE_PENDING,
@@ -45,3 +45,15 @@ class TestGame(unittest.TestCase):
             game = Game(['player_1', 'player_2'])
             res = game.to_JSON()
             self.assertEqual(res, expected)
+
+    def test_identifier(self):
+        turn_token = 'c303282d'
+        with patch('uuid.uuid4', return_value=turn_token):
+            res = identifier()
+            self.assertEqual(res, turn_token)
+
+    def test_data_challenge(self):
+        players = ['Pedro', 'Pablo']
+        expected = f'''{{"players": ["Pedro", "Pablo"], "game": "{DEFAULT_GAME}"}}'''
+        res = data_challenge(players)
+        self.assertEqual(res, expected)
