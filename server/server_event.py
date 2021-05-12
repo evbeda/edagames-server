@@ -14,7 +14,7 @@ from server.utilities_server_event import (
     MovesActions,
     EndActions,
 )
-from server.redis import save_string
+from server.redis import save_string, get_string
 
 from server.constants import (
     GAME_STATE_ACCEPTED,
@@ -58,9 +58,15 @@ class AcceptChallenge(ServerEvent, MovesActions):
             self.client,
             'challenge_id',
         )
-        for game in games:
-            if game.challenge_id == challenge_id:
-                await self.start_game(game)
+        if challenge_id is None:
+            game_data = get_string(challenge_id)
+            if game_data is None:
+                notify id not found
+            else:
+                await self.start_game(json.loads(game_data))
+            # for game in games:
+            #     if game.challenge_id == challenge_id:
+            #         await self.start_game(game)
 
     async def start_game(self, game: Game):
         game.state = GAME_STATE_ACCEPTED
