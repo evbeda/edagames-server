@@ -1,9 +1,11 @@
 from fastapi import APIRouter
-from .models import Challenge
-from server.game import Game, games
-import server.websockets
-from .connection_manager import manager
 from fastapi.responses import JSONResponse
+
+from server.models import Challenge
+from server.game import Game, games
+from server.websockets import notify_challenge_to_client
+from server.connection_manager import manager
+from server.redis import save_string
 
 router = APIRouter()
 
@@ -12,7 +14,7 @@ router = APIRouter()
 async def challenge(challenge: Challenge):
     game = Game([challenge.challenger, challenge.challenged])
     games.append(game)
-    await server.websockets.notify_challenge_to_client(
+    await notify_challenge_to_client(
         challenge.challenged,
         challenge.challenger,
         game.challenge_id,

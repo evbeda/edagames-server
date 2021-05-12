@@ -1,8 +1,9 @@
+import unittest
+from unittest.mock import patch
 from parameterized import parameterized
 from httpx import AsyncClient
+
 from server.server import app, manager
-import unittest
-from unittest.mock import patch, AsyncMock
 
 
 class TestRouter(unittest.IsolatedAsyncioTestCase):
@@ -11,13 +12,13 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
     ])
     async def test_challenge(self, data, status):
         with patch('uuid.uuid4', return_value='810a84e7'):
-            with patch('server.websockets.notify_challenge_to_client', new_callable=AsyncMock) as mock:
+            with patch('server.router.notify_challenge_to_client') as mock_notify_challenge:
                 async with AsyncClient(app=app, base_url="http://test") as ac:
                     response = await ac.post(
                         "/challenge",
                         json=data
                     )
-                mock.assert_called_once_with(
+                mock_notify_challenge.assert_awaited_once_with(
                     'Pepe',
                     'Ana',
                     '810a84e7',
