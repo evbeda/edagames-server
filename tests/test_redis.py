@@ -35,21 +35,47 @@ class TestRedis(unittest.IsolatedAsyncioTestCase):
             save_string(key, value)
             mocked.assert_called_once()
 
+    @patch('server.redis.notify_error_to_client')
     @patch('server.redis.notify_feedback')
-    async def test_get_string_finded(self, mock_notify_feedback):
+    async def test_get_string_finded(self, mock_notify_feedback, mock_notify_error):
         key = 'test_id'
         value = 'test_value'
         client = 'test_client'
-        default_caller = 'default_id'
+        caller = 'test_id'
         with patch("server.redis.r", fakeredis.FakeStrictRedis()) as r_mock:
             r_mock.set(key, value)
             # first call gets and deletes the key
-            call_1 = await get_string(key, client, default_caller)
+            call_1 = await get_string(key, client, caller)
             self.assertEqual(value, call_1.decode())
             # second call doesnt find the key
-            call_2 = await get_string(key, client, default_caller)
+            call_2 = await get_string(key, client, caller)
             self.assertEqual(None, call_2)
-            mock_notify_feedback.assert_called_once_with(
+            mock_notify_feedback.assert_awaited_once_with(
                 client,
-                f'{default_caller} not found',
+                f'{caller} not found',
             )
+            mock_notify_error.assert_not_awaited()
+
+    @patch('server.redis.logger.error')
+    @patch('server.redis.notify_error_to_client')
+    @patch('server.redis.notify_feedback')
+    async def test_get_string_error(
+        self,
+        mock_notify_feedback,
+        mock_notify_error,
+        mock_logger,
+    ):
+        key = 'test_id'
+        wrong_key = ['test_id']
+        value = 'test_value'
+        client = 'test_client'
+        caller = 'test_id'
+        with patch("server.redis.r", fakeredis.FakeStrictRedis()) as r_mock:
+            r_mock.set(key, value)
+            await get_string(wrong_key, client, caller)
+            mock_notify_feedback.assert_not_awaited()
+            mock_notify_error.assert_awaited_once_with(
+                client,
+                f'DataError in {caller}, send a str',
+            )
+            mock_logger.assert_called_once()
