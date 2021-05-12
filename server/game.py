@@ -30,7 +30,7 @@ class Game:
 
     def next_turn(self):
         turn_token = str(uuid.uuid4())
-        save_string(self.game_id, turn_token, TIME_SLEEP)
+        save_string('t_' + self.game_id, turn_token, TIME_SLEEP)
         return turn_token
 
     def to_JSON(self):
