@@ -202,30 +202,30 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     ])
     async def test_abort_game(self, data):
         client = 'Test Client'
-        with patch('asyncio.create_task', new_callable=MagicMock):
-            # turn_token = '303282d-f2e6-46ca-a04a-35d3d873712d'
-            # game_id = 'c303282d'
-            game = {}
-            with patch.object(AbortGame, 'end_game') as start_patched:
-                with patch("server.redis.get_string", new_callable=MagicMock) as mock:
-                    mock.return_value = '303282d-f2e6-46ca-a04a-35d3d873712d'
+        with patch.object(MovesActions, 'search_value', return_value='10') as mock_search:
+            with patch('server.server_event.get_string', return_value='10') as mock_get:
+                with patch.object(AbortGame, 'end_game', return_value='10') as mock_end:
                     await AbortGame(data, client).run()
-                    start_patched.assert_called_with(game)
+                    mock_search.assert_any_call(data, client, 'board_id')
+                    mock_search.assert_any_call(data, client, 'turn_token')
+                    self.assertEqual(mock_search.call_count, 2)
+                    mock_get.assert_awaited()
+                    mock_end.assert_awaited()
 
     @patch.object(EndActions, 'game_over')
     async def test_abort_game_end_game(self, mock_game_over):
         client = 'client'
+        game_id = 'asd123'
         with patch('server.server_event.GRPCAdapterFactory.get_adapter') as g_adapter_patched:
             adapter_patched = AsyncMock()
             adapter_patched.end_game.return_value = MagicMock(
-                game_id='303282d-f2e6-46ca-a04a-35d3d873712d',
                 current_player=LAST_PLAYER,
                 turn_data={'player_1': 'Mark', 'score_1': 1000},
                 play_data={'state': 'game_over'}
             )
             g_adapter_patched.return_value = adapter_patched
             game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
-            await AbortGame({}, client).end_game(game)
+            await AbortGame({}, client).end_game(game, game_id)
             mock_game_over.assert_awaited_once_with(
                 game,
                 adapter_patched.end_game.return_value
