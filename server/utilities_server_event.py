@@ -13,6 +13,7 @@ from server.web_requests import notify_end_game_to_web
 
 from server.constants import (
     TIME_SLEEP,
+    TURN_TOKEN,
     PREFIX_TURN_TOKEN,
 )
 
@@ -29,13 +30,17 @@ async def move(data):
     )
 
 
-async def penalize(game_id, game_name):
+async def penalize(data, game_name):
     await asyncio.sleep(TIME_SLEEP)
-    token_valid = await get_string(f'{PREFIX_TURN_TOKEN}{game_id}')
+    token_valid = await get_string(
+        f'{PREFIX_TURN_TOKEN}{data.game_id}',
+        data.current_player,
+        TURN_TOKEN,
+    )
     if token_valid is None:
         adapter = await GRPCAdapterFactory.get_adapter(game_name)
-        data = await adapter.penalize(game_id)
-        await move(game_id, data)
+        data = await adapter.penalize(data.game_id)
+        await move(data.game_id, data)
 
 
 def end_data_for_web(data):
@@ -48,7 +53,7 @@ def end_data_for_web(data):
 class MovesActions:
     async def make_move(self, game_name: str, data):
         await move(data)
-        asyncio.create_task(penalize(data.game_id, game_name))
+        asyncio.create_task(penalize(data, game_name))
 
     async def search_value(self, response, client, value):
         value_search = response.get('data', {}).get(value)

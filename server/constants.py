@@ -33,6 +33,7 @@ OPPONENT = 'opponent'
 
 # IDs
 CHALLENGE_ID = 'challenge_id'
+TURN_TOKEN = 'turn_token'
 
 # Prefixes
 PREFIX_CHALLENGE = 'c_'
