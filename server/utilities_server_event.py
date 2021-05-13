@@ -40,7 +40,7 @@ async def penalize(data, game_name):
     if token_valid is None:
         adapter = await GRPCAdapterFactory.get_adapter(game_name)
         data = await adapter.penalize(data.game_id)
-        await move(data.game_id, data)
+        await move(data)
 
 
 def end_data_for_web(data):
