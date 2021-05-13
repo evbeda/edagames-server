@@ -116,16 +116,15 @@ class Movements(ServerEvent, MovesActions, EndActions):
             game_id,
             self.response
         )
-        await self.log_action(game_data, data_received)
+        await self.log_action(data_received)
         if data_received.current_player == LAST_PLAYER:
             await self.game_over(game_data, data_received)
         else:
             await self.make_move(data_received, game_data.get('name'))
 
-    async def log_action(self, game, data):
-        # TODO: Replace with new Game class methods when they are done
+    async def log_action(self, data):
         save_string(
-            f'{PREFIX_LOG}{game.game_id}',
+            f'{PREFIX_LOG}{data.game_id}',
             json.dumps({
                 "turn": data.previous_player,
                 "data": data.play_data,
