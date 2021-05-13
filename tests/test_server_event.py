@@ -79,17 +79,18 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     ])
     async def test_Movements(self, data):
         client = 'Test Client 1'
-        with patch('asyncio.create_task', new_callable=MagicMock):
-            game_id = 'c303282d'
-            turn_token = '303282d-f2e6-46ca-a04a-35d3d873712d'
-            game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
-            with patch.object(Movements, 'execute_action') as start_patched:
-                with patch("server.server_event.get_string", side_effect=[turn_token, game_id]) as mock_get:
-                    with patch.object(MovesActions, 'search_value', side_effect=[turn_token, game_id]) as mock_search:
+        # game_id = 'c303282d'
+        # turn_token = '303282d-f2e6-46ca-a04a-35d3d873712d'
+        # game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
+        with patch.object(MovesActions, 'search_value', return_value='value') as mock_search:
+            with patch("server.server_event.get_string", return_value='value') as mock_get:
+                with patch('json.loads', return_value='json_value') as mock_json:
+                    with patch.object(Movements, 'execute_action', return_value='value') as mock_execute:
                         await Movements(data, client).run()
-                        mock_get.assert_called()
-                        start_patched.assert_called_with(game)
                         mock_search.assert_called()
+                        mock_get.assert_called()
+                        mock_json.asseer_called()
+                        mock_execute.assert_called()
 
     async def test_list_users(self):
         data = {'action': 'list_users'}
