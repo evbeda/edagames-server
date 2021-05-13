@@ -1,6 +1,7 @@
 import asyncio
 
-from server.game import Game
+from server.game import next_turn
+from server.redis import get_string
 from server.grpc_adapter import GRPCAdapterFactory
 from server.exception import GameIdException
 from server.websockets import (
@@ -12,15 +13,14 @@ from server.web_requests import notify_end_game_to_web
 
 from server.constants import (
     TIME_SLEEP,
-    GAME_STATE_ENDED,
 )
 
 
-async def move(game, data):
-    turn_token = game.next_turn()
+async def move(game_id, data):
+    turn_token = next_turn(game_id)
     data.turn_data.update({
         'turn_token': turn_token,
-        'board_id': game.game_id,
+        'board_id': game_id,
     })
     await notify_your_turn(
         data.current_player,
@@ -28,11 +28,13 @@ async def move(game, data):
     )
 
 
-async def penalize(game: Game):
+async def penalize(game_id, game_name):
     await asyncio.sleep(TIME_SLEEP)
-    adapter = await GRPCAdapterFactory.get_adapter(game.name)
-    data = await adapter.penalize(game.game_id)
-    await move(game, data)
+    token_valid = await get_string('t_' + game_id)
+    if token_valid is None:
+        adapter = await GRPCAdapterFactory.get_adapter(game_name)
+        data = await adapter.penalize(game_id)
+        await move(game_id, data)
 
 
 def end_data_for_web(data):
@@ -43,9 +45,9 @@ def end_data_for_web(data):
 
 
 class MovesActions:
-    async def make_move(self, game, data):
-        await move(game, data)
-        game.timer = asyncio.create_task(penalize(game))
+    async def make_move(self, game: dict, data, game_id):
+        await move(game_id, data)
+        asyncio.create_task(penalize(game_id, game.get('name')))
 
     async def search_value(self, response, client, value):
         value_search = response.get('data', {}).get(value)
@@ -58,11 +60,10 @@ class MovesActions:
 
 
 class EndActions:
-    async def game_over(self, game, data):
-        game.state = GAME_STATE_ENDED
+    async def game_over(self, game: dict, data):
         await notify_end_game_to_client(
-            game.players,
+            game.get('players'),
             data.turn_data,
         )
         end_data = end_data_for_web(data.turn_data)
-        await notify_end_game_to_web(game.game_id, end_data)
+        await notify_end_game_to_web(game.get('game_id'), end_data)

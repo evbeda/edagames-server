@@ -28,17 +28,18 @@ class Game:
         self.challenge_id = str(uuid.uuid4())
         self.timer = None
 
-    def next_turn(self):
-        turn_token = str(uuid.uuid4())
-        save_string('t_' + self.game_id, turn_token, TIME_SLEEP)
-        return turn_token
-
     def to_JSON(self):
         return json.dumps(
             self,
             default=lambda o: o.__dict__,
             sort_keys=True,
         )
+
+
+def next_turn(game_id):
+    turn_token = str(uuid.uuid4())
+    save_string('t_' + game_id, turn_token, TIME_SLEEP)
+    return turn_token
 
 
 def data_challenge(

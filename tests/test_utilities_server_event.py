@@ -13,8 +13,8 @@ from server.game import Game
 from server.exception import GameIdException
 
 from server.constants import (
+    DEFAULT_GAME,
     TIME_SLEEP,
-    GAME_STATE_ENDED,
 )
 
 
@@ -24,7 +24,8 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
 
     @patch('server.utilities_server_event.move')
     @patch('server.utilities_server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock)
-    async def test_penalize(self, gadapter_patched, mock_move):
+    @patch('server.utilities_server_event.get_string', new_callable=AsyncMock)
+    async def test_penalize(self, get_strig_patch, gadapter_patched, mock_move):
         adapter_patched = AsyncMock()
         adapter_patched.penalize.return_value = MagicMock(
             game_id='123987',
@@ -32,12 +33,15 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
             turn_data={},
         )
         gadapter_patched.return_value = adapter_patched
+        get_strig_patch.return_value = None
+        game_id = '123987'
+        game_name = DEFAULT_GAME
         with patch('server.utilities_server_event.asyncio.sleep') as sleep_pached:
-            await penalize(self.game)
+            await penalize(game_id, game_name)
             sleep_pached.assert_called_with(TIME_SLEEP)
-            gadapter_patched.assert_called_with(self.game.name)
+            gadapter_patched.assert_called_with(DEFAULT_GAME)
             mock_move.assert_awaited_once_with(
-                self.game,
+                game_id,
                 adapter_patched.penalize.return_value,
             )
 
@@ -75,13 +79,15 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
             current_player='Juan',
             turn_data={},
         )
-        await MovesActions.make_move(self, self.game, data)
-        mock_move.assert_awaited_once_with(self.game, data)
-        mock_penalize.assert_called_once_with(self.game)
+        game = {'players': ['Pedro', 'Pablo'], 'name': DEFAULT_GAME}
+        game_id = '123987'
+        await MovesActions.make_move(self, game, data, game_id)
+        mock_move.assert_awaited_once_with(game_id, data)
+        mock_penalize.assert_called_once_with(game_id, DEFAULT_GAME)
         mock_asyncio.assert_called_once_with(10)
 
     @patch('server.utilities_server_event.notify_your_turn', new_callable=AsyncMock)
-    @patch.object(Game, 'next_turn')
+    @patch('server.utilities_server_event.next_turn')
     async def test_move(self, mock_next_turn, mock_notify_your_turn):
         data = MagicMock(
             game_id='123987',
@@ -91,8 +97,8 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
         token_turn = 'c303282d'
         mock_next_turn.return_value = token_turn
         test_game_id = 'fk340of3'
-        self.game.game_id = test_game_id
-        await move(self.game, data)
+        game_id = test_game_id
+        await move(game_id, data)
         self.assertEqual(data.turn_data, {'board_id': test_game_id, 'turn_token': token_turn})
         mock_notify_your_turn.assert_awaited_once_with(
             data.current_player,
@@ -122,10 +128,10 @@ class TestEndActions(unittest.IsolatedAsyncioTestCase):
             current_player='',
             turn_data=test_data,
         )
+        game = {'players': ['Pedro', 'Pablo'], 'name': DEFAULT_GAME}
         test_end_data = [('pablo', 2000), ('pedro', 1000)]
         with patch('server.utilities_server_event.end_data_for_web', return_value=test_end_data) as mock_end_data:
-            await EndActions.game_over(self, self.game, data)
-            self.assertEqual(self.game.state, GAME_STATE_ENDED)
+            await EndActions.game_over(self, game, data)
             mock_notify_end_to_client.assert_called_once_with(
                 self.game.players,
                 data.turn_data
