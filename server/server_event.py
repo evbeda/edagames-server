@@ -3,8 +3,6 @@ from typing import Dict
 
 from server.connection_manager import manager
 from server.game import (
-    games,
-    Game,
     identifier,
     data_challenge,
 )
@@ -110,19 +108,19 @@ class Movements(ServerEvent, MovesActions, EndActions):
                 self.client,
             )
             if game is not None:
-                await self.execute_action(json.loads(game))
+                await self.execute_action(json.loads(game), game_id)
 
-    async def execute_action(self, game: dict):
-        adapter = await GRPCAdapterFactory.get_adapter(game.get('name'))
+    async def execute_action(self, game_data: dict, game_id: str):
+        adapter = await GRPCAdapterFactory.get_adapter(game_data.get('name'))
         data_received = await adapter.execute_action(
-            game.get('game_id'),
+            game_id,
             self.response
         )
-        await self.log_action(game, data_received)
+        await self.log_action(game_data, data_received)
         if data_received.current_player == LAST_PLAYER:
-            await self.game_over(game, data_received)
+            await self.game_over(game_data, data_received)
         else:
-            await self.make_move(game, data_received)
+            await self.make_move(data_received, game_data.get('name'))
 
     async def log_action(self, game, data):
         # TODO: Replace with new Game class methods when they are done
@@ -146,8 +144,6 @@ class Challenge(ServerEvent, MovesActions):
             self.client,
             OPPONENT,
         )
-        game = Game([self.client, challenged])
-        games.append(game)
         challenge_id = identifier()
         save_string(
             PREFIX_CHALLENGE + challenge_id,

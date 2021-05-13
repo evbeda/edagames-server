@@ -2,7 +2,6 @@ import unittest
 from unittest.mock import patch, AsyncMock, MagicMock
 from parameterized import parameterized
 
-from server.game import Game
 from server.server_event import (
     AcceptChallenge,
     Movements,
@@ -28,8 +27,6 @@ from server.constants import (
 class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.uuid = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
-        with patch('uuid.uuid4', return_value=self.uuid):
-            self.game = Game(['player1', 'player2'])
 
     @patch.object(AcceptChallenge, 'start_game')
     @patch('server.server_event.get_string', return_value='data_from_redis', new_callable=AsyncMock)
@@ -115,31 +112,36 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
 
     @patch.object(MovesActions, 'make_move')
     async def test_execute_action(self, mock_make_move):
-        turn_data = {'game_id': 'fjj02', 'player_1': 'Mark', 'score_1': 1000}
+        client = 'client1'
+        game_data = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
+        game_id = 'test_game_id'
+        turn_data = {'player_1': 'client1', 'score_1': 1000, 'player_2': 'client2', 'score_2': 500}
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched,\
                 patch.object(Movements, 'log_action') as log_patched:
             adapter_patched = AsyncMock()
             adapter_patched.execute_action.return_value = MagicMock(
                 turn_data=turn_data,
-                current_player='Mark',
+                current_player=client,
+                game_id=game_id,
             )
             Gadapter_patched.return_value = adapter_patched
-            game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
-            await Movements({}, 'client').execute_action(game)
-            Gadapter_patched.assert_called_with(self.game.name)
-            mock_make_move.assert_awaited_once_with(
-                game,
+            await Movements({}, client).execute_action(game_data, game_id)
+            Gadapter_patched.assert_called_with(DEFAULT_GAME)
+            log_patched.assert_awaited_once_with(
+                game_data,
                 adapter_patched.execute_action.return_value,
             )
-            log_patched.assert_awaited_once_with(
-                game,
+            mock_make_move.assert_awaited_once_with(
                 adapter_patched.execute_action.return_value,
+                DEFAULT_GAME,
             )
 
     @patch.object(EndActions, 'game_over')
     async def test_movements_end_game(self, mock_game_over):
-        client = 'Test Client'
-        turn_data = {'game_id': 'fjj02', 'player_1': 'Mark', 'score_1': 1000}
+        client = 'client1'
+        game_data = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
+        game_id = 'test_game_id'
+        turn_data = {'player_1': 'client1', 'score_1': 1000, 'player_2': 'client2', 'score_2': 500}
         with patch('server.server_event.GRPCAdapterFactory.get_adapter') as g_adapter_patched,\
                 patch.object(Movements, 'log_action'):
             adapter_patched = AsyncMock()
@@ -148,10 +150,9 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 current_player=LAST_PLAYER,
             )
             g_adapter_patched.return_value = adapter_patched
-            game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
-            await Movements({}, client).execute_action(game)
+            await Movements({}, client).execute_action(game_data, game_id)
             mock_game_over.assert_awaited_once_with(
-                game,
+                game_data,
                 adapter_patched.execute_action.return_value
             )
 
