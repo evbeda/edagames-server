@@ -92,7 +92,8 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     @patch.object(MovesActions, 'make_move')
     async def test_execute_action(self, mock_make_move):
         turn_data = {'game_id': 'fjj02', 'player_1': 'Mark', 'score_1': 1000}
-        with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched:
+        with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched,\
+                patch.object(Movements, 'log_action') as log_patched:
             adapter_patched = AsyncMock()
             adapter_patched.execute_action.return_value = MagicMock(
                 turn_data=turn_data,
@@ -105,12 +106,17 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 self.game,
                 adapter_patched.execute_action.return_value,
             )
+            log_patched.assert_awaited_once_with(
+                self.game,
+                adapter_patched.execute_action.return_value,
+            )
 
     @patch.object(EndActions, 'game_over')
     async def test_movements_end_game(self, mock_game_over):
         client = 'Test Client'
         turn_data = {'game_id': 'fjj02', 'player_1': 'Mark', 'score_1': 1000}
-        with patch('server.server_event.GRPCAdapterFactory.get_adapter') as g_adapter_patched:
+        with patch('server.server_event.GRPCAdapterFactory.get_adapter') as g_adapter_patched,\
+                patch.object(Movements, 'log_action'):
             adapter_patched = AsyncMock()
             adapter_patched.execute_action.return_value = MagicMock(
                 turn_data=turn_data,
@@ -122,6 +128,38 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 self.game,
                 adapter_patched.execute_action.return_value
             )
+
+    @patch('server.server_event.save_string')
+    @patch('json.dumps')
+    async def test_movements_log_action(self, json_dumps_patched, save_patched):
+        game = MagicMock(game_id='test-0000-00000001')
+        data = MagicMock(
+            previous_player='Player1',
+            turn_data={
+                'board_id': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+                'action': 'move',
+                'from_row': 3,
+                'from_col': 4,
+                'to_row': 4,
+                'to_col': 4,
+            },
+        )
+        turn_data_json = (
+            '{"turn": "Player1", "data": {'
+            '"board_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", '
+            '"action": "move", '
+            '"from_row": 3, '
+            '"from_col": 4, '
+            '"to_row": 4, '
+            '"to_col": 4'
+            '}}'
+        )
+        json_dumps_patched.return_value = turn_data_json
+        await Movements({}, 'client').log_action(game, data)
+        save_patched.assert_called_once_with(
+            'l_test-0000-00000001',
+            turn_data_json,
+        )
 
     @patch('server.server_event.notify_challenge_to_client')
     @patch.object(MovesActions, 'search_value', return_value='test_opponent')
