@@ -128,7 +128,6 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             await Movements({}, client).execute_action(game_data, game_id)
             Gadapter_patched.assert_called_with(DEFAULT_GAME)
             log_patched.assert_awaited_once_with(
-                game_data,
                 adapter_patched.execute_action.return_value,
             )
             mock_make_move.assert_awaited_once_with(
@@ -159,8 +158,8 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     @patch('server.server_event.save_string')
     @patch('json.dumps')
     async def test_movements_log_action(self, json_dumps_patched, save_patched):
-        game = MagicMock(game_id='test-0000-00000001')
         data = MagicMock(
+            game_id='test-0000-00000001',
             previous_player='Player1',
             turn_data={
                 'board_id': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
@@ -182,7 +181,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             '}}'
         )
         json_dumps_patched.return_value = turn_data_json
-        await Movements({}, 'client').log_action(game, data)
+        await Movements({}, 'client').log_action(data)
         save_patched.assert_called_once_with(
             'l_test-0000-00000001',
             turn_data_json,
