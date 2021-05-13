@@ -13,6 +13,7 @@ from server.web_requests import notify_end_game_to_web
 
 from server.constants import (
     TIME_SLEEP,
+    PREFIX_TURN_TOKEN,
 )
 
 
@@ -30,7 +31,7 @@ async def move(game_id, data):
 
 async def penalize(game_id, game_name):
     await asyncio.sleep(TIME_SLEEP)
-    token_valid = await get_string('t_' + game_id)
+    token_valid = await get_string(f'{PREFIX_TURN_TOKEN}{game_id}')
     if token_valid is None:
         adapter = await GRPCAdapterFactory.get_adapter(game_name)
         data = await adapter.penalize(game_id)
