@@ -19,7 +19,7 @@ async def challenge(challenge: Challenge):
     games.append(game)
     challenge_id = identifier()
     save_string(
-        PREFIX_CHALLENGE + challenge_id,
+        f'{PREFIX_CHALLENGE}{challenge_id}',
         data_challenge([challenge.challenger, challenge.challenged]),
     )
     await notify_challenge_to_client(

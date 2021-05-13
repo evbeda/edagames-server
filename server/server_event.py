@@ -103,11 +103,13 @@ class Movements(ServerEvent, MovesActions, EndActions):
         redis_game_id = await get_string(
             f'{PREFIX_TURN_TOKEN}{game_id}',
             self.client,
+            TURN_TOKEN,
         )
         if redis_game_id == turn_token:
             game = await get_string(
                 f'{PREFIX_GAME}{game_id}',
                 self.client,
+                BOARD_ID,
             )
             if game is not None:
                 await self.execute_action(json.loads(game), game_id)
@@ -176,11 +178,13 @@ class AbortGame(ServerEvent, MovesActions, EndActions):
         turn_token_saved = await get_string(
             f'{PREFIX_TURN_TOKEN}{game_id}',
             self.client,
+            TURN_TOKEN,
         )
         if turn_token_received == turn_token_saved:
             game = await get_string(
                 f'{PREFIX_LOG}{game_id}',
                 self.client,
+                BOARD_ID,
             )
             if game is not None:
                 await self.end_game(json.loads(game), game_id)
