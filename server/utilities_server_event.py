@@ -72,4 +72,4 @@ class EndActions:
             data.turn_data,
         )
         end_data = end_data_for_web(data.turn_data)
-        await notify_end_game_to_web(game.get('game_id'), end_data)
+        await notify_end_game_to_web(data.game_id, end_data)
