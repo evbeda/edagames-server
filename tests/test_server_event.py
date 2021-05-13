@@ -73,8 +73,8 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 game_data,
             )
             mock_make_move.assert_called_once_with(
-                game_data,
                 adapter_patched.create_game.return_value,
+                DEFAULT_GAME,
             )
 
     def my_side_effect(*args):
