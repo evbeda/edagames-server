@@ -21,8 +21,6 @@ from server.constants import (
 
 
 class TestMovesActions(unittest.IsolatedAsyncioTestCase):
-    def setUp(self):
-        self.game = Game(['player1', 'player2'])
 
     @patch('server.utilities_server_event.move')
     @patch('server.utilities_server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock)
@@ -84,33 +82,33 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
     ):
         data = MagicMock(
             game_id='123987',
-            current_player='Juan',
+            current_player='Pedro',
             turn_data={},
         )
-        game = {'players': ['Pedro', 'Pablo'], 'name': DEFAULT_GAME}
-        game_id = '123987'
-        await MovesActions.make_move(self, game, data, game_id)
-        mock_move.assert_awaited_once_with(game_id, data)
-        mock_penalize.assert_called_once_with(game_id, DEFAULT_GAME)
+        game_name = DEFAULT_GAME
+        await MovesActions.make_move(self, data, game_name)
+        mock_move.assert_awaited_once_with(data)
+        mock_penalize.assert_called_once_with(data, game_name)
         mock_asyncio.assert_called_once_with(10)
 
     @patch('server.utilities_server_event.notify_your_turn', new_callable=AsyncMock)
-    @patch('server.utilities_server_event.next_turn')
+    @patch('server.utilities_server_event.next_turn', return_value='c303282d')
     async def test_move(self, mock_next_turn, mock_notify_your_turn):
-        data = MagicMock(
-            game_id='123987',
-            current_player='Juan',
-            turn_data={},
-        )
+        game_id = 'test_game_id'
         token_turn = 'c303282d'
-        mock_next_turn.return_value = token_turn
-        test_game_id = 'fk340of3'
-        game_id = test_game_id
-        await move(game_id, data)
-        self.assertEqual(data.turn_data, {'board_id': test_game_id, 'turn_token': token_turn})
+        current_player = 'Pablo'
+        turn_data = {}
+        data = MagicMock(
+            game_id=game_id,
+            current_player=current_player,
+            turn_data=turn_data
+        )
+        await move(data)
+        mock_next_turn.assert_called_once_with(game_id)
+        self.assertEqual(data.turn_data, {'board_id': game_id, 'turn_token': token_turn})
         mock_notify_your_turn.assert_awaited_once_with(
-            data.current_player,
-            data.turn_data,
+            current_player,
+            turn_data,
         )
 
 
