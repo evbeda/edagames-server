@@ -51,7 +51,7 @@ def end_data_for_web(data):
 
 
 class MovesActions:
-    async def make_move(self, game_name: str, data):
+    async def make_move(self, data, game_name: str):
         await move(data)
         asyncio.create_task(penalize(data, game_name))
 

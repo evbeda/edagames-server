@@ -81,7 +81,7 @@ class AcceptChallenge(ServerEvent, MovesActions):
             f'{PREFIX_GAME}{data_received.game_id}',
             game_data,
         )
-        await self.make_move(game_data.get('name'), data_received)
+        await self.make_move(data_received, game_data.get('name'))
 
 
 class Movements(ServerEvent, MovesActions, EndActions):
