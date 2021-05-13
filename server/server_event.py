@@ -17,10 +17,8 @@ from server.utilities_server_event import (
     EndActions,
 )
 from server.redis import save_string, get_string
-from .redis import r
 
 from server.constants import (
-    GAME_STATE_ACCEPTED,
     LAST_PLAYER,
     LIST_USERS,
     CHALLENGE_ACCEPTED,
@@ -71,12 +69,11 @@ class AcceptChallenge(ServerEvent, MovesActions):
             if game_data is not None:
                 await self.start_game(json.loads(game_data))
 
-    async def start_game(self, game: Game):
-        game.state = GAME_STATE_ACCEPTED
-        adapter = await GRPCAdapterFactory.get_adapter(game.name)
-        data_received = await adapter.create_game(game.players)
-        game.game_id = data_received.game_id
-        await self.make_move(game, data_received)
+    async def start_game(self, game):
+        adapter = await GRPCAdapterFactory.get_adapter(game.get('name'))
+        data_received = await adapter.create_game(game.get('players'))
+        game_id = data_received.game_id
+        await self.make_move(game, game_id, data_received)
 
 
 class Movements(ServerEvent, MovesActions, EndActions):
@@ -95,16 +92,16 @@ class Movements(ServerEvent, MovesActions, EndActions):
             self.client,
             'board_id',
         )
-        redis_game_id = r.get('t_' + game_id)
+        redis_game_id = get_string('t_' + game_id, self.client)
         if redis_game_id == turn_token:
-            game = r.get('g_' + game_id)
+            game = get_string('g_' + game_id, self.client)
             if game is not None:
-                await self.execute_action(game_id)
+                await self.execute_action(json.loads(game))
 
-    async def execute_action(self, game: Game):
-        adapter = await GRPCAdapterFactory.get_adapter(game.name)
+    async def execute_action(self, game: dict):
+        adapter = await GRPCAdapterFactory.get_adapter(game.get('name'))
         data_received = await adapter.execute_action(
-            game.game_id,
+            game.get('game_id'),
             self.response
         )
         await self.log_action(game, data_received)
@@ -165,16 +162,15 @@ class AbortGame(ServerEvent, MovesActions, EndActions):
             self.client,
             'board_id',
         )
-        redis_game_id = r.get('t_' + game_id)
+        redis_game_id = get_string('t_' + game_id, self.client)
         if redis_game_id == turn_token:
-            for game in games:
-                if game.game_id == game_id:
-                    game.timer.cancel()
-                    await self.end_game(game)
+            game = get_string('g_' + game_id, self.client)
+            if game is not None:
+                await self.end_game(json.loads(game))
 
-    async def end_game(self, game: Game):
-        adapter = await GRPCAdapterFactory.get_adapter(game.name)
+    async def end_game(self, game: dict):
+        adapter = await GRPCAdapterFactory.get_adapter(game.get('name'))
         data_received = await adapter.end_game(
-            game.game_id
+            game.get('game_id')
         )
         await self.game_over(game, data_received)

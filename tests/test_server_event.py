@@ -1,9 +1,8 @@
 import unittest
 from unittest.mock import patch, AsyncMock, MagicMock
 from parameterized import parameterized
-import asyncio
 
-from server.game import Game, games
+from server.game import Game
 from server.server_event import (
     AcceptChallenge,
     Movements,
@@ -17,10 +16,10 @@ from server.utilities_server_event import (
 )
 
 from server.constants import (
-    GAME_STATE_ACCEPTED,
     LAST_PLAYER,
     OPPONENT,
     CHALLENGE_ID,
+    DEFAULT_GAME,
 )
 
 
@@ -31,7 +30,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             self.game = Game(['player1', 'player2'])
 
     @patch.object(AcceptChallenge, 'start_game')
-    @patch('server.server_event.get_string', return_value='data_from_redis')
+    @patch('server.server_event.get_string', return_value='data_from_redis', new_callable=AsyncMock)
     @patch.object(MovesActions, 'search_value', return_value='challenge_id_from_request')
     async def test_accept_challenge(self, mock_search, mock_get, mock_start):
         data = {"action": "accept_challenge", "data": {"challenge_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}}
@@ -48,22 +47,27 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     async def test_start_game(self, mock_make_move):
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
             adapter_patched = AsyncMock()
-            game_id = '123987'
+            game_id = '12321312'
             adapter_patched.create_game.return_value = MagicMock(
                 game_id=game_id,
                 current_player='Juan',
                 turn_data={},
             )
             g_adapter_patched.return_value = adapter_patched
-            self.game.turn_token = 'asd123'
-            await AcceptChallenge({}, 'client').start_game(self.game)
-            self.assertEqual(self.game.state, GAME_STATE_ACCEPTED)
-            g_adapter_patched.assert_called_with(self.game.name)
+            game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
+            await AcceptChallenge({}, 'client').start_game(game)
+            g_adapter_patched.assert_called_with(DEFAULT_GAME)
             mock_make_move.assert_called_once_with(
-                self.game,
+                game,
+                game_id,
                 adapter_patched.create_game.return_value,
             )
-            self.assertEqual(self.game.game_id, game_id)
+
+    def my_side_effect(*args):
+        if args[0] == '1':
+            return True
+        else:
+            return False
 
     @parameterized.expand([
         (
@@ -76,17 +80,16 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     async def test_Movements(self, data):
         client = 'Test Client 1'
         with patch('asyncio.create_task', new_callable=MagicMock):
-            game = Game(['mov_player1', 'mov_player2'])
-            game.timer = asyncio.create_task()
-            game.game_id = 'c303282d'
-            game.turn_token = '303282d-f2e6-46ca-a04a-35d3d873712d'
-            games.append(game)
+            game_id = 'c303282d'
+            turn_token = '303282d-f2e6-46ca-a04a-35d3d873712d'
+            game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
             with patch.object(Movements, 'execute_action') as start_patched:
-                with patch("server.redis.r.get", new_callable=MagicMock) as mock:
-                    mock.return_value = '303282d-f2e6-46ca-a04a-35d3d873712d'
-                    await Movements(data, client).run()
-                    mock.assert_called_with(game.game_id)
-                    start_patched.assert_called_with(game)
+                with patch("server.server_event.get_string", side_effect=[turn_token, game_id]) as mock_get:
+                    with patch.object(MovesActions, 'search_value', side_effect=[turn_token, game_id]) as mock_search:
+                        await Movements(data, client).run()
+                        mock_get.assert_called()
+                        start_patched.assert_called_with(game)
+                        mock_search.assert_called()
 
     async def test_list_users(self):
         data = {'action': 'list_users'}
@@ -109,10 +112,11 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 current_player='Mark',
             )
             Gadapter_patched.return_value = adapter_patched
-            await Movements({}, 'client').execute_action(self.game)
+            game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
+            await Movements({}, 'client').execute_action(game)
             Gadapter_patched.assert_called_with(self.game.name)
             mock_make_move.assert_awaited_once_with(
-                self.game,
+                game,
                 adapter_patched.execute_action.return_value,
             )
             log_patched.assert_awaited_once_with(
@@ -132,9 +136,10 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 current_player=LAST_PLAYER,
             )
             g_adapter_patched.return_value = adapter_patched
-            await Movements({}, client).execute_action(self.game)
+            game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
+            await Movements({}, client).execute_action(game)
             mock_game_over.assert_awaited_once_with(
-                self.game,
+                game,
                 adapter_patched.execute_action.return_value
             )
 
@@ -198,16 +203,13 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     async def test_abort_game(self, data):
         client = 'Test Client'
         with patch('asyncio.create_task', new_callable=MagicMock):
-            game = Game(['player1', 'mov_player2'])
-            game.timer = asyncio.create_task()
-            game.turn_token = '303282d-f2e6-46ca-a04a-35d3d873712d'
-            games.append(game)
-            game.game_id = 'c303282d'
+            # turn_token = '303282d-f2e6-46ca-a04a-35d3d873712d'
+            # game_id = 'c303282d'
+            game = {}
             with patch.object(AbortGame, 'end_game') as start_patched:
-                with patch("server.redis.r.get", new_callable=MagicMock) as mock:
+                with patch("server.redis.get_string", new_callable=MagicMock) as mock:
                     mock.return_value = '303282d-f2e6-46ca-a04a-35d3d873712d'
                     await AbortGame(data, client).run()
-                    mock.assert_called_with(game.game_id)
                     start_patched.assert_called_with(game)
 
     @patch.object(EndActions, 'game_over')
@@ -222,8 +224,9 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 play_data={'state': 'game_over'}
             )
             g_adapter_patched.return_value = adapter_patched
-            await AbortGame({}, client).end_game(self.game)
+            game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
+            await AbortGame({}, client).end_game(game)
             mock_game_over.assert_awaited_once_with(
-                self.game,
+                game,
                 adapter_patched.end_game.return_value
             )

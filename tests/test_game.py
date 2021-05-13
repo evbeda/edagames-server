@@ -3,7 +3,7 @@ from unittest.mock import patch
 import fakeredis
 
 
-from server.game import Game, data_challenge, identifier
+from server.game import Game, data_challenge, identifier, next_turn
 from server.constants import (
     DEFAULT_GAME,
     GAME_STATE_PENDING,
@@ -27,12 +27,11 @@ class TestGame(unittest.TestCase):
     def test_next_turn(self):
         with patch("server.redis.r", fakeredis.FakeStrictRedis()) as mock:
             turn_token = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
-            game = Game(['p1', 'p2'])
-            game.game_id = 'c303282d'
+            game_id = 'c303282d'
             with patch('uuid.uuid4', return_value=turn_token):
-                turn_token_new = game.next_turn()
+                turn_token_new = next_turn(game_id)
                 self.assertEqual(turn_token_new, turn_token)
-                self.assertEqual(turn_token, mock.get(game.game_id).decode())
+                self.assertEqual(turn_token, mock.get('t_' + game_id).decode())
 
     def test_to_JSON(self):
         expected = (
