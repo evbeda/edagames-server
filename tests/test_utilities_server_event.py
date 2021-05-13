@@ -9,7 +9,6 @@ from server.utilities_server_event import (
     end_data_for_web,
     move,
 )
-from server.game import Game
 from server.exception import GameIdException
 
 from server.constants import (
@@ -113,8 +112,6 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
 
 
 class TestEndActions(unittest.IsolatedAsyncioTestCase):
-    def setUp(self):
-        self.game = Game(['Pedro', 'Pablo'])
 
     @patch('server.utilities_server_event.notify_end_game_to_web')
     @patch('server.utilities_server_event.notify_end_game_to_client')
@@ -129,23 +126,24 @@ class TestEndActions(unittest.IsolatedAsyncioTestCase):
             'player_2': 'Pablo',
             'score_2': 2000,
         }
+        game_id = 'f34i3f'
         data = MagicMock(
-            game_id='f34i3f',
+            game_id=game_id,
             current_player='',
             turn_data=test_data,
         )
-        game = {'players': ['Pedro', 'Pablo'], 'name': DEFAULT_GAME}
+        game_data = {'players': ['Pedro', 'Pablo'], 'name': DEFAULT_GAME}
         test_end_data = [('pablo', 2000), ('pedro', 1000)]
         with patch('server.utilities_server_event.end_data_for_web', return_value=test_end_data) as mock_end_data:
-            await EndActions.game_over(self, game, data)
+            await EndActions.game_over(self, game_data, data)
             mock_notify_end_to_client.assert_called_once_with(
-                self.game.players,
-                data.turn_data
+                game_data.get('players'),
+                data.turn_data,
             )
             mock_end_data.assert_called_once_with(data.turn_data)
             mock_notify_end_to_web.assert_called_once_with(
-                self.game.game_id,
-                test_end_data
+                game_id,
+                test_end_data,
             )
 
     @parameterized.expand([
