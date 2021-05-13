@@ -15,6 +15,8 @@ from server.exception import GameIdException
 from server.constants import (
     DEFAULT_GAME,
     TIME_SLEEP,
+    TURN_TOKEN,
+    PREFIX_TURN_TOKEN,
 )
 
 
@@ -24,26 +26,32 @@ class TestMovesActions(unittest.IsolatedAsyncioTestCase):
 
     @patch('server.utilities_server_event.move')
     @patch('server.utilities_server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock)
-    @patch('server.utilities_server_event.get_string', new_callable=AsyncMock)
-    async def test_penalize(self, get_strig_patch, gadapter_patched, mock_move):
+    @patch('server.utilities_server_event.get_string', new_callable=AsyncMock, return_value=None)
+    async def test_penalize_called(self, get_string_patch, gadapter_patched, mock_move):
+        player_1 = 'Pedro'
+        player_2 = 'Pablo'
+        game_id = '123987'
+        data = MagicMock(
+            game_id=game_id,
+            current_player=player_1,
+        )
+        game_name = DEFAULT_GAME
         adapter_patched = AsyncMock()
         adapter_patched.penalize.return_value = MagicMock(
-            game_id='123987',
-            current_player='Juan',
-            turn_data={},
+            game_id=game_id,
+            current_player=player_2,
         )
         gadapter_patched.return_value = adapter_patched
-        get_strig_patch.return_value = None
-        game_id = '123987'
-        game_name = DEFAULT_GAME
         with patch('server.utilities_server_event.asyncio.sleep') as sleep_pached:
-            await penalize(game_id, game_name)
+            await penalize(data, game_name)
             sleep_pached.assert_called_with(TIME_SLEEP)
-            gadapter_patched.assert_called_with(DEFAULT_GAME)
-            mock_move.assert_awaited_once_with(
-                game_id,
-                adapter_patched.penalize.return_value,
+            get_string_patch.assert_awaited_once_with(
+                f'{PREFIX_TURN_TOKEN}{game_id}',
+                player_1,
+                TURN_TOKEN,
             )
+            gadapter_patched.assert_called_with(DEFAULT_GAME)
+            mock_move.assert_awaited_once_with(adapter_patched.penalize.return_value)
 
     @parameterized.expand([
         ({"action": "accept_challenge", "data": {"game_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}},),
