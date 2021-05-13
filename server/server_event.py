@@ -1,5 +1,4 @@
 import json
-
 from server.connection_manager import manager
 from server.game import (
     games,
@@ -100,10 +99,20 @@ class Movements(ServerEvent, MovesActions, EndActions):
             game.game_id,
             self.response
         )
+        await self.log_action(game, data_received)
         if data_received.current_player == LAST_PLAYER:
             await self.game_over(game, data_received)
         else:
             await self.make_move(game, data_received)
+
+    async def log_action(self, game, data):
+        save_string(
+            f'l_{game.game_id}',
+            json.dumps({
+                "turn": data.previous_player,
+                "data": data.play_data,
+            })
+        )
 
 
 class Challenge(ServerEvent, MovesActions):
