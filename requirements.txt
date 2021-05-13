@@ -8,5 +8,5 @@ click==7.1.2
 pydantic==1.8.1
 typing-extensions==3.7.4.3
 websockets==8.1
-edagames-grpc==1.0.7
+edagames-grpc==1.1.0
 redis==3.5.3
