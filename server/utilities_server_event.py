@@ -45,9 +45,9 @@ def end_data_for_web(data):
 
 
 class MovesActions:
-    async def make_move(self, game: dict, data, game_id):
-        await move(game_id, data)
-        asyncio.create_task(penalize(game_id, game.get('name')))
+    async def make_move(self, game_name: str, data):
+        await move(data)
+        asyncio.create_task(penalize(data.game_id, game_name))
 
     async def search_value(self, response, client, value):
         value_search = response.get('data', {}).get(value)
