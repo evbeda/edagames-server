@@ -92,9 +92,9 @@ class Movements(ServerEvent, MovesActions, EndActions):
             self.client,
             'board_id',
         )
-        redis_game_id = get_string('t_' + game_id, self.client)
+        redis_game_id = await get_string('t_' + game_id, self.client)
         if redis_game_id == turn_token:
-            game = get_string('g_' + game_id, self.client)
+            game = await get_string('g_' + game_id, self.client)
             if game is not None:
                 await self.execute_action(json.loads(game))
 
@@ -152,7 +152,7 @@ class AbortGame(ServerEvent, MovesActions, EndActions):
         self.name_event = ABORT_GAME
 
     async def run(self):
-        turn_token = await self.search_value(
+        turn_token_received = await self.search_value(
             self.response,
             self.client,
             'turn_token'
@@ -162,15 +162,13 @@ class AbortGame(ServerEvent, MovesActions, EndActions):
             self.client,
             'board_id',
         )
-        redis_game_id = get_string('t_' + game_id, self.client)
-        if redis_game_id == turn_token:
-            game = get_string('g_' + game_id, self.client)
+        turn_token_saved = await get_string('t_' + game_id, self.client)
+        if turn_token_received == turn_token_saved:
+            game = await get_string('g_' + game_id, self.client)
             if game is not None:
-                await self.end_game(json.loads(game))
+                await self.end_game(json.loads(game), game_id)
 
-    async def end_game(self, game: dict):
+    async def end_game(self, game: dict, game_id: str):
         adapter = await GRPCAdapterFactory.get_adapter(game.get('name'))
-        data_received = await adapter.end_game(
-            game.get('game_id')
-        )
+        data_received = await adapter.end_game(game_id)
         await self.game_over(game, data_received)
