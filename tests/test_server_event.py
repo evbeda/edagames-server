@@ -21,6 +21,7 @@ from server.constants import (
     CHALLENGE_ID,
     DEFAULT_GAME,
     PREFIX_CHALLENGE,
+    PREFIX_GAME,
 )
 
 
@@ -48,23 +49,31 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             mock_start.assert_called_with(json_to_python)
             mock_json.assert_called_with('data_from_redis')
 
+    @patch('server.server_event.save_string')
     @patch.object(MovesActions, 'make_move')
-    async def test_start_game(self, mock_make_move):
+    async def test_start_game(self, mock_make_move, mock_save):
+        game_id = 'asd123'
+        game_data = {
+            'name': DEFAULT_GAME,
+            'players': ['client1', 'clint2'],
+        }
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
             adapter_patched = AsyncMock()
-            game_id = '12321312'
             adapter_patched.create_game.return_value = MagicMock(
                 game_id=game_id,
-                current_player='Juan',
+                current_player='client1',
                 turn_data={},
+                play_data={},
             )
             g_adapter_patched.return_value = adapter_patched
-            game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
-            await AcceptChallenge({}, 'client').start_game(game)
+            await AcceptChallenge({}, 'client1').start_game(game_data)
             g_adapter_patched.assert_called_with(DEFAULT_GAME)
+            mock_save.assert_called_once_with(
+                f'{PREFIX_GAME}{game_id}',
+                game_data,
+            )
             mock_make_move.assert_called_once_with(
-                game,
-                game_id,
+                game_data,
                 adapter_patched.create_game.return_value,
             )
 
