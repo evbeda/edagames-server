@@ -1,4 +1,5 @@
 import json
+
 from server.connection_manager import manager
 from server.game import (
     games,
@@ -106,6 +107,7 @@ class Movements(ServerEvent, MovesActions, EndActions):
             await self.make_move(game, data_received)
 
     async def log_action(self, game, data):
+        # TODO: Replace with new Game class methods when they are done
         save_string(
             f'l_{game.game_id}',
             json.dumps({
