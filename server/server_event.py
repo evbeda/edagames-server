@@ -27,6 +27,10 @@ from server.constants import (
     ASK_CHALLENGE,
     ABORT_GAME,
     CHALLENGE_ID,
+    PREFIX_CHALLENGE,
+    PREFIX_GAME,
+    PREFIX_LOG,
+    PREFIX_TURN_TOKEN,
 )
 
 
@@ -62,7 +66,7 @@ class AcceptChallenge(ServerEvent, MovesActions):
         )
         if challenge_id is not None:
             game_data = await get_string(
-                challenge_id,
+                f'{PREFIX_CHALLENGE}{challenge_id}',
                 self.client,
                 CHALLENGE_ID,
             )
@@ -92,9 +96,15 @@ class Movements(ServerEvent, MovesActions, EndActions):
             self.client,
             'board_id',
         )
-        redis_game_id = await get_string('t_' + game_id, self.client)
+        redis_game_id = await get_string(
+            't_' + game_id,
+            self.client,
+        )
         if redis_game_id == turn_token:
-            game = await get_string('g_' + game_id, self.client)
+            game = await get_string(
+                'g_' + game_id,
+                self.client,
+            )
             if game is not None:
                 await self.execute_action(json.loads(game))
 
@@ -113,7 +123,7 @@ class Movements(ServerEvent, MovesActions, EndActions):
     async def log_action(self, game, data):
         # TODO: Replace with new Game class methods when they are done
         save_string(
-            f'l_{game.game_id}',
+            f'{PREFIX_LOG}{game.game_id}',
             json.dumps({
                 "turn": data.previous_player,
                 "data": data.play_data,
@@ -136,7 +146,7 @@ class Challenge(ServerEvent, MovesActions):
         games.append(game)
         challenge_id = identifier()
         save_string(
-            'c_' + challenge_id,
+            PREFIX_CHALLENGE + challenge_id,
             data_challenge([self.client, challenged]),
         )
         await notify_challenge_to_client(
@@ -162,9 +172,15 @@ class AbortGame(ServerEvent, MovesActions, EndActions):
             self.client,
             'board_id',
         )
-        turn_token_saved = await get_string('t_' + game_id, self.client)
+        turn_token_saved = await get_string(
+            PREFIX_TURN_TOKEN + game_id,
+            self.client,
+        )
         if turn_token_received == turn_token_saved:
-            game = await get_string('g_' + game_id, self.client)
+            game = await get_string(
+                f'{PREFIX_LOG}{game_id}',
+                self.client,
+            )
             if game is not None:
                 await self.end_game(json.loads(game), game_id)
 

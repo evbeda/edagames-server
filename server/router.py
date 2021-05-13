@@ -8,6 +8,8 @@ from server.websockets import notify_challenge_to_client
 from server.connection_manager import manager
 from server.redis import save_string
 
+from server.constants import PREFIX_CHALLENGE
+
 router = APIRouter()
 
 
@@ -17,7 +19,7 @@ async def challenge(challenge: Challenge):
     games.append(game)
     challenge_id = identifier()
     save_string(
-        'c_' + challenge_id,
+        PREFIX_CHALLENGE + challenge_id,
         data_challenge([challenge.challenger, challenge.challenged]),
     )
     await notify_challenge_to_client(

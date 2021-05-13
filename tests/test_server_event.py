@@ -20,6 +20,7 @@ from server.constants import (
     OPPONENT,
     CHALLENGE_ID,
     DEFAULT_GAME,
+    PREFIX_CHALLENGE,
 )
 
 
@@ -39,7 +40,11 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         with patch('json.loads', return_value=json_to_python) as mock_json:
             await AcceptChallenge(data, client).run()
             mock_search.assert_called_with(data, client, CHALLENGE_ID)
-            mock_get.assert_called_with('challenge_id_from_request', client, CHALLENGE_ID)
+            mock_get.assert_called_with(
+                f'{PREFIX_CHALLENGE}challenge_id_from_request',
+                client,
+                CHALLENGE_ID,
+            )
             mock_start.assert_called_with(json_to_python)
             mock_json.assert_called_with('data_from_redis')
 
