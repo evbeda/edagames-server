@@ -34,6 +34,7 @@ OPPONENT = 'opponent'
 # IDs
 CHALLENGE_ID = 'challenge_id'
 TURN_TOKEN = 'turn_token'
+BOARD_ID = 'board_id'
 
 # Prefixes
 PREFIX_CHALLENGE = 'c_'

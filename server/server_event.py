@@ -26,6 +26,8 @@ from server.constants import (
     ASK_CHALLENGE,
     ABORT_GAME,
     CHALLENGE_ID,
+    BOARD_ID,
+    TURN_TOKEN,
     PREFIX_CHALLENGE,
     PREFIX_GAME,
     PREFIX_LOG,
@@ -91,20 +93,20 @@ class Movements(ServerEvent, MovesActions, EndActions):
         turn_token = await self.search_value(
             self.response,
             self.client,
-            'turn_token',
+            TURN_TOKEN,
         )
         game_id = await self.search_value(
             self.response,
             self.client,
-            'board_id',
+            BOARD_ID,
         )
         redis_game_id = await get_string(
-            't_' + game_id,
+            f'{PREFIX_TURN_TOKEN}{game_id}',
             self.client,
         )
         if redis_game_id == turn_token:
             game = await get_string(
-                'g_' + game_id,
+                f'{PREFIX_GAME}{game_id}',
                 self.client,
             )
             if game is not None:
@@ -145,7 +147,7 @@ class Challenge(ServerEvent, MovesActions):
         )
         challenge_id = identifier()
         save_string(
-            PREFIX_CHALLENGE + challenge_id,
+            f'{PREFIX_CHALLENGE}{challenge_id}',
             data_challenge([self.client, challenged]),
         )
         await notify_challenge_to_client(
@@ -164,15 +166,15 @@ class AbortGame(ServerEvent, MovesActions, EndActions):
         turn_token_received = await self.search_value(
             self.response,
             self.client,
-            'turn_token'
+            TURN_TOKEN,
         )
         game_id = await self.search_value(
             self.response,
             self.client,
-            'board_id',
+            BOARD_ID,
         )
         turn_token_saved = await get_string(
-            PREFIX_TURN_TOKEN + game_id,
+            f'{PREFIX_TURN_TOKEN}{game_id}',
             self.client,
         )
         if turn_token_received == turn_token_saved:
