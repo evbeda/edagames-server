@@ -1,4 +1,5 @@
 import json
+from typing import Dict
 
 from server.connection_manager import manager
 from server.game import (
@@ -73,11 +74,14 @@ class AcceptChallenge(ServerEvent, MovesActions):
             if game_data is not None:
                 await self.start_game(json.loads(game_data))
 
-    async def start_game(self, game):
-        adapter = await GRPCAdapterFactory.get_adapter(game.get('name'))
-        data_received = await adapter.create_game(game.get('players'))
-        game_id = data_received.game_id
-        await self.make_move(game, game_id, data_received)
+    async def start_game(self, game_data: Dict):
+        adapter = await GRPCAdapterFactory.get_adapter(game_data.get('name'))
+        data_received = await adapter.create_game(game_data.get('players'))
+        save_string(
+            f'{PREFIX_GAME}{data_received.game_id}',
+            game_data,
+        )
+        await self.make_move(game_data, data_received)
 
 
 class Movements(ServerEvent, MovesActions, EndActions):
