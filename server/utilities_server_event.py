@@ -17,11 +17,11 @@ from server.constants import (
 )
 
 
-async def move(game_id, data):
-    turn_token = next_turn(game_id)
+async def move(data):
+    turn_token = next_turn(data.game_id)
     data.turn_data.update({
         'turn_token': turn_token,
-        'board_id': game_id,
+        'board_id': data.game_id,
     })
     await notify_your_turn(
         data.current_player,
