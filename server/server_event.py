@@ -32,6 +32,7 @@ from server.constants import (
     PREFIX_GAME,
     PREFIX_LOG,
     PREFIX_TURN_TOKEN,
+    TIME_CHALLENGE,
 )
 
 
@@ -151,6 +152,7 @@ class Challenge(ServerEvent, MovesActions):
         save_string(
             f'{PREFIX_CHALLENGE}{challenge_id}',
             data_challenge([self.client, challenged]),
+            TIME_CHALLENGE,
         )
         await notify_challenge_to_client(
             challenged,

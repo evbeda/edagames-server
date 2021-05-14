@@ -22,6 +22,7 @@ CHALLENGE_ACCEPTED = 'Challenge_accepted'
 LAST_PLAYER = ''
 DEFAULT_GAME = 'quoridor'
 TIME_SLEEP = 5
+TIME_CHALLENGE = 300
 
 # Factory Event
 ACCEPT_CHALLENGE = 'accept_challenge'

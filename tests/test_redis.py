@@ -44,16 +44,8 @@ class TestRedis(unittest.IsolatedAsyncioTestCase):
         caller = 'test_id'
         with patch("server.redis.r", fakeredis.FakeStrictRedis()) as r_mock:
             r_mock.set(key, value)
-            # first call gets and deletes the key
             call_1 = await get_string(key, client, caller)
             self.assertEqual(value, call_1.decode())
-            # second call doesnt find the key
-            call_2 = await get_string(key, client, caller)
-            self.assertEqual(None, call_2)
-            mock_notify_feedback.assert_awaited_once_with(
-                client,
-                f'{caller} not found',
-            )
             mock_notify_error.assert_not_awaited()
 
     @patch('server.redis.logger.error')
