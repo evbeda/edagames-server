@@ -2,7 +2,6 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from server.models import Challenge
-from server.game import Game, games
 from server.game import identifier, data_challenge
 from server.websockets import notify_challenge_to_client
 from server.connection_manager import manager
@@ -15,8 +14,6 @@ router = APIRouter()
 
 @router.post("/challenge")
 async def challenge(challenge: Challenge):
-    game = Game([challenge.challenger, challenge.challenged])
-    games.append(game)
     challenge_id = identifier()
     save_string(
         f'{PREFIX_CHALLENGE}{challenge_id}',
