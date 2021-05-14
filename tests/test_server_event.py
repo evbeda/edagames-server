@@ -21,6 +21,7 @@ from server.constants import (
     DEFAULT_GAME,
     PREFIX_CHALLENGE,
     PREFIX_GAME,
+    TIME_CHALLENGE,
 )
 
 
@@ -200,7 +201,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             with patch('server.server_event.data_challenge', return_value=to_json) as mock_data:
                 await Challenge(response, client).run()
                 mock_data.assert_called_once_with([client, opponent])
-                mock_save.assert_called_once_with('c_' + self.uuid, to_json)
+                mock_save.assert_called_once_with('c_' + self.uuid, to_json, TIME_CHALLENGE)
                 mock_search.assert_awaited_once_with(response, client, OPPONENT)
                 mock_notify_challenge.assert_awaited_once_with(opponent, client, self.uuid)
 
