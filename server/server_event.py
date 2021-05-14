@@ -80,7 +80,7 @@ class AcceptChallenge(ServerEvent, MovesActions):
         data_received = await adapter.create_game(game_data.get('players'))
         save_string(
             f'{PREFIX_GAME}{data_received.game_id}',
-            game_data,
+            json.dumps(game_data),
         )
         await self.make_move(data_received, game_data.get('name'))
 
@@ -131,7 +131,7 @@ class Movements(ServerEvent, MovesActions, EndActions):
         save_string(
             f'{PREFIX_LOG}{data.game_id}',
             json.dumps({
-                "turn": data.previous_player,
+                "turn": data.current_player,
                 "data": data.play_data,
             })
         )
