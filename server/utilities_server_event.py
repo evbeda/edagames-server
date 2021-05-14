@@ -28,16 +28,17 @@ async def move(data):
         data.current_player,
         data.turn_data,
     )
+    return turn_token
 
 
-async def penalize(data, game_name):
+async def penalize(data, game_name, past_token):
     await asyncio.sleep(TIME_SLEEP)
     token_valid = await get_string(
         f'{PREFIX_TURN_TOKEN}{data.game_id}',
         data.current_player,
         TURN_TOKEN,
     )
-    if token_valid is None:
+    if token_valid == past_token:
         adapter = await GRPCAdapterFactory.get_adapter(game_name)
         data = await adapter.penalize(data.game_id)
         await move(data)
@@ -52,8 +53,8 @@ def end_data_for_web(data):
 
 class MovesActions:
     async def make_move(self, data, game_name: str):
-        await move(data)
-        asyncio.create_task(penalize(data, game_name))
+        token = await move(data)
+        asyncio.create_task(penalize(data, game_name, token))
 
     async def search_value(self, response, client, value):
         value_search = response.get('data', {}).get(value)
@@ -71,5 +72,6 @@ class EndActions:
             game.get('players'),
             data.turn_data,
         )
+        next_turn(data.game_id)
         end_data = end_data_for_web(data.turn_data)
         await notify_end_game_to_web(data.game_id, end_data)

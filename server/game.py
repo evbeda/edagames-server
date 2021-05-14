@@ -38,7 +38,7 @@ class Game:
 
 def next_turn(game_id):
     turn_token = str(uuid.uuid4())
-    save_string('t_' + game_id, turn_token, TIME_SLEEP)
+    save_string('t_' + game_id, turn_token)
     return turn_token
 
 
