@@ -21,7 +21,7 @@ def save_string(key, value, expire=None):
 async def get_string(key, client, caller='id'):
     try:
         data = r.get(key)
-        if key[0] == 'c' or key[0] == 't':
+        if key[0] == 'c':
             r.delete(key)
         if data is None:
             await notify_feedback(
