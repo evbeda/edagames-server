@@ -1,10 +1,11 @@
 import asyncio
 
-from server.game import next_turn
-from server.redis import get_string
+from server.game import next_turn, identifier, data_challenge
+from server.redis import get_string, save_string
 from server.grpc_adapter import GRPCAdapterFactory
 from server.exception import GameIdException
 from server.websockets import (
+    notify_challenge_to_client,
     notify_your_turn,
     notify_error_to_client,
     notify_end_game_to_client,
@@ -15,7 +16,24 @@ from server.constants import (
     TIME_SLEEP,
     TURN_TOKEN,
     PREFIX_TURN_TOKEN,
+    DEFAULT_GAME,
+    PREFIX_CHALLENGE,
+    TIME_CHALLENGE,
 )
+
+
+async def make_challenge(players, game_name=DEFAULT_GAME):
+    challenge_id = identifier()
+    save_string(
+        f'{PREFIX_CHALLENGE}{challenge_id}',
+        data_challenge(players, game_name),
+        TIME_CHALLENGE,
+    )
+    await notify_challenge_to_client(
+        players[1],
+        players[0],
+        challenge_id,
+    )
 
 
 async def move(data):
