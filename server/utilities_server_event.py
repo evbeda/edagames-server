@@ -36,7 +36,7 @@ async def make_challenge(players, game_name=DEFAULT_GAME):
     )
 
 
-async def move(data):
+async def make_move(data):
     turn_token = next_turn(data.game_id)
     data.turn_data.update({
         'turn_token': turn_token,
@@ -49,7 +49,7 @@ async def move(data):
     return turn_token
 
 
-async def penalize(data, game_name, past_token):
+async def make_penalize(data, game_name, past_token):
     await asyncio.sleep(TIME_SLEEP)
     token_valid = await get_string(
         f'{PREFIX_TURN_TOKEN}{data.game_id}',
@@ -59,10 +59,10 @@ async def penalize(data, game_name, past_token):
     if token_valid == past_token:
         adapter = await GRPCAdapterFactory.get_adapter(game_name)
         data = await adapter.penalize(data.game_id)
-        await move(data)
+        await make_move(data)
 
 
-def end_data_for_web(data):
+def make_end_data_for_web(data):
     return sorted([
         (value, data.get('score_' + key[7]))
         for key, value in data.items() if 'player' in key
@@ -84,8 +84,8 @@ class ServerEvent:
         return value_search
 
     async def make_move(self, data, game_name: str):
-        token = await move(data)
-        asyncio.create_task(penalize(data, game_name, token))
+        token = await make_move(data)
+        asyncio.create_task(make_penalize(data, game_name, token))
 
     async def game_over(self, data, game: dict):
         await notify_end_game_to_client(
@@ -93,5 +93,5 @@ class ServerEvent:
             data.turn_data,
         )
         next_turn(data.game_id)
-        end_data = end_data_for_web(data.turn_data)
+        end_data = make_end_data_for_web(data.turn_data)
         await notify_end_game_to_web(data.game_id, end_data)
