@@ -23,7 +23,7 @@ from server.constants import (
     BOARD_ID,  # search in request
     TURN_TOKEN,
     OPPONENT,
-    LAST_PLAYER,  # game_over
+    EMPTY_PLAYER,  # game_over
 )
 
 
@@ -102,7 +102,7 @@ class Movements(ServerEvent):
             self.response
         )
         await self.log_action(data_received)
-        if data_received.current_player == LAST_PLAYER:
+        if data_received.current_player == EMPTY_PLAYER:
             await self.game_over(data_received, game_data)
         else:
             await self.make_move(data_received, game_data.get('name'))

@@ -10,17 +10,11 @@ EVENT_FEEDBACK = 'feedback'
 # Exceptions
 GAMEIDERROR = 'GAMEID_ERROR'
 
-# Game states
-GAME_STATE_PENDING = 0
-GAME_STATE_ACCEPTED = 1
-GAME_STATE_ENDED = 2
-
-# Constants
-MOVEMENTS = 'movements'
-ABORT_GAME = 'abort_game'
-CHALLENGE_ACCEPTED = 'Challenge_accepted'
-LAST_PLAYER = ''
+# Game constants
 DEFAULT_GAME = 'quoridor'
+EMPTY_PLAYER = ''
+
+# Time constants
 TIME_SLEEP = 5
 TIME_CHALLENGE = 300
 
@@ -28,11 +22,11 @@ TIME_CHALLENGE = 300
 ACCEPT_CHALLENGE = 'accept_challenge'
 LIST_USERS = 'list_users'
 ASK_CHALLENGE = 'challenge'
+ABORT_GAME = 'abort_game'
+MOVEMENTS = 'movements'
 
 # search_value
 OPPONENT = 'opponent'
-
-# IDs
 CHALLENGE_ID = 'challenge_id'
 TURN_TOKEN = 'turn_token'
 BOARD_ID = 'board_id'

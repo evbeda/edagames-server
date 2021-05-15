@@ -4,36 +4,7 @@ from typing import List
 
 from .redis import save_string
 
-from server.constants import (
-    GAME_STATE_PENDING,
-    DEFAULT_GAME,
-    TIME_SLEEP
-)
-
-
-games = []
-
-
-class Game:
-    def __init__(
-        self,
-        players: List[str],
-        name: str = DEFAULT_GAME
-    ):
-        # to do: clean the challenge_id from web (not used)
-        self.name = name
-        self.players = players
-        self.state = GAME_STATE_PENDING
-        self.game_id = None
-        self.challenge_id = str(uuid.uuid4())
-        self.timer = None
-
-    def to_JSON(self):
-        return json.dumps(
-            self,
-            default=lambda o: o.__dict__,
-            sort_keys=True,
-        )
+from server.constants import DEFAULT_GAME
 
 
 def next_turn(game_id):
