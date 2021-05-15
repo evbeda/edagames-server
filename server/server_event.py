@@ -11,10 +11,7 @@ from server.websockets import (
     notify_challenge_to_client,
 )
 from server.grpc_adapter import GRPCAdapterFactory
-from server.utilities_server_event import (
-    MovesActions,
-    EndActions,
-)
+from server.utilities_server_event import ServerEvent
 from server.redis import save_string, get_string
 
 from server.constants import (
@@ -36,15 +33,6 @@ from server.constants import (
 )
 
 
-class ServerEvent(object):
-    def __init__(self, response, client):
-        self.response = response
-        self.client = client
-
-    def run(self):
-        raise NotImplementedError
-
-
 class ListUsers(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
@@ -55,7 +43,7 @@ class ListUsers(ServerEvent):
         await notify_user_list_to_client(self.client, users)
 
 
-class AcceptChallenge(ServerEvent, MovesActions):
+class AcceptChallenge(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
         self.name_event = CHALLENGE_ACCEPTED
@@ -85,7 +73,7 @@ class AcceptChallenge(ServerEvent, MovesActions):
         await self.make_move(data_received, game_data.get('name'))
 
 
-class Movements(ServerEvent, MovesActions, EndActions):
+class Movements(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
         self.name_event = MOVEMENTS
@@ -137,7 +125,7 @@ class Movements(ServerEvent, MovesActions, EndActions):
         )
 
 
-class Challenge(ServerEvent, MovesActions):
+class Challenge(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
         self.name_event = ASK_CHALLENGE
@@ -161,7 +149,7 @@ class Challenge(ServerEvent, MovesActions):
         )
 
 
-class AbortGame(ServerEvent, MovesActions, EndActions):
+class AbortGame(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
         self.name_event = ABORT_GAME
