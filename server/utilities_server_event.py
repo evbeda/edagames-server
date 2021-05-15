@@ -56,11 +56,11 @@ class ServerEvent:
         self.response = response
         self.client = client
 
-    async def search_value(self, response, client, value):
-        value_search = response.get('data', {}).get(value)
+    async def search_value(self, value):
+        value_search = self.response.get('data', {}).get(value)
         if value_search is None:
             await notify_error_to_client(
-                client,
+                self.client,
                 str(GameIdException),
             )
         return value_search
@@ -69,7 +69,7 @@ class ServerEvent:
         token = await move(data)
         asyncio.create_task(penalize(data, game_name, token))
 
-    async def game_over(self, game: dict, data):
+    async def game_over(self, data, game: dict):
         await notify_end_game_to_client(
             game.get('players'),
             data.turn_data,

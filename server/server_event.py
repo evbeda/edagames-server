@@ -43,17 +43,37 @@ class ListUsers(ServerEvent):
         await notify_user_list_to_client(self.client, users)
 
 
+class Challenge(ServerEvent):
+    def __init__(self, response, client):
+        super().__init__(response, client)
+        self.name_event = ASK_CHALLENGE
+
+    async def run(self):
+        challenged = await self.search_value(
+            self.response,
+            self.client,
+            OPPONENT,
+        )
+        challenge_id = identifier()
+        save_string(
+            f'{PREFIX_CHALLENGE}{challenge_id}',
+            data_challenge([self.client, challenged]),
+            TIME_CHALLENGE,
+        )
+        await notify_challenge_to_client(
+            challenged,
+            self.client,
+            challenge_id,
+        )
+
+
 class AcceptChallenge(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
         self.name_event = CHALLENGE_ACCEPTED
 
     async def run(self):
-        challenge_id = await self.search_value(
-            self.response,
-            self.client,
-            CHALLENGE_ID,
-        )
+        challenge_id = await self.search_value(CHALLENGE_ID)
         if challenge_id is not None:
             game_data = await get_string(
                 f'{PREFIX_CHALLENGE}{challenge_id}',
@@ -79,16 +99,8 @@ class Movements(ServerEvent):
         self.name_event = MOVEMENTS
 
     async def run(self):
-        turn_token = await self.search_value(
-            self.response,
-            self.client,
-            TURN_TOKEN,
-        )
-        game_id = await self.search_value(
-            self.response,
-            self.client,
-            BOARD_ID,
-        )
+        turn_token = await self.search_value(TURN_TOKEN)
+        game_id = await self.search_value(BOARD_ID)
         redis_game_id = await get_string(
             f'{PREFIX_TURN_TOKEN}{game_id}',
             self.client,
@@ -111,7 +123,7 @@ class Movements(ServerEvent):
         )
         await self.log_action(data_received)
         if data_received.current_player == LAST_PLAYER:
-            await self.game_over(game_data, data_received)
+            await self.game_over(data_received, game_data)
         else:
             await self.make_move(data_received, game_data.get('name'))
 
@@ -125,46 +137,14 @@ class Movements(ServerEvent):
         )
 
 
-class Challenge(ServerEvent):
-    def __init__(self, response, client):
-        super().__init__(response, client)
-        self.name_event = ASK_CHALLENGE
-
-    async def run(self):
-        challenged = await self.search_value(
-            self.response,
-            self.client,
-            OPPONENT,
-        )
-        challenge_id = identifier()
-        save_string(
-            f'{PREFIX_CHALLENGE}{challenge_id}',
-            data_challenge([self.client, challenged]),
-            TIME_CHALLENGE,
-        )
-        await notify_challenge_to_client(
-            challenged,
-            self.client,
-            challenge_id,
-        )
-
-
 class AbortGame(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
         self.name_event = ABORT_GAME
 
     async def run(self):
-        turn_token_received = await self.search_value(
-            self.response,
-            self.client,
-            TURN_TOKEN,
-        )
-        game_id = await self.search_value(
-            self.response,
-            self.client,
-            BOARD_ID,
-        )
+        turn_token_received = await self.search_value(TURN_TOKEN)
+        game_id = await self.search_value(BOARD_ID)
         turn_token_saved = await get_string(
             f'{PREFIX_TURN_TOKEN}{game_id}',
             self.client,
@@ -182,4 +162,4 @@ class AbortGame(ServerEvent):
     async def end_game(self, game: dict, game_id: str):
         adapter = await GRPCAdapterFactory.get_adapter(game.get('name'))
         data_received = await adapter.end_game(game_id)
-        await self.game_over(game, data_received)
+        await self.game_over(data_received, game)
