@@ -10,7 +10,7 @@ router = APIRouter()
 
 @router.post("/challenge")
 async def challenge(challenge: Challenge):
-    make_challenge([challenge.challenger, challenge.challenged])
+    await make_challenge([challenge.challenger, challenge.challenged])
     return challenge
 
 

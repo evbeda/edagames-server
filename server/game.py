@@ -7,8 +7,12 @@ from .redis import save_string
 from server.constants import DEFAULT_GAME
 
 
+def identifier():
+    return str(uuid.uuid4())
+
+
 def next_turn(game_id):
-    turn_token = str(uuid.uuid4())
+    turn_token = identifier()
     save_string('t_' + game_id, turn_token)
     return turn_token
 
@@ -21,7 +25,3 @@ def data_challenge(
         'players': players,
         'game': name,
     })
-
-
-def identifier():
-    return str(uuid.uuid4())
