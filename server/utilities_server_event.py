@@ -51,10 +51,10 @@ def end_data_for_web(data):
     ])
 
 
-class MovesActions:
-    async def make_move(self, data, game_name: str):
-        token = await move(data)
-        asyncio.create_task(penalize(data, game_name, token))
+class ServerEvent:
+    def __init__(self, response, client):
+        self.response = response
+        self.client = client
 
     async def search_value(self, response, client, value):
         value_search = response.get('data', {}).get(value)
@@ -65,8 +65,10 @@ class MovesActions:
             )
         return value_search
 
+    async def make_move(self, data, game_name: str):
+        token = await move(data)
+        asyncio.create_task(penalize(data, game_name, token))
 
-class EndActions:
     async def game_over(self, game: dict, data):
         await notify_end_game_to_client(
             game.get('players'),
