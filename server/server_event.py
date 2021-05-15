@@ -2,34 +2,28 @@ import json
 from typing import Dict
 
 from server.connection_manager import manager
-from server.game import (
-    identifier,
-    data_challenge,
-)
 from server.websockets import (
     notify_user_list_to_client,
-    notify_challenge_to_client,
 )
 from server.grpc_adapter import GRPCAdapterFactory
-from server.utilities_server_event import ServerEvent
+from server.utilities_server_event import ServerEvent, make_challenge
 from server.redis import save_string, get_string
 
 from server.constants import (
-    LAST_PLAYER,
-    LIST_USERS,
+    LIST_USERS,  # name_event
+    ASK_CHALLENGE,
     CHALLENGE_ACCEPTED,
     MOVEMENTS,
-    OPPONENT,
-    ASK_CHALLENGE,
     ABORT_GAME,
-    CHALLENGE_ID,
-    BOARD_ID,
-    TURN_TOKEN,
-    PREFIX_CHALLENGE,
+    PREFIX_CHALLENGE,  # prefix
     PREFIX_GAME,
-    PREFIX_LOG,
     PREFIX_TURN_TOKEN,
-    TIME_CHALLENGE,
+    PREFIX_LOG,
+    CHALLENGE_ID,
+    BOARD_ID,  # search in request
+    TURN_TOKEN,
+    OPPONENT,
+    LAST_PLAYER,  # game_over
 )
 
 
@@ -49,22 +43,8 @@ class Challenge(ServerEvent):
         self.name_event = ASK_CHALLENGE
 
     async def run(self):
-        challenged = await self.search_value(
-            self.response,
-            self.client,
-            OPPONENT,
-        )
-        challenge_id = identifier()
-        save_string(
-            f'{PREFIX_CHALLENGE}{challenge_id}',
-            data_challenge([self.client, challenged]),
-            TIME_CHALLENGE,
-        )
-        await notify_challenge_to_client(
-            challenged,
-            self.client,
-            challenge_id,
-        )
+        challenged = await self.search_value(OPPONENT)
+        make_challenge([self.client, challenged])
 
 
 class AcceptChallenge(ServerEvent):
