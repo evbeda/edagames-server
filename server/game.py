@@ -2,7 +2,7 @@ import uuid
 import json
 from typing import List
 
-from .redis import save_string
+from server.redis import save_string
 
 from server.constants import DEFAULT_GAME
 
