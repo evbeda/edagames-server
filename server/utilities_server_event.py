@@ -14,11 +14,12 @@ from server.web_requests import notify_end_game_to_web
 
 from server.constants import (
     TIME_SLEEP,
-    TURN_TOKEN,
     PREFIX_TURN_TOKEN,
     DEFAULT_GAME,
     PREFIX_CHALLENGE,
     TIME_CHALLENGE,
+    TURN_TOKEN,
+    BOARD_ID,
 )
 
 
@@ -39,8 +40,8 @@ async def make_challenge(players, game_name=DEFAULT_GAME):
 async def make_move(data):
     turn_token = next_turn(data.game_id)
     data.turn_data.update({
-        'turn_token': turn_token,
-        'board_id': data.game_id,
+        TURN_TOKEN: turn_token,
+        BOARD_ID: data.game_id,
     })
     await notify_your_turn(
         data.current_player,
@@ -63,10 +64,10 @@ async def make_penalize(data, game_name, past_token):
 
 
 def make_end_data_for_web(data):
-    return sorted([
+    return [
         (value, data.get('score_' + key[7]))
-        for key, value in data.items() if 'player' in key
-    ])
+        for key, value in data.items() if 'player_' in key
+    ]
 
 
 class ServerEvent:
@@ -83,7 +84,7 @@ class ServerEvent:
             )
         return value_search
 
-    async def make_move(self, data, game_name: str):
+    async def move(self, data, game_name: str):
         token = await make_move(data)
         asyncio.create_task(make_penalize(data, game_name, token))
 
