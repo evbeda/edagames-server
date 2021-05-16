@@ -1,55 +1,71 @@
 import unittest
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 from parameterized import parameterized
 
 from server.server_event import (
-    AcceptChallenge,
-    Movements,
     ListUsers,
     Challenge,
+    AcceptChallenge,
+    Movements,
     AbortGame,
 )
-from server.utilities_server_event import (
-    MovesActions,
-    EndActions,
-)
+from server.utilities_server_event import ServerEvent
 
 from server.constants import (
-    LAST_PLAYER,
+    EMPTY_PLAYER,
     OPPONENT,
     CHALLENGE_ID,
     DEFAULT_GAME,
     PREFIX_CHALLENGE,
     PREFIX_GAME,
-    TIME_CHALLENGE,
 )
 
 
 class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.uuid = 'c303282d-f2e6-46ca-a04a-35d3d873712d'
+        self.client = 'Player 1'
+
+    async def test_ListUsers_run(self):
+        data = {'action': 'list_users'}
+        users = [self.client, 'User 2', 'User 3']
+        with patch('server.server_event.notify_user_list_to_client', new_callable=AsyncMock) as notify_patched,\
+                patch('server.server_event.manager') as manager_patched:
+            manager_patched.connections.keys.return_value = users
+            await ListUsers(data, self.client).run()
+            notify_patched.assert_called_with(self.client, users)
+
+    @patch('server.server_event.make_challenge')
+    async def test_Challenge_run(self, mock_make_challenge):
+        opponent = 'test_opponent'
+        response = {'data': {'opponent': opponent}}
+        with patch.object(ServerEvent, 'search_value', return_value=opponent) as mock_search:
+            await Challenge(response, self.client).run()
+            mock_search.assert_awaited_once_with(OPPONENT)
+            mock_make_challenge.assert_awaited_once_with([self.client, opponent])
 
     @patch.object(AcceptChallenge, 'start_game')
-    @patch('server.server_event.get_string', return_value='data_from_redis', new_callable=AsyncMock)
-    @patch.object(MovesActions, 'search_value', return_value='challenge_id_from_request')
-    async def test_accept_challenge(self, mock_search, mock_get, mock_start):
+    async def test_AcceptChallenge_run(self, mock_start):
         data = {"action": "accept_challenge", "data": {"challenge_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}}
-        client = 'Test Client 1'
+        challenge_id = 'challenge_id_from_request'
+        get_redis = 'data_from_redis'
         json_to_python = 'python data'
-        with patch('json.loads', return_value=json_to_python) as mock_json:
-            await AcceptChallenge(data, client).run()
-            mock_search.assert_called_with(data, client, CHALLENGE_ID)
-            mock_get.assert_called_with(
-                f'{PREFIX_CHALLENGE}challenge_id_from_request',
-                client,
-                CHALLENGE_ID,
-            )
-            mock_start.assert_called_with(json_to_python)
-            mock_json.assert_called_with('data_from_redis')
+        with patch.object(ServerEvent, 'search_value', return_value=challenge_id) as mock_search:
+            with patch('server.server_event.get_string', return_value=get_redis) as mock_get:
+                with patch('json.loads', return_value=json_to_python) as mock_json:
+                    await AcceptChallenge(data, self.client).run()
+                    mock_search.assert_awaited_once_with(CHALLENGE_ID)
+                    mock_get.assert_awaited_once_with(
+                        f'{PREFIX_CHALLENGE}{challenge_id}',
+                        self.client,
+                        CHALLENGE_ID,
+                    )
+                    mock_json.assert_called_with(get_redis)
+                    mock_start.assert_called_with(json_to_python)
 
+    @patch.object(ServerEvent, 'move')
     @patch('server.server_event.save_string')
-    @patch.object(MovesActions, 'make_move')
-    async def test_start_game(self, mock_make_move, mock_save):
+    async def test_AcceptChallenge_start_game(self, mock_save, mock_move):
         game_id = 'asd123'
         game_data = {
             'name': DEFAULT_GAME,
@@ -64,34 +80,27 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 play_data={},
             )
             g_adapter_patched.return_value = adapter_patched
-            await AcceptChallenge({}, 'client1').start_game(game_data)
-            g_adapter_patched.assert_called_with(DEFAULT_GAME)
-            mock_save.assert_called_once_with(
-                f'{PREFIX_GAME}{game_id}',
-                game_data,
-            )
-            mock_make_move.assert_called_once_with(
-                adapter_patched.create_game.return_value,
-                DEFAULT_GAME,
-            )
+            data_json = 'json response'
+            with patch('json.dumps', return_value=data_json) as mock_json:
+                await AcceptChallenge({}, 'client1').start_game(game_data)
+                g_adapter_patched.assert_called_with(DEFAULT_GAME)
+                mock_json.assert_called_once_with(game_data)
+                mock_save.assert_called_once_with(
+                    f'{PREFIX_GAME}{game_id}',
+                    data_json,
+                )
+                mock_move.assert_awaited_once_with(
+                    adapter_patched.create_game.return_value,
+                    DEFAULT_GAME,
+                )
 
-    def my_side_effect(*args):
-        if args[0] == '1':
-            return True
-        else:
-            return False
-
-    @parameterized.expand([
-        (
-            {
-                "action": "accept_challenge",
-                "data": {"turn_token": "303282d-f2e6-46ca-a04a-35d3d873712d", "board_id": 'c303282d'}
-            },
-        ),
-    ])
-    async def test_Movements(self, data):
+    async def test_Movements_run(self):
         client = 'Test Client 1'
-        with patch.object(MovesActions, 'search_value', return_value='value') as mock_search:
+        data = {
+            "action": "accept_challenge",
+            "data": {"turn_token": "303282d-f2e6-46ca-a04a-35d3d873712d", "board_id": 'c303282d'},
+        }
+        with patch.object(ServerEvent, 'search_value', return_value='value') as mock_search:
             with patch("server.server_event.get_string", return_value='value') as mock_get:
                 with patch('json.loads', return_value='json_value') as mock_json:
                     with patch.object(Movements, 'execute_action', return_value='value') as mock_execute:
@@ -101,22 +110,12 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                         mock_json.asseer_called()
                         mock_execute.assert_called()
 
-    async def test_list_users(self):
-        data = {'action': 'list_users'}
-        client = 'User 1'
-        users = ['User 1', 'User 2', 'User 3']
-        with patch('server.server_event.notify_user_list_to_client', new_callable=AsyncMock) as notify_patched,\
-                patch('server.server_event.manager') as manager_patched:
-            manager_patched.connections.keys.return_value = users
-            await ListUsers(data, client).run()
-            notify_patched.assert_called_with(client, users)
-
-    @patch.object(MovesActions, 'make_move')
-    async def test_execute_action(self, mock_make_move):
+    @patch.object(ServerEvent, 'move')
+    async def test_Movements_execute_action(self, mock_move):
         client = 'client1'
-        game_data = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
+        game_data = {'name': DEFAULT_GAME, 'players': [client, 'client2']}
         game_id = 'test_game_id'
-        turn_data = {'player_1': 'client1', 'score_1': 1000, 'player_2': 'client2', 'score_2': 500}
+        turn_data = {'player_1': client, 'score_1': 1000, 'player_2': 'client2', 'score_2': 500}
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched,\
                 patch.object(Movements, 'log_action') as log_patched:
             adapter_patched = AsyncMock()
@@ -131,13 +130,13 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             log_patched.assert_awaited_once_with(
                 adapter_patched.execute_action.return_value,
             )
-            mock_make_move.assert_awaited_once_with(
+            mock_move.assert_awaited_once_with(
                 adapter_patched.execute_action.return_value,
                 DEFAULT_GAME,
             )
 
-    @patch.object(EndActions, 'game_over')
-    async def test_movements_end_game(self, mock_game_over):
+    @patch.object(ServerEvent, 'game_over')
+    async def test_Movements_end_game(self, mock_game_over):
         client = 'client1'
         game_data = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
         game_id = 'test_game_id'
@@ -147,13 +146,13 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             adapter_patched = AsyncMock()
             adapter_patched.execute_action.return_value = MagicMock(
                 turn_data=turn_data,
-                current_player=LAST_PLAYER,
+                current_player=EMPTY_PLAYER,
             )
             g_adapter_patched.return_value = adapter_patched
             await Movements({}, client).execute_action(game_data, game_id)
             mock_game_over.assert_awaited_once_with(
+                adapter_patched.execute_action.return_value,
                 game_data,
-                adapter_patched.execute_action.return_value
             )
 
     @patch('server.server_event.save_string')
@@ -188,23 +187,6 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             turn_data_json,
         )
 
-    @patch('server.server_event.notify_challenge_to_client')
-    @patch.object(MovesActions, 'search_value', return_value='test_opponent')
-    @patch('server.server_event.save_string')
-    async def test_challenge(self, mock_save, mock_search, mock_notify_challenge):
-        client = 'Test Client'
-        opponent = 'test_opponent'
-        challenge_data = {'opponent': opponent}
-        response = {'data': challenge_data}
-        to_json = '''{ players: [player_1, player_2]}'''
-        with patch('uuid.uuid4', return_value=self.uuid):
-            with patch('server.server_event.data_challenge', return_value=to_json) as mock_data:
-                await Challenge(response, client).run()
-                mock_data.assert_called_once_with([client, opponent])
-                mock_save.assert_called_once_with('c_' + self.uuid, to_json, TIME_CHALLENGE)
-                mock_search.assert_awaited_once_with(response, client, OPPONENT)
-                mock_notify_challenge.assert_awaited_once_with(opponent, client, self.uuid)
-
     @parameterized.expand([
         (
             {
@@ -213,26 +195,26 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             },
         ),
     ])
-    async def test_abort_game(self, data):
+    async def test_AbortGame_run(self, data):
         client = 'Test Client'
-        with patch.object(MovesActions, 'search_value', return_value='10') as mock_search:
+        with patch.object(ServerEvent, 'search_value', return_value='10') as mock_search:
             with patch('server.server_event.get_string', return_value='10') as mock_get:
                 with patch.object(AbortGame, 'end_game', return_value='10') as mock_end:
                     await AbortGame(data, client).run()
-                    mock_search.assert_any_call(data, client, 'board_id')
-                    mock_search.assert_any_call(data, client, 'turn_token')
+                    mock_search.assert_any_call('board_id')
+                    mock_search.assert_any_call('turn_token')
                     self.assertEqual(mock_search.call_count, 2)
                     mock_get.assert_awaited()
                     mock_end.assert_awaited()
 
-    @patch.object(EndActions, 'game_over')
-    async def test_abort_game_end_game(self, mock_game_over):
+    @patch.object(ServerEvent, 'game_over')
+    async def test_AbortGame_end_game(self, mock_game_over):
         client = 'client'
         game_id = 'asd123'
         with patch('server.server_event.GRPCAdapterFactory.get_adapter') as g_adapter_patched:
             adapter_patched = AsyncMock()
             adapter_patched.end_game.return_value = MagicMock(
-                current_player=LAST_PLAYER,
+                current_player=EMPTY_PLAYER,
                 turn_data={'player_1': 'Mark', 'score_1': 1000},
                 play_data={'state': 'game_over'}
             )
@@ -240,6 +222,6 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             game = {'name': DEFAULT_GAME, 'players': '[client1 ,clint1]'}
             await AbortGame({}, client).end_game(game, game_id)
             mock_game_over.assert_awaited_once_with(
+                adapter_patched.end_game.return_value,
                 game,
-                adapter_patched.end_game.return_value
             )

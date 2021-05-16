@@ -8,17 +8,15 @@ from server.server import app, manager
 
 class TestRouter(unittest.IsolatedAsyncioTestCase):
     @parameterized.expand([
-        ({"challenger": "Ana", "challenged": "Pepe"}, 200),
+        ({"challenger": "Ana", "challenged": "Pepe", "challenge_id": "2138123721"}, 200),
     ])
     async def test_challenge(self, data, status):
-        challenge_id = '810a84e7'
-        with patch('uuid.uuid4', return_value=challenge_id):
-            with patch('server.router.make_challenge') as mock_make_challenge:
-                async with AsyncClient(app=app, base_url="http://test") as ac:
-                    response = await ac.post(
-                        "/challenge",
-                        json=data
-                    )
+        with patch('server.router.make_challenge') as mock_make_challenge:
+            async with AsyncClient(app=app, base_url="http://test") as ac:
+                response = await ac.post(
+                    "/challenge",
+                    json=data
+                )
         mock_make_challenge.assert_awaited_once_with(['Ana', 'Pepe'])
         self.assertEqual(response.status_code, status)
         self.assertEqual(response.json(), data)
