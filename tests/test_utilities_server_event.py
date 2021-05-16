@@ -200,7 +200,8 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
 
     @patch('server.utilities_server_event.notify_end_game_to_web')
     @patch('server.utilities_server_event.notify_end_game_to_client')
-    async def test_game_over(self, mock_notify_end_to_client, mock_notify_end_to_web):
+    @patch('server.utilities_server_event.next_turn')
+    async def test_game_over(self, mock_next, mock_notify_end_to_client, mock_notify_end_to_web):
         players = ['Pedro', 'Pablo']
         game_data = {
             'players': players,
@@ -215,6 +216,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         test_end_data = 'test_end_data'
         with patch('server.utilities_server_event.make_end_data_for_web', return_value=test_end_data) as mock_end_data:
             await ServerEvent({}, self.client).game_over(data, game_data)
-            mock_notify_end_to_client.assert_called_once_with(players, turn_data)
+            mock_next.assert_called_once_with(game_id)
             mock_end_data.assert_called_once_with(turn_data)
+            mock_notify_end_to_client.assert_called_once_with(players, turn_data)
             mock_notify_end_to_web.assert_called_once_with(game_id, test_end_data)

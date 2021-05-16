@@ -89,10 +89,7 @@ class ServerEvent:
         asyncio.create_task(make_penalize(data, game_name, token))
 
     async def game_over(self, data, game: dict):
-        await notify_end_game_to_client(
-            game.get('players'),
-            data.turn_data,
-        )
         next_turn(data.game_id)
         end_data = make_end_data_for_web(data.turn_data)
+        await notify_end_game_to_client(game.get('players'), data.turn_data)
         await notify_end_game_to_web(data.game_id, end_data)
