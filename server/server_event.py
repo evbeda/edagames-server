@@ -12,7 +12,7 @@ from server.redis import save_string, get_string
 from server.constants import (
     LIST_USERS,  # name_event
     ASK_CHALLENGE,
-    CHALLENGE_ACCEPTED,
+    ACCEPT_CHALLENGE,
     MOVEMENTS,
     ABORT_GAME,
     PREFIX_CHALLENGE,  # prefix
@@ -44,13 +44,13 @@ class Challenge(ServerEvent):
 
     async def run(self):
         challenged = await self.search_value(OPPONENT)
-        make_challenge([self.client, challenged])
+        await make_challenge([self.client, challenged])
 
 
 class AcceptChallenge(ServerEvent):
     def __init__(self, response, client):
         super().__init__(response, client)
-        self.name_event = CHALLENGE_ACCEPTED
+        self.name_event = ACCEPT_CHALLENGE
 
     async def run(self):
         challenge_id = await self.search_value(CHALLENGE_ID)
@@ -70,7 +70,7 @@ class AcceptChallenge(ServerEvent):
             f'{PREFIX_GAME}{data_received.game_id}',
             json.dumps(game_data),
         )
-        await self.make_move(data_received, game_data.get('name'))
+        await self.move(data_received, game_data.get('name'))
 
 
 class Movements(ServerEvent):
@@ -105,7 +105,7 @@ class Movements(ServerEvent):
         if data_received.current_player == EMPTY_PLAYER:
             await self.game_over(data_received, game_data)
         else:
-            await self.make_move(data_received, game_data.get('name'))
+            await self.move(data_received, game_data.get('name'))
 
     async def log_action(self, data):
         save_string(
