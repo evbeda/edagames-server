@@ -50,3 +50,6 @@ workflows:
       - trigger-main-repo-update:
           requires:
             - build-and-test
+          filters:
+            branches:
+              only: main
