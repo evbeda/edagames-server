@@ -19,7 +19,7 @@ from server.constants import (
     PREFIX_CHALLENGE,
     TIME_CHALLENGE,
     TURN_TOKEN,
-    BOARD_ID,
+    GAME_ID,
     DATA,
     PLAYERS,
 )
@@ -43,7 +43,7 @@ async def make_move(data):
     turn_token = next_turn(data.game_id)
     data.turn_data.update({
         TURN_TOKEN: turn_token,
-        BOARD_ID: data.game_id,
+        GAME_ID: data.game_id,
     })
     await notify_your_turn(
         data.current_player,

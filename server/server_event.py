@@ -20,7 +20,7 @@ from server.constants import (
     PREFIX_TURN_TOKEN,
     PREFIX_LOG,
     CHALLENGE_ID,
-    BOARD_ID,  # search in request
+    GAME_ID,  # search in request
     TURN_TOKEN,
     OPPONENT,
     EMPTY_PLAYER,  # game_over
@@ -82,7 +82,7 @@ class Movements(ServerEvent):
 
     async def run(self):
         turn_token = await self.search_value(TURN_TOKEN)
-        game_id = await self.search_value(BOARD_ID)
+        game_id = await self.search_value(GAME_ID)
         redis_game_id = await get_string(
             f'{PREFIX_TURN_TOKEN}{game_id}',
             self.client,
@@ -92,7 +92,7 @@ class Movements(ServerEvent):
             game = await get_string(
                 f'{PREFIX_GAME}{game_id}',
                 self.client,
-                BOARD_ID,
+                GAME_ID,
             )
             if game is not None:
                 await self.execute_action(json.loads(game), game_id)
@@ -126,7 +126,7 @@ class AbortGame(ServerEvent):
 
     async def run(self):
         turn_token_received = await self.search_value(TURN_TOKEN)
-        game_id = await self.search_value(BOARD_ID)
+        game_id = await self.search_value(GAME_ID)
         turn_token_saved = await get_string(
             f'{PREFIX_TURN_TOKEN}{game_id}',
             self.client,
@@ -136,7 +136,7 @@ class AbortGame(ServerEvent):
             game = await get_string(
                 f'{PREFIX_LOG}{game_id}',
                 self.client,
-                BOARD_ID,
+                GAME_ID,
             )
             if game is not None:
                 await self.end_game(json.loads(game), game_id)

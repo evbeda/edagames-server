@@ -29,7 +29,7 @@ MOVEMENTS = 'movements'
 OPPONENT = 'opponent'
 CHALLENGE_ID = 'challenge_id'
 TURN_TOKEN = 'turn_token'
-BOARD_ID = 'board_id'
+GAME_ID = 'game_id'
 
 # dict.get values
 DATA = 'data'

@@ -15,7 +15,7 @@ from server.constants import (
     DEFAULT_GAME,
     TIME_SLEEP,
     TIME_CHALLENGE,
-    BOARD_ID,
+    GAME_ID,
     TURN_TOKEN,
     PREFIX_TURN_TOKEN,
     PREFIX_CHALLENGE,
@@ -62,7 +62,7 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
         with patch('server.utilities_server_event.next_turn', return_value=token_turn) as mock_next_turn:
             res = await make_move(data)
             mock_next_turn.assert_called_once_with(game_id)
-            self.assertEqual(data.turn_data, {BOARD_ID: game_id, TURN_TOKEN: token_turn})
+            self.assertEqual(data.turn_data, {GAME_ID: game_id, TURN_TOKEN: token_turn})
             mock_notify_your_turn.assert_awaited_once_with(
                 current_player,
                 turn_data,
