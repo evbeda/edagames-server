@@ -31,6 +31,11 @@ CHALLENGE_ID = 'challenge_id'
 TURN_TOKEN = 'turn_token'
 BOARD_ID = 'board_id'
 
+# dict.get values
+DATA = 'data'
+GAME_NAME = 'name'
+PLAYERS = 'players'
+
 # Prefixes
 PREFIX_CHALLENGE = 'c_'
 PREFIX_TURN_TOKEN = 't_'

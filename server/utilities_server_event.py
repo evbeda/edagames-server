@@ -20,6 +20,8 @@ from server.constants import (
     TIME_CHALLENGE,
     TURN_TOKEN,
     BOARD_ID,
+    DATA,
+    PLAYERS,
 )
 
 
@@ -76,7 +78,7 @@ class ServerEvent:
         self.client = client
 
     async def search_value(self, value):
-        value_search = self.response.get('data', {}).get(value)
+        value_search = self.response.get(DATA, {}).get(value)
         if value_search is None:
             await notify_error_to_client(
                 self.client,
@@ -91,5 +93,5 @@ class ServerEvent:
     async def game_over(self, data, game: dict):
         next_turn(data.game_id)
         end_data = make_end_data_for_web(data.turn_data)
-        await notify_end_game_to_client(game.get('players'), data.turn_data)
+        await notify_end_game_to_client(game.get(PLAYERS), data.turn_data)
         await notify_end_game_to_web(data.game_id, end_data)

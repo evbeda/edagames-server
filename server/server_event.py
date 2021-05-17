@@ -24,6 +24,8 @@ from server.constants import (
     TURN_TOKEN,
     OPPONENT,
     EMPTY_PLAYER,  # game_over
+    GAME_NAME,  # dict.get values
+    PLAYERS,
 )
 
 
@@ -64,13 +66,13 @@ class AcceptChallenge(ServerEvent):
                 await self.start_game(json.loads(game_data))
 
     async def start_game(self, game_data: Dict):
-        adapter = await GRPCAdapterFactory.get_adapter(game_data.get('name'))
-        data_received = await adapter.create_game(game_data.get('players'))
+        adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
+        data_received = await adapter.create_game(game_data.get(PLAYERS))
         save_string(
             f'{PREFIX_GAME}{data_received.game_id}',
             json.dumps(game_data),
         )
-        await self.move(data_received, game_data.get('name'))
+        await self.move(data_received, game_data.get(GAME_NAME))
 
 
 class Movements(ServerEvent):
@@ -96,7 +98,7 @@ class Movements(ServerEvent):
                 await self.execute_action(json.loads(game), game_id)
 
     async def execute_action(self, game_data: dict, game_id: str):
-        adapter = await GRPCAdapterFactory.get_adapter(game_data.get('name'))
+        adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
         data_received = await adapter.execute_action(
             game_id,
             self.response
@@ -105,7 +107,7 @@ class Movements(ServerEvent):
         if data_received.current_player == EMPTY_PLAYER:
             await self.game_over(data_received, game_data)
         else:
-            await self.move(data_received, game_data.get('name'))
+            await self.move(data_received, game_data.get(GAME_NAME))
 
     async def log_action(self, data):
         save_string(
@@ -140,6 +142,6 @@ class AbortGame(ServerEvent):
                 await self.end_game(json.loads(game), game_id)
 
     async def end_game(self, game: dict, game_id: str):
-        adapter = await GRPCAdapterFactory.get_adapter(game.get('name'))
+        adapter = await GRPCAdapterFactory.get_adapter(game.get(GAME_NAME))
         data_received = await adapter.end_game(game_id)
         await self.game_over(data_received, game)
