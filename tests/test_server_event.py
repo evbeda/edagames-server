@@ -15,6 +15,8 @@ from server.constants import (
     EMPTY_PLAYER,
     OPPONENT,
     CHALLENGE_ID,
+    GAME_ID,
+    TURN_TOKEN,
     DEFAULT_GAME,
     PREFIX_CHALLENGE,
     PREFIX_GAME,
@@ -201,8 +203,8 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             with patch('server.server_event.get_string', return_value='10') as mock_get:
                 with patch.object(AbortGame, 'end_game', return_value='10') as mock_end:
                     await AbortGame(data, client).run()
-                    mock_search.assert_any_call('board_id')
-                    mock_search.assert_any_call('turn_token')
+                    mock_search.assert_any_call(GAME_ID)
+                    mock_search.assert_any_call(TURN_TOKEN)
                     self.assertEqual(mock_search.call_count, 2)
                     mock_get.assert_awaited()
                     mock_end.assert_awaited()
