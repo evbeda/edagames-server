@@ -16,9 +16,11 @@ r = redis.Redis(host=REDIS_HOST, port=REDIS_LOCAL_PORT, db=0, charset="utf-8", d
 
 
 def append_to_stream(key: str, data: Dict):
-    parsed_data = {k: json.dumps(v) if type(v) == dict else v for k, v in data.items()}
     try:
+        parsed_data = {k: json.dumps(v) if type(v) == dict else v for k, v in data.items()}
         r.xadd(key, parsed_data)
+    except TypeError as e:
+        logger.error(f'Error while parsing data: {e}')
     except redis.RedisError as e:
         logger.error(f'Error while writing stream to Redis: {e}')
 
