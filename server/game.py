@@ -4,7 +4,7 @@ from typing import List
 
 from server.redis import save_string
 
-from server.constants import DEFAULT_GAME
+from server.constants import DEFAULT_GAME, PREFIX_TURN_TOKEN
 
 
 def identifier():
@@ -13,7 +13,7 @@ def identifier():
 
 def next_turn(game_id):
     turn_token = identifier()
-    save_string('t_' + game_id, turn_token)
+    save_string(f'{PREFIX_TURN_TOKEN}{game_id}', turn_token)
     return turn_token
 
 
