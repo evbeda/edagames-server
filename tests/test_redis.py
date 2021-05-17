@@ -2,8 +2,11 @@ import unittest
 from unittest.mock import patch
 from parameterized import parameterized
 import fakeredis
+import json
+import redis
 
 from server.redis import (
+    append_to_stream,
     save_string,
     get_string,
 )
@@ -71,3 +74,18 @@ class TestRedis(unittest.IsolatedAsyncioTestCase):
                 f'DataError in {caller}, send a str',
             )
             mock_logger.assert_called_once()
+
+    @patch('server.redis.r')
+    def test_append_to_stream(self, redis_patched):
+        stream = 'some_stream'
+        data = {'data': 'some_data', 'dict_data': {'etc': 'more data as dict'}}
+        expected = {'data': json.dumps(data)}
+        append_to_stream(stream, data)
+        redis_patched.xadd.assert_called_with(stream, expected)
+
+    @patch('server.redis.logger')
+    @patch('server.redis.r')
+    def test_append_to_stream_error(self, redis_patched, logger_patched):
+        redis_patched.xadd.side_effect = redis.RedisError('test')
+        append_to_stream('stream', {'data': 'data'})
+        logger_patched.error.assert_called()

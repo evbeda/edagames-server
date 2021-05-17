@@ -1,3 +1,4 @@
+import json
 import redis
 from redis.exceptions import DataError
 from uvicorn.config import logger
@@ -8,7 +9,18 @@ from server.websockets import (
     notify_feedback,
 )
 
+from typing import Dict
+
+
 r = redis.Redis(host=REDIS_HOST, port=REDIS_LOCAL_PORT, db=0, charset="utf-8", decode_responses=True)
+
+
+def append_to_stream(key: str, data: Dict):
+    parsed_data = {k: json.dumps(v) if type(v) == dict else v for k, v in data.items()}
+    try:
+        r.xadd(key, parsed_data)
+    except redis.RedisError as e:
+        logger.error(f'Error while writing stream to Redis: {e}')
 
 
 def save_string(key, value, expire=None):
