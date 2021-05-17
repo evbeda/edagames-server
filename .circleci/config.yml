@@ -32,8 +32,21 @@ jobs:
       - run:
           name: Running Flake8
           command: flake8
-
+  trigger-main-repo-update:
+    docker:
+      - image: curlimages/curl
+    steps:
+      - run:
+          name: Update main repo
+          command: |
+            curl --request POST 'https://circleci.com/api/v2/project/github/evbeda/edagames/pipeline' \
+            --header "Circle-Token: ${CCI_API_TOKEN}" \
+            --header 'Content-Type: application/json' \
+            --data '{"parameters":{"update_submodule_server":true}}'
 workflows:
   main:
     jobs:
       - build-and-test
+      - trigger-main-repo-update:
+          requires:
+            - build-and-test
