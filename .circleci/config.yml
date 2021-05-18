@@ -42,7 +42,7 @@ jobs:
             curl --request POST 'https://circleci.com/api/v2/project/github/evbeda/edagames/pipeline' \
             --header "Circle-Token: ${CCI_API_TOKEN}" \
             --header 'Content-Type: application/json' \
-            --data '{"parameters":{"update_submodule_server":true}}'
+            --data '{"parameters":{"update_submodule_server":true,"trigger-commit-jobs":false}'
 workflows:
   main:
     jobs:
