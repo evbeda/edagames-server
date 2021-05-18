@@ -21,7 +21,7 @@ from server.constants import (
     PLAYERS,
     CHALLENGE_ID,
     TOKEN_COMPARE,
-    BOARD_ID,
+    GAME_ID,
 )
 
 

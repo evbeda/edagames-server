@@ -14,11 +14,15 @@ from server.exception import GameIdException
 from server.constants import (
     DEFAULT_GAME,
     TIME_SLEEP,
+<<<<<<< HEAD
     TIME_CHALLENGE,
     GAME_ID,
+=======
+>>>>>>> changed BOARD_ID name for GAME_ID
     TURN_TOKEN,
     TOKEN_COMPARE,
     CHALLENGE_ID,
+    GAME_ID,
 )
 
 

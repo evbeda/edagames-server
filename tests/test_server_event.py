@@ -18,10 +18,9 @@ from server.constants import (
     GAME_ID,
     TURN_TOKEN,
     DEFAULT_GAME,
-    PREFIX_CHALLENGE,
-    PREFIX_GAME,
     LOG,
-    BOARD_ID,
+    GAME_ID,
+    TURN_TOKEN,
 )
 
 
@@ -86,7 +85,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             mock_save.assert_called_once_with(
                 game_id,
                 game_data,
-                BOARD_ID,
+                GAME_ID,
             )
             mock_move.assert_awaited_once_with(
                 adapter_patched.create_game.return_value,
