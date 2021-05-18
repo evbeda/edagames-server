@@ -9,6 +9,7 @@ EVENT_FEEDBACK = 'feedback'
 
 # Exceptions
 GAMEIDERROR = 'GAMEID_ERROR'
+REDIS_ERROR = -1
 
 # Game constants
 DEFAULT_GAME = 'quoridor'
