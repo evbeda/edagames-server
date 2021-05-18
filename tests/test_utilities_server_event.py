@@ -17,15 +17,15 @@ from server.constants import (
     TIME_CHALLENGE,
     GAME_ID,
     TURN_TOKEN,
-    PREFIX_TURN_TOKEN,
-    PREFIX_CHALLENGE,
+    TOKEN_COMPARE,
+    CHALLENGE_ID,
 )
 
 
 class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
 
     @patch('server.utilities_server_event.notify_challenge_to_client')
-    @patch('server.utilities_server_event.save_string')
+    @patch('server.utilities_server_event.redis_save')
     async def test_make_challenge(self, mock_save, mock_notify):
         challenge_id = 'test_challenge_id'
         challenger = 'Pedro'
@@ -38,9 +38,9 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
                 mock_identifier.assert_called_once_with()
                 mock_data.assert_called_once_with(players, DEFAULT_GAME)
                 mock_save.assert_called_once_with(
-                    PREFIX_CHALLENGE + challenge_id,
+                    challenge_id,
                     data_challenge,
-                    TIME_CHALLENGE,
+                    CHALLENGE_ID,
                 )
                 mock_notify.assert_awaited_once_with(
                     challenged,
@@ -88,13 +88,13 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
             current_player=player_2,
         )
         gadapter_patched.return_value = adapter_patched
-        with patch('server.utilities_server_event.get_string', return_value=turn_token) as mock_get:
+        with patch('server.utilities_server_event.redis_get', return_value=turn_token) as mock_get:
             await make_penalize(data, game_name, turn_token)
             mock_sleep.assert_awaited_once_with(TIME_SLEEP)
             mock_get.assert_awaited_once_with(
-                f'{PREFIX_TURN_TOKEN}{game_id}',
+                game_id,
+                TOKEN_COMPARE,
                 player_1,
-                TURN_TOKEN,
             )
             gadapter_patched.assert_called_with(DEFAULT_GAME)
             mock_move.assert_awaited_once_with(adapter_patched.penalize.return_value)
@@ -112,13 +112,13 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
             current_player=player_1,
         )
         game_name = DEFAULT_GAME
-        with patch('server.utilities_server_event.get_string', return_value=turn_token_2) as mock_get:
+        with patch('server.utilities_server_event.redis_get', return_value=turn_token_2) as mock_get:
             await make_penalize(data, game_name, turn_token_1)
             mock_sleep.assert_awaited_once_with(TIME_SLEEP)
             mock_get.assert_awaited_once_with(
-                f'{PREFIX_TURN_TOKEN}{game_id}',
+                game_id,
+                TOKEN_COMPARE,
                 player_1,
-                TURN_TOKEN,
             )
             gadapter_patched.assert_not_called()
             mock_move.assert_not_called()
