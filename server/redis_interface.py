@@ -3,6 +3,10 @@ from server.redis import (
     get_string,
     append_to_stream,
 )
+from server.redis import (
+    notify_feedback,
+    notify_error_to_client,
+)
 
 from server.constants import (
     CHALLENGE_ID,  # caller
@@ -15,6 +19,7 @@ from server.constants import (
     PREFIX_GAME,
     PREFIX_LOG,
     EMPTY_PLAYER,  # web requests
+    REDIS_ERROR,  # error
 )
 
 redis_save_calls = {
@@ -57,9 +62,15 @@ async def redis_get(key: str, caller: str, client: str = EMPTY_PLAYER):
     converted_key = key_conversion(key, caller)
     data = redis_get_calls[caller](converted_key)
     if data is None:
-        pass
-    elif data == -1:
-        pass
+        await notify_feedback(
+            client,
+            client_msgs[caller],
+        )
+    elif data == REDIS_ERROR:
+        await notify_error_to_client(
+            client,
+            f'DataError in {caller}, send a str',
+        )
     return data
 
 

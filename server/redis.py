@@ -4,12 +4,9 @@ from redis.exceptions import DataError
 from uvicorn.config import logger
 
 from .environment import REDIS_HOST, REDIS_LOCAL_PORT
-from server.websockets import (
-    notify_error_to_client,
-    notify_feedback,
-)
 
 from typing import Dict
+from server.constants import REDIS_ERROR
 
 
 r = redis.Redis(host=REDIS_HOST, port=REDIS_LOCAL_PORT, db=0, charset="utf-8", decode_responses=True)
@@ -21,29 +18,26 @@ def append_to_stream(key: str, data: Dict):
         r.xadd(key, parsed_data)
     except TypeError as e:
         logger.error(f'Error while parsing data: {e}')
+        return REDIS_ERROR
     except redis.RedisError as e:
         logger.error(f'Error while writing stream to Redis: {e}')
+        return REDIS_ERROR
 
 
 def save_string(key, value, expire=None):
     try:
-        r.set(key, value, ex=expire)
+        parsed_data = json.dumps(value)
+        r.set(key, parsed_data, ex=expire)
     except DataError as e:
         logger.error(e)
+        return REDIS_ERROR
 
 
 async def get_string(key, client, caller='id'):
     try:
         data = r.get(key)
-        if data is None:
-            await notify_feedback(
-                client,
-                f'{caller} not found',
-            )
-        return data
+        parsed_data = json.loads(data)
+        return parsed_data
     except DataError as e:
         logger.error(e)
-        await notify_error_to_client(
-            client,
-            f'DataError in {caller}, send a str',
-        )
+        return REDIS_ERROR
