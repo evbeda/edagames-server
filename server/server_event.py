@@ -13,14 +13,11 @@ from server.constants import (
     ACCEPT_CHALLENGE,
     MOVEMENTS,
     ABORT_GAME,
-    PREFIX_CHALLENGE,  # prefix
-    PREFIX_GAME,
-    PREFIX_TURN_TOKEN,
-    PREFIX_LOG,
     CHALLENGE_ID,
     GAME_ID,  # search in request
     TURN_TOKEN,
     OPPONENT,
+    LOG,
     EMPTY_PLAYER,  # game_over
     GAME_NAME,  # dict.get values
     PLAYERS,
@@ -55,10 +52,10 @@ class AcceptChallenge(ServerEvent):
     async def run(self):
         challenge_id = await self.search_value(CHALLENGE_ID)
         if challenge_id is not None:
-            game_data = await get_string(
-                f'{PREFIX_CHALLENGE}{challenge_id}',
-                self.client,
+            game_data = await redis_get(
+                challenge_id,
                 CHALLENGE_ID,
+                self.client,
             )
             if game_data is not None:
                 await self.start_game(json.loads(game_data))
@@ -66,9 +63,10 @@ class AcceptChallenge(ServerEvent):
     async def start_game(self, game_data: Dict):
         adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
         data_received = await adapter.create_game(game_data.get(PLAYERS))
-        save_string(
-            f'{PREFIX_GAME}{data_received.game_id}',
-            json.dumps(game_data),
+        redis_save(
+            data_received.game_id,
+            game_data,
+            BOARD_ID,
         )
         await self.move(data_received, game_data.get(GAME_NAME))
 
@@ -80,17 +78,17 @@ class Movements(ServerEvent):
 
     async def run(self):
         turn_token = await self.search_value(TURN_TOKEN)
-        game_id = await self.search_value(GAME_ID)
-        redis_game_id = await get_string(
-            f'{PREFIX_TURN_TOKEN}{game_id}',
-            self.client,
+        game_id = await self.search_value(BOARD_ID)
+        redis_game_id = await redis_get(
+            game_id,
             TURN_TOKEN,
+            self.client,
         )
         if redis_game_id == turn_token:
-            game = await get_string(
-                f'{PREFIX_GAME}{game_id}',
+            game = await redis_get(
+                game_id,
+                BOARD_ID,
                 self.client,
-                GAME_ID,
             )
             if game is not None:
                 await self.execute_action(json.loads(game), game_id)
@@ -108,12 +106,14 @@ class Movements(ServerEvent):
             await self.move(data_received, game_data.get(GAME_NAME))
 
     async def log_action(self, data):
-        save_string(
-            f'{PREFIX_LOG}{data.game_id}',
-            json.dumps({
-                "turn": data.current_player,
-                "data": data.play_data,
-            })
+        data = {
+            "turn": data.current_player,
+            "data": data.play_data,
+        }
+        redis_save(
+            data.game_id,
+            data,
+            LOG,
         )
 
 
@@ -124,17 +124,17 @@ class AbortGame(ServerEvent):
 
     async def run(self):
         turn_token_received = await self.search_value(TURN_TOKEN)
-        game_id = await self.search_value(GAME_ID)
-        turn_token_saved = await get_string(
-            f'{PREFIX_TURN_TOKEN}{game_id}',
-            self.client,
+        game_id = await self.search_value(BOARD_ID)
+        turn_token_saved = await redis_get(
+            game_id,
             TURN_TOKEN,
+            self.client,
         )
         if turn_token_received == turn_token_saved:
-            game = await get_string(
-                f'{PREFIX_LOG}{game_id}',
+            game = await redis_get(
+                game_id,
+                BOARD_ID,
                 self.client,
-                GAME_ID,
             )
             if game is not None:
                 await self.end_game(json.loads(game), game_id)
