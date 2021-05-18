@@ -15,8 +15,6 @@ from server.constants import (
     EMPTY_PLAYER,
     OPPONENT,
     CHALLENGE_ID,
-    GAME_ID,
-    TURN_TOKEN,
     DEFAULT_GAME,
     LOG,
     GAME_ID,
