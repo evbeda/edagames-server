@@ -20,6 +20,8 @@ from server.constants import (
     PREFIX_LOG,
     EMPTY_PLAYER,  # web requests
     REDIS_ERROR,  # error
+    TIME_SLEEP,  # timers expire
+    TIME_CHALLENGE,
 )
 
 redis_save_calls = {
@@ -27,6 +29,11 @@ redis_save_calls = {
     TURN_TOKEN: save_string,
     BOARD_ID: save_string,
     LOG: append_to_stream,
+}
+
+expires_relation = {
+    CHALLENGE_ID: TIME_CHALLENGE,
+    TURN_TOKEN: TIME_SLEEP,
 }
 
 redis_get_calls = {
@@ -38,10 +45,10 @@ redis_get_calls = {
 }
 
 client_msgs = {
-    CHALLENGE_ID: 'Not a challenge was found with that id',
-    TURN_TOKEN: 'Invalid turn token',
-    TOKEN_COMPARE: 'Time limit',
-    BOARD_ID: 'Invalid game id',
+    CHALLENGE_ID: 'Not a challenge was found with the following id: ',
+    TURN_TOKEN: 'Invalid turn token: ',
+    TOKEN_COMPARE: 'Time limit: ',
+    BOARD_ID: 'Invalid game id: ',
 }
 
 relations = {
@@ -55,16 +62,18 @@ relations = {
 
 def redis_save(key: str, value, caller: str):
     converted_key = key_conversion(key, caller)
-    redis_save_calls[caller](converted_key, value)
+    expire = expires_relation.get(caller, None)
+    redis_save_calls.get(caller, None)(converted_key, value, expire)
 
 
 async def redis_get(key: str, caller: str, client: str = EMPTY_PLAYER):
     converted_key = key_conversion(key, caller)
-    data = redis_get_calls[caller](converted_key)
+    data = redis_get_calls.get(caller)(converted_key)
     if data is None:
+        msg = client_msgs.get(caller)
         await notify_feedback(
             client,
-            client_msgs[caller],
+            f'{msg}{key}',
         )
     elif data == REDIS_ERROR:
         await notify_error_to_client(

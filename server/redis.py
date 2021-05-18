@@ -9,10 +9,16 @@ from typing import Dict
 from server.constants import REDIS_ERROR
 
 
-r = redis.Redis(host=REDIS_HOST, port=REDIS_LOCAL_PORT, db=0, charset="utf-8", decode_responses=True)
+r = redis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_LOCAL_PORT,
+    db=0,
+    charset="utf-8",
+    decode_responses=True,
+)
 
 
-def append_to_stream(key: str, data: Dict):
+def append_to_stream(key: str, data: Dict, *args):
     try:
         parsed_data = {k: json.dumps(v) if type(v) == dict else v for k, v in data.items()}
         r.xadd(key, parsed_data)
@@ -24,7 +30,7 @@ def append_to_stream(key: str, data: Dict):
         return REDIS_ERROR
 
 
-def save_string(key, value, expire=None):
+def save_string(key: str, value, expire: int):
     try:
         parsed_data = json.dumps(value)
         r.set(key, parsed_data, ex=expire)
@@ -33,7 +39,7 @@ def save_string(key, value, expire=None):
         return REDIS_ERROR
 
 
-async def get_string(key, client, caller='id'):
+async def get_string(key: str, client: str):
     try:
         data = r.get(key)
         parsed_data = json.loads(data)
