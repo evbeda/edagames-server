@@ -31,9 +31,10 @@ def append_to_stream(key: str, data: Dict, *args):
 
 
 def save_string(key: str, value, expire: int):
+    if type(value) != str:
+        value = json.dumps(value)
     try:
-        parsed_data = json.dumps(value)
-        r.set(key, parsed_data, ex=expire)
+        r.set(key, value, ex=expire)
     except DataError as e:
         logger.error(e)
         return REDIS_ERROR
@@ -42,8 +43,12 @@ def save_string(key: str, value, expire: int):
 async def get_string(key: str, client: str):
     try:
         data = r.get(key)
-        parsed_data = json.loads(data)
-        return parsed_data
     except DataError as e:
         logger.error(e)
         return REDIS_ERROR
+
+    try:
+        parsed_data = json.loads(data)
+        return parsed_data
+    except json.decoder.JSONDecodeError:
+        return data
