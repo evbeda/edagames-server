@@ -10,8 +10,12 @@ from server.redis import (
     get_string,
 )
 
+from server.constants import (
+    REDIS_ERROR,
+)
 
-class TestRedis(unittest.IsolatedAsyncioTestCase):
+
+class TestRedis(unittest.TestCase):
 
     @parameterized.expand([
         # (value, expire, expected_value, expected_ttl)
@@ -28,50 +32,50 @@ class TestRedis(unittest.IsolatedAsyncioTestCase):
     @parameterized.expand([
         # (key, value)
         (['key'], 'key'),  # List as a key
-        ('key', ['value']),  # List as a value
-        ('key', {'id': 'asd123f3'}),  # Dict as a value
+        ({10}, ['value']),  # Dict as a key
+
     ])
     @patch('server.redis.logger.error')
     def test_save_string_exception(self, key, value, mocked):
         with patch("server.redis.r", fakeredis.FakeStrictRedis()):
-            save_string(key, value)
+            res = save_string(key, value)
             mocked.assert_called_once()
+            self.assertEqual(res, REDIS_ERROR)
 
-    @patch('server.redis.notify_error_to_client')
-    @patch('server.redis.notify_feedback')
-    async def test_get_string_finded(self, mock_notify_feedback, mock_notify_error):
+    def test_get_string_finded(self):
         key = 'test_id'
         value = 'test_value'
-        client = 'test_client'
-        caller = 'test_id'
         with patch("server.redis.r", fakeredis.FakeStrictRedis()) as r_mock:
             r_mock.set(key, value)
-            call_1 = await get_string(key, client, caller)
-            self.assertEqual(value, call_1)
-            mock_notify_error.assert_not_awaited()
+            res = get_string(key)
+            self.assertEqual(value, res.decode())
+
+    def test_get_string_finded_parsed(self):
+        key = 'test_id'
+        value = '{"test_value": 10}'
+        expected = {'test_value': 10}
+        with patch("server.redis.r", fakeredis.FakeStrictRedis()) as r_mock:
+            r_mock.set(key, value)
+            res = get_string(key)
+            self.assertEqual(expected, res)
+
+    def test_get_string_not_finded(self):
+        key = 'test_id_1'
+        value = 'test_value'
+        wrong_key = 'test_id_2'
+        with patch("server.redis.r", fakeredis.FakeStrictRedis()) as r_mock:
+            r_mock.set(key, value)
+            res = get_string(wrong_key)
+            self.assertEqual(res, None)
 
     @patch('server.redis.logger.error')
-    @patch('server.redis.notify_error_to_client')
-    @patch('server.redis.notify_feedback')
-    async def test_get_string_error(
-        self,
-        mock_notify_feedback,
-        mock_notify_error,
-        mock_logger,
-    ):
+    def test_get_string_error(self, mock_logger):
         key = 'test_id'
-        wrong_key = ['test_id']
         value = 'test_value'
-        client = 'test_client'
-        caller = 'test_id'
+        error_key = ['test_id']
         with patch("server.redis.r", fakeredis.FakeStrictRedis()) as r_mock:
             r_mock.set(key, value)
-            await get_string(wrong_key, client, caller)
-            mock_notify_feedback.assert_not_awaited()
-            mock_notify_error.assert_awaited_once_with(
-                client,
-                f'DataError in {caller}, send a str',
-            )
+            get_string(error_key)
             mock_logger.assert_called_once()
 
     @patch('server.redis.r')
