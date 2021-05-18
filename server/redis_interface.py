@@ -3,7 +3,7 @@ from server.redis import (
     get_string,
     append_to_stream,
 )
-from server.redis import (
+from server.websockets import (
     notify_feedback,
     notify_error_to_client,
 )

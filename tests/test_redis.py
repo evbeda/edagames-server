@@ -47,7 +47,7 @@ class TestRedis(unittest.IsolatedAsyncioTestCase):
         with patch("server.redis.r", fakeredis.FakeStrictRedis()) as r_mock:
             r_mock.set(key, value)
             call_1 = await get_string(key, client, caller)
-            self.assertEqual(value, call_1.decode())
+            self.assertEqual(value, call_1)
             mock_notify_error.assert_not_awaited()
 
     @patch('server.redis.logger.error')
