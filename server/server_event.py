@@ -65,7 +65,7 @@ class AcceptChallenge(ServerEvent):
         redis_save(
             data_received.game_id,
             game_data,
-            BOARD_ID,
+            GAME_ID,
         )
         await self.move(data_received, game_data.get(GAME_NAME))
 
@@ -77,7 +77,7 @@ class Movements(ServerEvent):
 
     async def run(self):
         turn_token = await self.search_value(TURN_TOKEN)
-        game_id = await self.search_value(BOARD_ID)
+        game_id = await self.search_value(GAME_ID)
         redis_game_id = await redis_get(
             game_id,
             TURN_TOKEN,
@@ -86,7 +86,7 @@ class Movements(ServerEvent):
         if redis_game_id == turn_token:
             game = await redis_get(
                 game_id,
-                BOARD_ID,
+                GAME_ID,
                 self.client,
             )
             if game is not None:
@@ -123,7 +123,7 @@ class AbortGame(ServerEvent):
 
     async def run(self):
         turn_token_received = await self.search_value(TURN_TOKEN)
-        game_id = await self.search_value(BOARD_ID)
+        game_id = await self.search_value(GAME_ID)
         turn_token_saved = await redis_get(
             game_id,
             TURN_TOKEN,
@@ -132,7 +132,7 @@ class AbortGame(ServerEvent):
         if turn_token_received == turn_token_saved:
             game = await redis_get(
                 game_id,
-                BOARD_ID,
+                GAME_ID,
                 self.client,
             )
             if game is not None:

@@ -32,6 +32,7 @@ CHALLENGE_ID = 'challenge_id'
 TURN_TOKEN = 'turn_token'
 GAME_ID = 'game_id'
 TOKEN_COMPARE = 'token_compare'
+GAME_ID = 'game_id'
 LOG = 'log'
 
 # dict.get values
@@ -49,4 +50,4 @@ PREFIX_LOG = 'l_'
 MSG_CHALLENGE = 'Not a challenge was found with the following id: '
 MSG_TURN_TOKEN = 'Invalid turn token: '
 MSG_TOKEN_COMPARE = 'Time limit: '
-MSG_BOARD_ID = 'Invalid game id: '
+MSG_GAME_ID = 'Invalid game id: '
