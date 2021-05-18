@@ -2,12 +2,10 @@ import json
 from typing import Dict
 
 from server.connection_manager import manager
-from server.websockets import (
-    notify_user_list_to_client,
-)
+from server.websockets import notify_user_list_to_client
 from server.grpc_adapter import GRPCAdapterFactory
 from server.utilities_server_event import ServerEvent, make_challenge
-from server.redis import save_string, get_string
+from server.redis_interface import redis_save, redis_get
 
 from server.constants import (
     LIST_USERS,  # name_event

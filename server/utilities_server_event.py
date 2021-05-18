@@ -1,7 +1,7 @@
 import asyncio
 
 from server.game import next_turn, identifier, data_challenge
-from server.redis import get_string, save_string
+from server.redis_interface import redis_save, redis_get
 from server.grpc_adapter import GRPCAdapterFactory
 from server.exception import GameIdException
 from server.websockets import (
@@ -14,23 +14,23 @@ from server.web_requests import notify_end_game_to_web
 
 from server.constants import (
     TIME_SLEEP,
-    PREFIX_TURN_TOKEN,
     DEFAULT_GAME,
-    PREFIX_CHALLENGE,
-    TIME_CHALLENGE,
     TURN_TOKEN,
     GAME_ID,
     DATA,
     PLAYERS,
+    CHALLENGE_ID,
+    TOKEN_COMPARE,
+    BOARD_ID,
 )
 
 
 async def make_challenge(players, game_name=DEFAULT_GAME):
     challenge_id = identifier()
-    save_string(
-        f'{PREFIX_CHALLENGE}{challenge_id}',
+    redis_save(
+        challenge_id,
         data_challenge(players, game_name),
-        TIME_CHALLENGE,
+        CHALLENGE_ID,
     )
     await notify_challenge_to_client(
         players[1],
@@ -54,10 +54,10 @@ async def make_move(data):
 
 async def make_penalize(data, game_name, past_token):
     await asyncio.sleep(TIME_SLEEP)
-    token_valid = await get_string(
-        f'{PREFIX_TURN_TOKEN}{data.game_id}',
+    token_valid = await redis_get(
+        data.game_id,
+        TOKEN_COMPARE,
         data.current_player,
-        TURN_TOKEN,
     )
     if token_valid == past_token:
         adapter = await GRPCAdapterFactory.get_adapter(game_name)
