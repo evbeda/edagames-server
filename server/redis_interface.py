@@ -1,5 +1,3 @@
-import json
-
 from server.redis import (
     save_string,
     get_string,
@@ -18,15 +16,19 @@ from server.constants import (
 )
 
 
-def redis_save(key, value, caller):
-    pass
+def redis_save(key: str, value, caller: str):
+    converted_key = key_conversion(key, caller)
+    if caller == LOG:
+        append_to_stream(converted_key, value)
+    else:
+        save_string(converted_key, value)
 
 
-async def redis_get(key, caller):
-    pass
+async def redis_get(key: str, caller: str):
+    converted_key = key_conversion(key, caller)
 
 
-def key_conversion(key, caller):
+def key_conversion(key: str, caller: str):
     relations = {
         CHALLENGE_ID: PREFIX_CHALLENGE,
         TURN_TOKEN: PREFIX_TURN_TOKEN,
