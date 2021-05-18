@@ -24,13 +24,11 @@ def append_to_stream(key: str, data: Dict, *args):
         r.xadd(key, parsed_data)
     except TypeError as e:
         logger.error(f'Error while parsing data: {e}')
-        return REDIS_ERROR
     except redis.RedisError as e:
         logger.error(f'Error while writing stream to Redis: {e}')
-        return REDIS_ERROR
 
 
-def save_string(key: str, value, expire: int):
+def save_string(key: str, value, expire: int = None):
     if type(value) != str:
         value = json.dumps(value)
     try:
@@ -40,7 +38,7 @@ def save_string(key: str, value, expire: int):
         return REDIS_ERROR
 
 
-async def get_string(key: str, client: str):
+def get_string(key: str):
     try:
         data = r.get(key)
     except DataError as e:
@@ -51,4 +49,6 @@ async def get_string(key: str, client: str):
         parsed_data = json.loads(data)
         return parsed_data
     except json.decoder.JSONDecodeError:
+        return data
+    except TypeError:
         return data
