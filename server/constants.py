@@ -44,3 +44,9 @@ PREFIX_CHALLENGE = 'c_'
 PREFIX_TURN_TOKEN = 't_'
 PREFIX_GAME = 'g_'
 PREFIX_LOG = 'l_'
+
+# Feedback msgs
+MSG_CHALLENGE = 'Not a challenge was found with the following id: '
+MSG_TURN_TOKEN = 'Invalid turn token: '
+MSG_TOKEN_COMPARE = 'Time limit: '
+MSG_BOARD_ID = 'Invalid game id: '
