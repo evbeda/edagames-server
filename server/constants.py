@@ -30,6 +30,7 @@ OPPONENT = 'opponent'
 CHALLENGE_ID = 'challenge_id'
 TURN_TOKEN = 'turn_token'
 GAME_ID = 'game_id'
+TOKEN_COMPARE = 'token_compare'
 LOG = 'log'
 
 # dict.get values
