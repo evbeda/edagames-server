@@ -37,3 +37,31 @@ class TestRedisInterface(unittest.IsolatedAsyncioTestCase):
         key = 'test_key'
         res = key_conversion(key, caller)
         self.assertEqual(res, expected)
+
+    @parameterized.expand([
+        # (caller, expire, call_count_save_string, call_count_append_to_stream,)
+        (CHALLENGE_ID, TIME_CHALLENGE, 1, 0),
+        (TURN_TOKEN, TIME_SLEEP, 1, 0),
+        (LOG, None, 0, 1),
+    ])
+    @patch('server.redis_interface.append_to_stream')
+    @patch('server.redis_interface.save_string')
+    def test_redis_save(
+        self,
+        caller,
+        expire,
+        cc_save,
+        cc_append,
+        mock_save,
+        mock_append,
+    ):
+        key = 'default_key'
+        value = 'default_value'
+        converted_key = 'key_with_prefix'
+        with patch('server.redis_interface.key_conversion', return_value=converted_key) as mock_key_conversion:
+            redis_save(key, value, caller)
+            mock_key_conversion.assert_called_once_with(key, caller)
+            if self.assertEqual(mock_save.call_count, cc_save):
+                mock_save.assert_called_once_with(converted_key, value, expire)
+            if self.assertEqual(mock_append.call_count, cc_append):
+                mock_append.assert_called_once_with(converted_key, value, expire)
