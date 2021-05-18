@@ -9,16 +9,10 @@ from server.redis_interface import (
 )
 
 from server.constants import (
-    CHALLENGE_ID,  # caller
+    CHALLENGE_ID,
     TURN_TOKEN,
     TOKEN_COMPARE,
-    BOARD_ID,
     LOG,
-    PREFIX_CHALLENGE,  # prefix
-    PREFIX_TURN_TOKEN,
-    PREFIX_GAME,
-    PREFIX_LOG,
-    EMPTY_PLAYER,  # web requests
     REDIS_ERROR,  # error
     TIME_SLEEP,  # timers expire
     TIME_CHALLENGE,
@@ -92,4 +86,19 @@ class TestRedisInterface(unittest.IsolatedAsyncioTestCase):
                 mock_key_conversion.assert_called_once_with(key, caller)
                 mock_get_string.assert_called_once_with(converted_key)
                 mock_feedback.assert_awaited_once_with(client, f'{MSG_TURN_TOKEN}{key}')
+                self.assertEqual(res, return_data)
+
+    @patch('server.redis_interface.notify_error_to_client')
+    async def test_redis_get_error(self, mock_error):
+        key = 'default_key'
+        caller = TURN_TOKEN
+        client = 'test_client'
+        converted_key = 'key_with_prefix'
+        return_data = REDIS_ERROR
+        with patch('server.redis_interface.key_conversion', return_value=converted_key) as mock_key_conversion:
+            with patch('server.redis_interface.get_string', return_value=return_data) as mock_get_string:
+                res = await redis_get(key, caller, client)
+                mock_key_conversion.assert_called_once_with(key, caller)
+                mock_get_string.assert_called_once_with(converted_key)
+                mock_error.assert_awaited_once_with(client, f'DataError in {caller}, send a str')
                 self.assertEqual(res, return_data)
