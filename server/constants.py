@@ -25,11 +25,12 @@ ASK_CHALLENGE = 'challenge'
 ABORT_GAME = 'abort_game'
 MOVEMENTS = 'movements'
 
-# search_value
+# search_value / callers
 OPPONENT = 'opponent'
 CHALLENGE_ID = 'challenge_id'
 TURN_TOKEN = 'turn_token'
 GAME_ID = 'game_id'
+LOG = 'log'
 
 # dict.get values
 DATA = 'data'
