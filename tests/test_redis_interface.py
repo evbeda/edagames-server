@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch
 from parameterized import parameterized
 
 from server.redis_interface import (
@@ -22,6 +22,7 @@ from server.constants import (
     REDIS_ERROR,  # error
     TIME_SLEEP,  # timers expire
     TIME_CHALLENGE,
+    MSG_TURN_TOKEN,
 )
 
 
@@ -65,3 +66,30 @@ class TestRedisInterface(unittest.IsolatedAsyncioTestCase):
                 mock_save.assert_called_once_with(converted_key, value, expire)
             if self.assertEqual(mock_append.call_count, cc_append):
                 mock_append.assert_called_once_with(converted_key, value, expire)
+
+    async def test_redis_get_finded(self):
+        key = 'default_key'
+        converted_key = 'key_with_prefix'
+        caller = TURN_TOKEN
+        return_data = 'data'
+        with patch('server.redis_interface.key_conversion', return_value=converted_key) as mock_key_conversion:
+            with patch('server.redis_interface.get_string', return_value=return_data) as mock_get_string:
+                res = await redis_get(key, caller)
+                mock_key_conversion.assert_called_once_with(key, caller)
+                mock_get_string.assert_called_once_with(converted_key)
+                self.assertEqual(res, return_data)
+
+    @patch('server.redis_interface.notify_feedback')
+    async def test_redis_get_not_finded(self, mock_feedback):
+        key = 'default_key'
+        caller = TURN_TOKEN
+        client = 'test_client'
+        converted_key = 'key_with_prefix'
+        return_data = None
+        with patch('server.redis_interface.key_conversion', return_value=converted_key) as mock_key_conversion:
+            with patch('server.redis_interface.get_string', return_value=return_data) as mock_get_string:
+                res = await redis_get(key, caller, client)
+                mock_key_conversion.assert_called_once_with(key, caller)
+                mock_get_string.assert_called_once_with(converted_key)
+                mock_feedback.assert_awaited_once_with(client, f'{MSG_TURN_TOKEN}{key}')
+                self.assertEqual(res, return_data)

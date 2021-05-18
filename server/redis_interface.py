@@ -22,6 +22,10 @@ from server.constants import (
     REDIS_ERROR,  # error
     TIME_SLEEP,  # timers expire
     TIME_CHALLENGE,
+    MSG_CHALLENGE,  # Feedback msgs
+    MSG_TURN_TOKEN,
+    MSG_TOKEN_COMPARE,
+    MSG_BOARD_ID,
 )
 
 expires_relation = {
@@ -38,10 +42,10 @@ relations = {
 }
 
 client_msgs = {
-    CHALLENGE_ID: 'Not a challenge was found with the following id: ',
-    TURN_TOKEN: 'Invalid turn token: ',
-    TOKEN_COMPARE: 'Time limit: ',
-    BOARD_ID: 'Invalid game id: ',
+    CHALLENGE_ID: MSG_CHALLENGE,
+    TURN_TOKEN: MSG_TURN_TOKEN,
+    TOKEN_COMPARE: MSG_TOKEN_COMPARE,
+    BOARD_ID: MSG_BOARD_ID,
 }
 
 
@@ -63,7 +67,7 @@ async def redis_get(key: str, caller: str, client: str = EMPTY_PLAYER):
         TURN_TOKEN: get_string,
         TOKEN_COMPARE: get_string,
         BOARD_ID: get_string,
-        # LOG: get_string,
+        # LOG: get_stream,
     }
     converted_key = key_conversion(key, caller)
     data = redis_get_calls.get(caller)(converted_key)
