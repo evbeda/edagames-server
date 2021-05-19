@@ -6,7 +6,10 @@ from uvicorn.config import logger
 from .environment import REDIS_HOST, REDIS_LOCAL_PORT
 
 from typing import Dict
-from server.constants import REDIS_ERROR
+from server.constants import (
+    REDIS_ERROR,
+    DEFAULT_EXPIRE,
+)
 
 
 redis_data = redis.Redis(
@@ -28,7 +31,7 @@ def append_to_stream(key: str, data: Dict, *args):
         logger.error(f'Error while writing stream to Redis: {e}')
 
 
-def save_string(key: str, value, expire: int = None):
+def save_string(key: str, value, expire: int = DEFAULT_EXPIRE):
     if type(value) != str:
         value = json.dumps(value)
     try:
