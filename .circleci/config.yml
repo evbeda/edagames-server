@@ -39,10 +39,12 @@ jobs:
       - run:
           name: Update main repo
           command: |
-            curl --request POST 'https://circleci.com/api/v2/project/github/evbeda/edagames/pipeline' \
-            --header "Circle-Token: ${CCI_API_TOKEN}" \
-            --header 'Content-Type: application/json' \
-            --data '{"parameters":{"update_submodule_server":true,"trigger-commit-jobs":false}'
+            curl \
+            -X POST \
+            -H "Authorization: token $ACCESS_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/evbeda/edagames/dispatches \
+            -d '{"event_type":"update_server"}'
 workflows:
   main:
     jobs:
