@@ -14,7 +14,6 @@ from server.exception import GameIdException
 from server.constants import (
     DEFAULT_GAME,
     TIME_SLEEP,
-    TIME_CHALLENGE,
     TURN_TOKEN,
     TOKEN_COMPARE,
     CHALLENGE_ID,
