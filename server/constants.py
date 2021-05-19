@@ -31,10 +31,9 @@ MOVEMENTS = 'movements'
 # search_value / callers
 OPPONENT = 'opponent'
 CHALLENGE_ID = 'challenge_id'
+GAME_ID = 'game_id'
 TURN_TOKEN = 'turn_token'
-GAME_ID = 'game_id'
 TOKEN_COMPARE = 'token_compare'
-GAME_ID = 'game_id'
 LOG = 'log'
 
 # dict.get values
