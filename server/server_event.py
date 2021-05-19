@@ -20,6 +20,8 @@ from server.constants import (
     EMPTY_PLAYER,  # game_over
     GAME_NAME,  # dict.get values
     PLAYERS,
+    DATA,
+    TURN,
 )
 
 
@@ -106,8 +108,8 @@ class Movements(ServerEvent):
 
     async def log_action(self, data):
         to_save_data = {
-            "turn": data.current_player,
-            "data": data.play_data,
+            TURN: data.current_player,
+            DATA: data.play_data,
         }
         redis_save(
             data.game_id,
