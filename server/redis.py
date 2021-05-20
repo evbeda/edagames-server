@@ -47,6 +47,7 @@ def get_stream(key: str, next_item: str = '-'):
         return moves, token
     except redis.RedisError as e:
         logger.error(f'Error while reading stream from Redis: {e}')
+        return [], ''
 
 
 def save_string(key: str, value, expire: int = DEFAULT_EXPIRE):
