@@ -2,6 +2,7 @@ from server.redis import (
     save_string,
     get_string,
     append_to_stream,
+    get_stream,
 )
 from server.websockets import (
     notify_feedback,
@@ -26,6 +27,7 @@ from server.constants import (
     MSG_TURN_TOKEN,
     MSG_TOKEN_COMPARE,
     MSG_GAME_ID,
+    PLAIN_SEARCH,
 )
 
 expires_relation = {
@@ -39,6 +41,7 @@ relations = {
     TOKEN_COMPARE: PREFIX_TURN_TOKEN,
     GAME_ID: PREFIX_GAME,
     LOG: PREFIX_LOG,
+    PLAIN_SEARCH: '',
 }
 
 client_msgs = {
@@ -61,16 +64,17 @@ def redis_save(key: str, value, caller: str):
     redis_save_calls.get(caller, None)(converted_key, value, expire)
 
 
-async def redis_get(key: str, caller: str, client: str = EMPTY_PLAYER):
+async def redis_get(key: str, caller: str, client: str = EMPTY_PLAYER, **kwargs):
     redis_get_calls = {
         CHALLENGE_ID: get_string,
         TURN_TOKEN: get_string,
         TOKEN_COMPARE: get_string,
         GAME_ID: get_string,
-        # LOG: get_stream,
+        LOG: get_stream,
+        PLAIN_SEARCH: get_string,
     }
     converted_key = key_conversion(key, caller)
-    data = redis_get_calls.get(caller)(converted_key)
+    data = redis_get_calls.get(caller)(converted_key, **kwargs)
     if data is None:
         msg = client_msgs.get(caller)
         await notify_feedback(

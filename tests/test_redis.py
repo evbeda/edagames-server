@@ -1,3 +1,4 @@
+from hashlib import sha1
 import unittest
 from unittest.mock import MagicMock, patch
 from parameterized import parameterized
@@ -8,14 +9,46 @@ from server.redis import (
     append_to_stream,
     save_string,
     get_string,
+    get_stream,
 )
 
 from server.constants import (
+    LOG_PAGE_SIZE,
     REDIS_ERROR,
 )
 
 
 class TestRedis(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.test_dataset = [
+            ('1621518371938-0', {'data': '{"action": "move", "data": {"asd": "000001"}}'}),
+            ('1621518373107-0', {'data': '{"action": "move", "data": {"asd": "000002"}}'}),
+            ('1621518374244-0', {'data': '{"action": "move", "data": {"asd": "000003"}}'}),
+            ('1621518375270-0', {'data': '{"action": "move", "data": {"asd": "000004"}}'}),
+            ('1621518375935-0', {'data': '{"action": "move", "data": {"asd": "000005"}}'}),
+            ('1621518376462-0', {'data': '{"action": "move", "data": {"asd": "000006"}}'}),
+            ('1621518379882-0', {'data': '{"action": "move", "data": {"asd": "000007"}}'}),
+            ('1621518380612-0', {'data': '{"action": "move", "data": {"asd": "000008"}}'}),
+            ('1621518381212-0', {'data': '{"action": "move", "data": {"asd": "000009"}}'}),
+            ('1621518381789-0', {'data': '{"action": "move", "data": {"asd": "000010"}}'}),
+            ('1621518382350-0', {'data': '{"action": "move", "data": {"asd": "000011"}}'}),
+            ('1621518382902-0', {'data': '{"action": "move", "data": {"asd": "000012"}}'}),
+            ('1621518383439-0', {'data': '{"action": "move", "data": {"asd": "000013"}}'}),
+            ('1621518383999-0', {'data': '{"action": "move", "data": {"asd": "000014"}}'}),
+            ('1621518384576-0', {'data': '{"action": "move", "data": {"asd": "000015"}}'}),
+            ('1621518385153-0', {'data': '{"action": "move", "data": {"asd": "000016"}}'}),
+            ('1621518385561-0', {'data': '{"action": "move", "data": {"asd": "000017"}}'}),
+            ('1621518386946-0', {'data': '{"action": "move", "data": {"asd": "000018"}}'}),
+            ('1621518387067-0', {'data': '{"action": "move", "data": {"asd": "000019"}}'}),
+            ('1621518388078-0', {'data': '{"action": "move", "data": {"asd": "000020"}}'}),
+            ('1621518388234-0', {'data': '{"action": "move", "data": {"asd": "000021"}}'}),
+            ('1621518388937-0', {'data': '{"action": "move", "data": {"asd": "000022"}}'}),
+            ('1621518389394-0', {'data': '{"action": "move", "data": {"asd": "000023"}}'}),
+            ('1621518389658-0', {'data': '{"action": "move", "data": {"asd": "000024"}}'}),
+            ('1621518389901-0', {'data': '{"action": "move", "data": {"asd": "000025"}}'}),
+            ('1621518390214-0', {'data': '{"action": "move", "data": {"asd": "000026"}}'})
+        ]
 
     @parameterized.expand([
         # (value, expire, expected_value, expected_ttl)
@@ -106,4 +139,50 @@ class TestRedis(unittest.TestCase):
     @patch('server.redis.logger')
     def test_append_to_stream_parse_error(self, logger_patched):
         append_to_stream('stream', {'data': {'subkey': MagicMock()}})
+        logger_patched.error.assert_called()
+
+    @parameterized.expand([
+        (
+            'test_game_0000_0001',
+            None,
+            0,
+            '1621518388234-0',
+            True,
+        ),
+        (
+            'test_game_0000_0002',
+            '1621518388234-0',
+            20,
+            '1621518390214-0',
+            False,
+        ),
+    ])
+    @patch('server.redis.save_string')
+    @patch('server.redis.redis_data')
+    def test_get_stream(
+        self,
+        key,
+        next_item,
+        next_item_index,
+        expected_next_item,
+        has_token,
+        redis_patched,
+        save_string_patched
+    ):
+        next_item = next_item or '-'
+        expected_token = sha1(expected_next_item.encode()).hexdigest()
+        expected_log = dict(self.test_dataset[next_item_index:next_item_index + LOG_PAGE_SIZE]).values()
+        redis_patched.xrange.return_value = self.test_dataset[next_item_index:next_item_index + LOG_PAGE_SIZE + 1]
+        log, token = get_stream(key, next_item)
+        redis_patched.xrange.assert_called_with(key, min=next_item, count=LOG_PAGE_SIZE + 1)
+        self.assertEqual(list(log), list(expected_log))
+        if has_token:
+            save_string_patched.assert_called_with(token, expected_next_item)
+            self.assertEqual(token, expected_token)
+
+    @patch('server.redis.logger')
+    @patch('server.redis.redis_data')
+    def test_get_stream_redis_error(self, redis_patched, logger_patched):
+        redis_patched.xrange.side_effect = redis.RedisError
+        get_stream('key')
         logger_patched.error.assert_called()

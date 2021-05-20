@@ -35,6 +35,7 @@ GAME_ID = 'game_id'
 TURN_TOKEN = 'turn_token'
 TOKEN_COMPARE = 'token_compare'
 LOG = 'log'
+PLAIN_SEARCH = 'plain_search'
 
 # dict.get values
 DATA = 'data'
@@ -52,3 +53,6 @@ MSG_CHALLENGE = 'Not a challenge was found with the following id: '
 MSG_TURN_TOKEN = 'Invalid turn token: '
 MSG_TOKEN_COMPARE = 'Time limit: '
 MSG_GAME_ID = 'Invalid game id: '
+
+# Log constants
+LOG_PAGE_SIZE = 20

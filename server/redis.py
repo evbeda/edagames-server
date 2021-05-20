@@ -1,5 +1,6 @@
 import json
 import redis
+from hashlib import sha1
 from redis.exceptions import DataError
 from uvicorn.config import logger
 
@@ -9,6 +10,7 @@ from typing import Dict
 from server.constants import (
     REDIS_ERROR,
     DEFAULT_EXPIRE,
+    LOG_PAGE_SIZE,
 )
 
 
@@ -29,6 +31,22 @@ def append_to_stream(key: str, data: Dict, *args):
         logger.error(f'Error while parsing data in append_to_stream: {e}')
     except redis.RedisError as e:
         logger.error(f'Error while writing stream to Redis: {e}')
+
+
+def get_stream(key: str, next_item: str = '-'):
+    try:
+        data = redis_data.xrange(key, min=next_item, count=LOG_PAGE_SIZE + 1)
+        if len(data) > LOG_PAGE_SIZE:
+            moves = dict(data[:-1]).values()
+            next_item = data[-1][0]
+            token = sha1(next_item.encode()).hexdigest()
+            save_string(token, next_item)
+        else:
+            moves = dict(data).values()
+            token = ''
+        return moves, token
+    except redis.RedisError as e:
+        logger.error(f'Error while reading stream from Redis: {e}')
 
 
 def save_string(key: str, value, expire: int = DEFAULT_EXPIRE):
