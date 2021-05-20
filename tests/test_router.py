@@ -32,3 +32,76 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
 
         assert response.status_code == 200
         assert response.json() == user_list
+
+    @parameterized.expand([
+        (
+            'test-0000-0001',
+            'token-00000001',
+            [
+                '00000001',
+                ([
+                    {'player': 'P1', 'from_row': 3, 'to_row': 2},
+                    {'player': 'P2', 'from_row': 1, 'to_row': 3},
+                    {'player': 'P1', 'from_row': 2, 'to_row': 1},
+                    {'player': 'P2', 'from_row': 3, 'to_row': 4},
+                ], 'token-00000002'),
+            ],
+            200,
+        ),
+        (
+            'test-0000-0002',
+            '',
+            [
+                ([
+                    {'player': 'P1', 'from_row': 3, 'to_row': 2},
+                    {'player': 'P2', 'from_row': 1, 'to_row': 3},
+                    {'player': 'P1', 'from_row': 2, 'to_row': 1},
+                    {'player': 'P2', 'from_row': 3, 'to_row': 4},
+                ], 'token-00000001'),
+            ],
+            200,
+        ),
+        (
+            'test-0000-0003',
+            None,
+            [
+                ([
+                    {'player': 'P1', 'from_row': 3, 'to_row': 2},
+                    {'player': 'P2', 'from_row': 1, 'to_row': 3},
+                    {'player': 'P1', 'from_row': 2, 'to_row': 1},
+                    {'player': 'P2', 'from_row': 3, 'to_row': 4},
+                ], 'token-00000001'),
+            ],
+            200,
+        ),
+        (
+            '',
+            None,
+            None,
+            400,
+        ),
+        (
+            '',
+            'token-00000001',
+            None,
+            400,
+        ),
+        (
+            'test-0000-0006',
+            None,
+            ValueError,
+            500,
+        )
+    ])
+    async def test_get_match_details(self, test_game_id, test_token, redis_get_return, expected_status):
+        with patch('server.router.redis_get') as redis_get_patched:
+            async with AsyncClient(app=app, base_url='http://test') as ac:
+                redis_get_patched.side_effect = redis_get_return
+                response = await ac.get(
+                    '/match_details',
+                    params={
+                        'game_id': test_game_id,
+                        'continuation_token': test_token,
+                    },
+                )
+                self.assertEqual(response.status_code, expected_status)
