@@ -9,3 +9,8 @@ class Challenge(BaseModel):
     challenged: List[str]
     tournament_id: str = None
     game_name: str = DEFAULT_GAME
+
+
+class Tournament(BaseModel):
+    tournament_id: str
+    players: List[List[str]]
