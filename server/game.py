@@ -19,7 +19,6 @@ def next_turn(game_id):
 
 def data_challenge(
     players: List[str],
-    tournament_id: str,
     accepted: List[str],
     name: str,
 ):
@@ -28,9 +27,5 @@ def data_challenge(
         'accepted': accepted,
         'game': name,
     }
-    if tournament_id:
-        data.update({
-            'tournament_id': tournament_id,
-        })
 
     return json.dumps(data)

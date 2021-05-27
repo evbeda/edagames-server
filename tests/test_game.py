@@ -33,17 +33,14 @@ class TestGame(unittest.TestCase):
     @parameterized.expand([
         (
             ['Pedro', 'Pablo'],
-            '0000-0001',
             '{"players": ["Pedro", "Pablo"], '
-            f'"accepted": ["Pedro"], "game": "{DEFAULT_GAME}", '
-            '"tournament_id": "0000-0001"}'
+            f'"accepted": ["Pedro"], "game": "{DEFAULT_GAME}"}}'
         ),
         (
             ['Pedro', 'Pablo'],
-            None,
             f'{{"players": ["Pedro", "Pablo"], "accepted": ["Pedro"], "game": "{DEFAULT_GAME}"}}'
         ),
     ])
-    def test_data_challenge(self, players, tournament_id, expected):
-        res = data_challenge(players, tournament_id, [players[0]], DEFAULT_GAME)
+    def test_data_challenge(self, players, expected):
+        res = data_challenge(players, [players[0]], DEFAULT_GAME)
         self.assertEqual(res, expected)
