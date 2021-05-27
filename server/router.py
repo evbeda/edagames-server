@@ -34,7 +34,7 @@ async def challenge(challenge: Challenge):
 @router.post('/tournament')
 async def tournament(tournament: Tournament):
     try:
-        await make_tournament(tournament.tournament_id, tournament.players)
+        await make_tournament(tournament.tournament_id, tournament.players, tournament.game_name)
     except Exception as e:
         message = f'Unhandled exception ocurred: {e}'
         status = 500
