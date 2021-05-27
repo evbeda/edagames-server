@@ -12,13 +12,13 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
     @parameterized.expand([
         (
             "Ana",
-            "Pepe",
+            ["Pepe"],
             "2138123721",
             200,
         ),
         (
             "Ana",
-            "Pepe",
+            ["Pepe"],
             None,
             200,
         ),
@@ -43,7 +43,7 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
     async def test_challenge_error(self):
         data = {
             "challenger": 'challenger',
-            "challenged": 'challenged',
+            "challenged": ['challenged'],
             "tournament_id": 'tournament_id',
         }
         with patch('server.router.make_challenge') as mock_make_challenge:

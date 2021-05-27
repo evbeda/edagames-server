@@ -25,15 +25,15 @@ from server.constants import (
 
 async def make_challenge(challenger, challenged, tournament_id, game_name):
     challenge_id = identifier()
-    players = [challenger, challenged]
+    players = [challenger, *challenged]
     redis_save(
         challenge_id,
         data_challenge(players, tournament_id, game_name),
         CHALLENGE_ID,
     )
     await notify_challenge_to_client(
-        players[1],
-        players[0],
+        challenged,
+        challenger,
         challenge_id,
     )
 
