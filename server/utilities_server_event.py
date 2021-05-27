@@ -28,7 +28,7 @@ async def make_challenge(challenger, challenged, tournament_id, game_name):
     players = [challenger, *challenged]
     redis_save(
         challenge_id,
-        data_challenge(players, tournament_id, game_name),
+        data_challenge(players, tournament_id, [challenger], game_name),
         CHALLENGE_ID,
     )
     await notify_challenge_to_client(

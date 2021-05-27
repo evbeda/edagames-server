@@ -20,8 +20,8 @@ def next_turn(game_id):
 def data_challenge(
     players: List[str],
     tournament_id: str,
+    accepted: List[str],
     name: str,
-    accepted: List[str] = []
 ):
     data = {
         'players': players,

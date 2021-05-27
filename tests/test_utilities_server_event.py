@@ -36,7 +36,7 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
             with patch('server.utilities_server_event.data_challenge', return_value=data_challenge) as mock_data:
                 await make_challenge(challenger, challenged, tournament_id, DEFAULT_GAME)
                 mock_identifier.assert_called_once_with()
-                mock_data.assert_called_once_with(players, tournament_id, DEFAULT_GAME)
+                mock_data.assert_called_once_with(players, tournament_id, [challenger], DEFAULT_GAME)
                 mock_save.assert_called_once_with(
                     challenge_id,
                     data_challenge,
