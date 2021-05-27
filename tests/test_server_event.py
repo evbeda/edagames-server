@@ -9,7 +9,7 @@ from server.server_event import (
     Movements,
     AbortGame,
 )
-from server.utilities_server_event import ServerEvent, start_game
+from server.utilities_server_event import ServerEvent
 
 from server.constants import (
     EMPTY_PLAYER,
@@ -94,35 +94,6 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                     CHALLENGE_ID,
                 )
                 mock_start.assert_not_called()
-
-    @patch('server.server_event.move')
-    @patch('server.server_event.redis_save')
-    async def test_AcceptChallenge_start_game(self, mock_save, mock_move):
-        game_id = 'asd123'
-        game_data = {
-            'name': DEFAULT_GAME,
-            'players': ['client1', 'clint2'],
-        }
-        with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
-            adapter_patched = AsyncMock()
-            adapter_patched.create_game.return_value = MagicMock(
-                game_id=game_id,
-                current_player='client1',
-                turn_data={},
-                play_data={},
-            )
-            g_adapter_patched.return_value = adapter_patched
-            await start_game(game_data)
-            g_adapter_patched.assert_called_with(DEFAULT_GAME)
-            mock_save.assert_called_once_with(
-                game_id,
-                game_data,
-                GAME_ID,
-            )
-            mock_move.assert_awaited_once_with(
-                adapter_patched.create_game.return_value,
-                DEFAULT_GAME,
-            )
 
     async def test_Movements_run(self):
         client = 'Test Client 1'
