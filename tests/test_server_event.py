@@ -65,6 +65,36 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 )
                 mock_start.assert_called_with(get_redis)
 
+    @patch('server.server_event.redis_save', new_callable=AsyncMock)
+    @patch.object(AcceptChallenge, 'start_game')
+    async def test_AcceptChallenge_run_missing_accept(self, mock_start, mock_save):
+        data = {"action": "accept_challenge", "data": {"challenge_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}}
+        challenge_id = 'challenge_id_from_request'
+        get_redis = {
+            'name': DEFAULT_GAME,
+            'players': ['client1', 'client2'],
+            'accepted': [],
+        }
+        save_redis = get_redis.copy()
+        save_redis.update({
+            'accepted': ['client1'],
+        })
+        with patch.object(ServerEvent, 'search_value', return_value=challenge_id) as mock_search:
+            with patch('server.server_event.redis_get', return_value=get_redis) as mock_get:
+                await AcceptChallenge(data, 'client1').run()
+                mock_search.assert_awaited_once_with(CHALLENGE_ID)
+                mock_get.assert_awaited_once_with(
+                    challenge_id,
+                    CHALLENGE_ID,
+                    'client1',
+                )
+                mock_save.assert_called_with(
+                    challenge_id,
+                    save_redis,
+                    CHALLENGE_ID,
+                )
+                mock_start.assert_not_called()
+
     @patch.object(ServerEvent, 'move')
     @patch('server.server_event.redis_save')
     async def test_AcceptChallenge_start_game(self, mock_save, mock_move):
