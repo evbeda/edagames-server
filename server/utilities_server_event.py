@@ -56,8 +56,13 @@ async def make_challenge(challenger, challenged, game_name):
     )
 
 
-async def make_tournament(tournament_id: str, players: List[str]):
-    pass
+async def make_tournament(tournament_id: str, games: List[List[str]], game_name: str):
+    for players in games:
+        await start_game({
+            'tournament_id': tournament_id,
+            'players': players,
+            'name': game_name,
+        })
 
 
 async def make_move(data):
