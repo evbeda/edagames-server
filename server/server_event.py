@@ -1,10 +1,9 @@
 from server.connection_manager import manager
 from server.websockets import notify_user_list_to_client
 from server.grpc_adapter import GRPCAdapterFactory
-from server.utilities_server_event import ServerEvent, make_challenge
+from server.utilities_server_event import ServerEvent, make_challenge, start_game, move
 from server.redis_interface import redis_save, redis_get
 
-from typing import Dict
 from server.constants import (
     LIST_USERS,  # name_event
     ASK_CHALLENGE,
@@ -18,7 +17,6 @@ from server.constants import (
     LOG,
     EMPTY_PLAYER,  # game_over
     GAME_NAME,  # dict.get values
-    PLAYERS,
     DATA,
     TURN,
 )
@@ -64,23 +62,13 @@ class AcceptChallenge(ServerEvent):
                 ):
                     game_data['accepted'].append(self.client)
                     if all([player in game_data['accepted'] for player in game_data['players']]):
-                        await self.start_game(game_data)
+                        await start_game(game_data)
                     else:
                         await redis_save(
                             challenge_id,
                             game_data,
                             CHALLENGE_ID,
                         )
-
-    async def start_game(self, game_data: Dict):
-        adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
-        data_received = await adapter.create_game(game_data.get(PLAYERS))
-        redis_save(
-            data_received.game_id,
-            game_data,
-            GAME_ID,
-        )
-        await self.move(data_received, game_data.get(GAME_NAME))
 
 
 class Movements(ServerEvent):
@@ -115,7 +103,7 @@ class Movements(ServerEvent):
         if data_received.current_player == EMPTY_PLAYER:
             await self.game_over(data_received, game_data)
         else:
-            await self.move(data_received, game_data.get(GAME_NAME))
+            await move(data_received, game_data.get(GAME_NAME))
 
     async def log_action(self, data):
         to_save_data = {

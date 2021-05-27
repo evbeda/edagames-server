@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 
 from server.models import Challenge, Tournament
 from server.connection_manager import manager
-from server.utilities_server_event import make_challenge
+from server.utilities_server_event import make_challenge, make_tournament
 from server.redis_interface import redis_get
 
 router = APIRouter()
@@ -34,10 +34,12 @@ async def challenge(challenge: Challenge):
 @router.post('/tournament')
 async def tournament(tournament: Tournament):
     try:
-        pass
+        await make_tournament(tournament.tournament_id, tournament.players)
     except Exception as e:
         message = f'Unhandled exception ocurred: {e}'
         status = 500
+    else:
+        return JSONResponse(tournament.json(), status_code=200)
 
     return JSONResponse({
         'status': 'ERROR',
@@ -48,6 +50,7 @@ async def tournament(tournament: Tournament):
 
 @router.get("/users")
 async def user_list():
+    # Switch to Redis, not all users are on the same instance
     return JSONResponse({'users': list(manager.connections.keys())})
 
 

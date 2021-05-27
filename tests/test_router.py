@@ -137,7 +137,7 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(response.status_code, expected_status)
 
     async def test_tournament(self):
-        players = ['Player 1', 'Player 2']
+        players = [['Player 1', 'Player 2'], ['Player 3', 'Player1']]
         data = {
             'tournament_id': 'test_tournament_id',
             'players': players,
@@ -148,8 +148,8 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
             async with AsyncClient(app=app, base_url="http://test") as ac:
                 response = await ac.post(
                     "/tournament",
-                    json=data
+                    json=data,
                 )
-        mock_make_tournament.assert_awaited_once_with(players, DEFAULT_GAME)
         self.assertEqual(response.status_code, status)
         self.assertEqual(response.json(), expected)
+        mock_make_tournament.assert_awaited_once_with(players, DEFAULT_GAME)
