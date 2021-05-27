@@ -13,21 +13,18 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
         (
             "Ana",
             ["Pepe"],
-            "2138123721",
             200,
         ),
         (
             "Ana",
             ["Pepe"],
-            None,
             200,
         ),
     ])
-    async def test_challenge(self, challenger, challenged, tournament_id, status):
+    async def test_challenge(self, challenger, challenged, status):
         data = {
             "challenger": challenger,
             "challenged": challenged,
-            "tournament_id": tournament_id,
         }
         expected = {**data, 'game_name': DEFAULT_GAME}
         with patch('server.router.make_challenge') as mock_make_challenge:
@@ -36,7 +33,7 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                     "/challenge",
                     json=data
                 )
-        mock_make_challenge.assert_awaited_once_with(challenger, challenged, tournament_id, DEFAULT_GAME)
+        mock_make_challenge.assert_awaited_once_with(challenger, challenged, DEFAULT_GAME)
         self.assertEqual(response.status_code, status)
         self.assertEqual(response.json(), expected)
 
@@ -44,7 +41,6 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
         data = {
             "challenger": 'challenger',
             "challenged": ['challenged'],
-            "tournament_id": 'tournament_id',
         }
         with patch('server.router.make_challenge') as mock_make_challenge:
             mock_make_challenge.side_effect = Exception()

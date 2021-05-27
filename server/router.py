@@ -17,7 +17,6 @@ async def challenge(challenge: Challenge):
         await make_challenge(
             challenge.challenger,
             challenge.challenged,
-            challenge.tournament_id,
             challenge.game_name
         )
         return challenge
