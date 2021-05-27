@@ -4,12 +4,12 @@ from typing import Dict, List
 
 
 async def notify_challenge_to_client(
-    client: str,
+    clients: List[str],
     opponent: str,
     challenge_id: str,
 ):
-    await manager.send(
-        client,
+    await manager.bulk_send(
+        clients,
         websocket_events.EVENT_SEND_CHALLENGE,
         {
             'opponent': opponent,

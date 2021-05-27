@@ -31,18 +31,18 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             },
         )
 
-    @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
+    @patch.object(ConnectionManager, 'bulk_send', new_callable=AsyncMock)
     async def test_notify_challenge_to_client(self, send_patched):
         challenge_sender = 'User 1'
-        challenge_receiver = 'User 2'
+        challenge_receivers = ['User 2']
         test_game_id = '00000000-0000-0000-0000-000000000001'
         await notify_challenge_to_client(
-            challenge_receiver,
+            challenge_receivers,
             challenge_sender,
             test_game_id,
         )
         send_patched.assert_awaited_once_with(
-            challenge_receiver,
+            challenge_receivers,
             websocket_events.EVENT_SEND_CHALLENGE,
             {
                 'opponent': challenge_sender,
