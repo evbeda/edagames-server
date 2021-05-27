@@ -12,7 +12,9 @@ from server.websockets import (
 )
 from server.web_requests import notify_end_game_to_web
 
+from typing import Dict, List
 from server.constants import (
+    GAME_NAME,
     TIME_SLEEP,
     TURN_TOKEN,
     GAME_ID,
@@ -21,6 +23,22 @@ from server.constants import (
     CHALLENGE_ID,
     TOKEN_COMPARE,
 )
+
+
+async def move(data, game_name: str):
+    token = await make_move(data)
+    asyncio.create_task(make_penalize(data, game_name, token))
+
+
+async def start_game(game_data: Dict):
+    adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
+    data_received = await adapter.create_game(game_data.get(PLAYERS))
+    redis_save(
+        data_received.game_id,
+        game_data,
+        GAME_ID,
+    )
+    await move(data_received, game_data.get(GAME_NAME))
 
 
 async def make_challenge(challenger, challenged, game_name):
@@ -36,6 +54,10 @@ async def make_challenge(challenger, challenged, game_name):
         challenger,
         challenge_id,
     )
+
+
+async def make_tournament(tournament_id: str, players: List[str]):
+    pass
 
 
 async def make_move(data):
@@ -84,10 +106,6 @@ class ServerEvent:
                 str(GameIdException),
             )
         return value_search
-
-    async def move(self, data, game_name: str):
-        token = await make_move(data)
-        asyncio.create_task(make_penalize(data, game_name, token))
 
     async def game_over(self, data, game: dict):
         next_turn(data.game_id)
