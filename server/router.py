@@ -3,7 +3,7 @@ from server.constants import LOG, PLAIN_SEARCH
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from server.models import Challenge
+from server.models import Challenge, Tournament
 from server.connection_manager import manager
 from server.utilities_server_event import make_challenge
 from server.redis_interface import redis_get
@@ -21,6 +21,21 @@ async def challenge(challenge: Challenge):
             challenge.game_name
         )
         return challenge
+    except Exception as e:
+        message = f'Unhandled exception ocurred: {e}'
+        status = 500
+
+    return JSONResponse({
+        'status': 'ERROR',
+        'code': status,
+        'message': message,
+    }, status_code=status)
+
+
+@router.post('/tournament')
+async def tournament(tournament: Tournament):
+    try:
+        pass
     except Exception as e:
         message = f'Unhandled exception ocurred: {e}'
         status = 500
