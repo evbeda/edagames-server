@@ -29,8 +29,8 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
         challenge_id = 'test_challenge_id'
         tournament_id = 'test_tournament_id'
         challenger = 'Pedro'
-        challenged = 'Pablo'
-        players = [challenger, challenged]
+        challenged = ['Pablo']
+        players = [challenger, *challenged]
         data_challenge = 'test_data_challenge'
         with patch('server.utilities_server_event.identifier', return_value=challenge_id) as mock_identifier:
             with patch('server.utilities_server_event.data_challenge', return_value=data_challenge) as mock_data:
