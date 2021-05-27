@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 from parameterized import parameterized
 from httpx import AsyncClient
+import json
 
 from server.server import app, manager
 
@@ -138,12 +139,13 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
 
     async def test_tournament(self):
         players = [['Player 1', 'Player 2'], ['Player 3', 'Player1']]
+        tournament_id = 'test_tournament_id'
         data = {
-            'tournament_id': 'test_tournament_id',
+            'tournament_id': tournament_id,
             'players': players,
         }
         expected = {**data, 'game_name': DEFAULT_GAME}
-        status = 201
+        status = 200
         with patch('server.router.make_tournament') as mock_make_tournament:
             async with AsyncClient(app=app, base_url="http://test") as ac:
                 response = await ac.post(
@@ -151,5 +153,5 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                     json=data,
                 )
         self.assertEqual(response.status_code, status)
-        self.assertEqual(response.json(), expected)
-        mock_make_tournament.assert_awaited_once_with(players, DEFAULT_GAME)
+        self.assertEqual(response.json(), json.dumps(expected))
+        mock_make_tournament.assert_awaited_once_with(tournament_id, players, DEFAULT_GAME)
