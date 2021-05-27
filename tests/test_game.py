@@ -36,6 +36,11 @@ class TestGame(unittest.TestCase):
             '0000-0001',
             f'{{"players": ["Pedro", "Pablo"], "tournament_id": "0000-0001", "game": "{DEFAULT_GAME}"}}'
         ),
+        (
+            ['Pedro', 'Pablo'],
+            None,
+            f'{{"players": ["Pedro", "Pablo"], "game": "{DEFAULT_GAME}"}}'
+        ),
     ])
     def test_data_challenge(self, players, tournament_id, expected):
         res = data_challenge(players, tournament_id, DEFAULT_GAME)
