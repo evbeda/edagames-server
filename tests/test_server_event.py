@@ -9,7 +9,7 @@ from server.server_event import (
     Movements,
     AbortGame,
 )
-from server.utilities_server_event import ServerEvent
+from server.utilities_server_event import ServerEvent, start_game
 
 from server.constants import (
     EMPTY_PLAYER,
@@ -45,7 +45,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             mock_search.assert_awaited_once_with(OPPONENT)
             mock_make_challenge.assert_awaited_once_with([self.client, opponent])
 
-    @patch.object(AcceptChallenge, 'start_game')
+    @patch('server.server_event.start_game')
     async def test_AcceptChallenge_run(self, mock_start):
         data = {"action": "accept_challenge", "data": {"challenge_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}}
         challenge_id = 'challenge_id_from_request'
@@ -66,7 +66,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 mock_start.assert_called_with(get_redis)
 
     @patch('server.server_event.redis_save', new_callable=AsyncMock)
-    @patch.object(AcceptChallenge, 'start_game')
+    @patch('server.server_event.start_game')
     async def test_AcceptChallenge_run_missing_accept(self, mock_start, mock_save):
         data = {"action": "accept_challenge", "data": {"challenge_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}}
         challenge_id = 'challenge_id_from_request'
@@ -95,7 +95,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 )
                 mock_start.assert_not_called()
 
-    @patch.object(ServerEvent, 'move')
+    @patch('server.server_event.move')
     @patch('server.server_event.redis_save')
     async def test_AcceptChallenge_start_game(self, mock_save, mock_move):
         game_id = 'asd123'
@@ -112,7 +112,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 play_data={},
             )
             g_adapter_patched.return_value = adapter_patched
-            await AcceptChallenge({}, 'client1').start_game(game_data)
+            await start_game(game_data)
             g_adapter_patched.assert_called_with(DEFAULT_GAME)
             mock_save.assert_called_once_with(
                 game_id,
@@ -140,7 +140,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                         mock_json.asseer_called()
                         mock_execute.assert_called()
 
-    @patch.object(ServerEvent, 'move')
+    @patch('server.server_event.move')
     async def test_Movements_execute_action(self, mock_move):
         client = 'client1'
         game_data = {'name': DEFAULT_GAME, 'players': [client, 'client2']}

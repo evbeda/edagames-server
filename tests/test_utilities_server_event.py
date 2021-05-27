@@ -8,6 +8,7 @@ from server.utilities_server_event import (
     make_move,
     make_penalize,
     make_end_data_for_web,
+    move,
 )
 from server.exception import GameIdException
 
@@ -192,7 +193,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             turn_data={},
         )
         game_name = DEFAULT_GAME
-        await ServerEvent({}, self.client).move(data, game_name)
+        await move(data, game_name)
         mock_make_move.assert_awaited_once_with(data)
         mock_make_penalize.assert_called_once_with(data, game_name, 'test_token')
         mock_asyncio.assert_called_once_with('ret_penalize')
