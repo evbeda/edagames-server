@@ -23,12 +23,12 @@ from server.constants import (
 )
 
 
-async def make_challenge(challenger, challenged, tournament_id, game_name):
+async def make_challenge(challenger, challenged, game_name):
     challenge_id = identifier()
     players = [challenger, *challenged]
     redis_save(
         challenge_id,
-        data_challenge(players, tournament_id, [challenger], game_name),
+        data_challenge(players, [challenger], game_name),
         CHALLENGE_ID,
     )
     await notify_challenge_to_client(

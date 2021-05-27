@@ -7,7 +7,6 @@ from typing import List
 class Challenge(BaseModel):
     challenger: str
     challenged: List[str]
-    tournament_id: str = None
     game_name: str = DEFAULT_GAME
 
 
