@@ -66,7 +66,11 @@ class AcceptChallenge(ServerEvent):
                     if all([player in game_data['accepted'] for player in game_data['players']]):
                         await self.start_game(game_data)
                     else:
-                        pass
+                        await redis_save(
+                            challenge_id,
+                            game_data,
+                            CHALLENGE_ID,
+                        )
 
     async def start_game(self, game_data: Dict):
         adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
