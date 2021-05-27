@@ -13,8 +13,23 @@ router = APIRouter()
 
 @router.post("/challenge")
 async def challenge(challenge: Challenge):
-    await make_challenge([challenge.challenger, challenge.challenged])
-    return challenge
+    try:
+        await make_challenge(
+            challenge.challenger,
+            challenge.challenged,
+            challenge.tournament_id,
+            challenge.game_name
+        )
+        return challenge
+    except Exception as e:
+        message = f'Unhandled exception ocurred: {e}'
+        status = 500
+
+    return JSONResponse({
+        'status': 'ERROR',
+        'code': status,
+        'message': message,
+    }, status_code=status)
 
 
 @router.get("/users")
