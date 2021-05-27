@@ -27,16 +27,15 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
     @patch('server.utilities_server_event.redis_save')
     async def test_make_challenge(self, mock_save, mock_notify):
         challenge_id = 'test_challenge_id'
-        tournament_id = 'test_tournament_id'
         challenger = 'Pedro'
         challenged = ['Pablo']
         players = [challenger, *challenged]
         data_challenge = 'test_data_challenge'
         with patch('server.utilities_server_event.identifier', return_value=challenge_id) as mock_identifier:
             with patch('server.utilities_server_event.data_challenge', return_value=data_challenge) as mock_data:
-                await make_challenge(challenger, challenged, tournament_id, DEFAULT_GAME)
+                await make_challenge(challenger, challenged, DEFAULT_GAME)
                 mock_identifier.assert_called_once_with()
-                mock_data.assert_called_once_with(players, tournament_id, [challenger], DEFAULT_GAME)
+                mock_data.assert_called_once_with(players, [challenger], DEFAULT_GAME)
                 mock_save.assert_called_once_with(
                     challenge_id,
                     data_challenge,
