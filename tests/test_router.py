@@ -155,3 +155,21 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status_code, status)
         self.assertEqual(response.json(), json.dumps(expected))
         mock_make_tournament.assert_awaited_once_with(tournament_id, players, DEFAULT_GAME)
+
+    async def test_tournament_error(self):
+        players = [['Player 1', 'Player 2'], ['Player 3', 'Player1']]
+        tournament_id = 'test_tournament_id'
+        data = {
+            'tournament_id': tournament_id,
+            'players': players,
+        }
+        status = 500
+        with patch('server.router.make_tournament') as mock_make_tournament:
+            mock_make_tournament.side_effect = Exception('test')
+            async with AsyncClient(app=app, base_url="http://test") as ac:
+                response = await ac.post(
+                    "/tournament",
+                    json=data,
+                )
+        self.assertEqual(response.status_code, status)
+        mock_make_tournament.assert_awaited_once_with(tournament_id, players, DEFAULT_GAME)

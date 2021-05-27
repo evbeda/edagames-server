@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock, AsyncMock, call
 from parameterized import parameterized
 
 from server.utilities_server_event import (
@@ -8,6 +8,7 @@ from server.utilities_server_event import (
     make_move,
     make_penalize,
     make_end_data_for_web,
+    make_tournament,
     move,
     start_game,
 )
@@ -224,7 +225,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
 
     @patch('server.utilities_server_event.move')
     @patch('server.utilities_server_event.redis_save')
-    async def test_AcceptChallenge_start_game(self, mock_save, mock_move):
+    async def test_start_game(self, mock_save, mock_move):
         game_id = 'asd123'
         game_data = {
             'name': DEFAULT_GAME,
@@ -250,3 +251,15 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 adapter_patched.create_game.return_value,
                 DEFAULT_GAME,
             )
+
+    @patch('server.utilities_server_event.start_game')
+    async def test_make_tournament(self, start_game_patched):
+        tournament_id = '123456'
+        games = [['Player 1', 'Player 2'], ['Player 3', 'Player 1']]
+        await make_tournament(tournament_id, games, DEFAULT_GAME)
+        calls = [call({
+            'tournament_id': tournament_id,
+            'players': players,
+            'name': DEFAULT_GAME,
+        }) for players in games]
+        start_game_patched.assert_has_calls(calls)
