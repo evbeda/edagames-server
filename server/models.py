@@ -1,7 +1,9 @@
+from server.constants import DEFAULT_GAME
 from pydantic import BaseModel
 
 
 class Challenge(BaseModel):
     challenger: str
     challenged: str
-    challenge_id: str  # this should be changed for game_name
+    tournament_id: str = None
+    game_name: str = DEFAULT_GAME
