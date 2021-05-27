@@ -1,9 +1,11 @@
 from server.constants import DEFAULT_GAME
 from pydantic import BaseModel
 
+from typing import List
+
 
 class Challenge(BaseModel):
     challenger: str
-    challenged: str
+    challenged: List[str]
     tournament_id: str = None
     game_name: str = DEFAULT_GAME
