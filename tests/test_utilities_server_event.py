@@ -9,6 +9,7 @@ from server.utilities_server_event import (
     make_penalize,
     make_end_data_for_web,
     move,
+    start_game,
 )
 from server.exception import GameIdException
 
@@ -220,3 +221,32 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             mock_end_data.assert_called_once_with(turn_data)
             mock_notify_end_to_client.assert_called_once_with(players, turn_data)
             mock_notify_end_to_web.assert_called_once_with(game_id, test_end_data)
+
+    @patch('server.utilities_server_event.move')
+    @patch('server.utilities_server_event.redis_save')
+    async def test_AcceptChallenge_start_game(self, mock_save, mock_move):
+        game_id = 'asd123'
+        game_data = {
+            'name': DEFAULT_GAME,
+            'players': ['client1', 'clint2'],
+        }
+        with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
+            adapter_patched = AsyncMock()
+            adapter_patched.create_game.return_value = MagicMock(
+                game_id=game_id,
+                current_player='client1',
+                turn_data={},
+                play_data={},
+            )
+            g_adapter_patched.return_value = adapter_patched
+            await start_game(game_data)
+            g_adapter_patched.assert_called_with(DEFAULT_GAME)
+            mock_save.assert_called_once_with(
+                game_id,
+                game_data,
+                GAME_ID,
+            )
+            mock_move.assert_awaited_once_with(
+                adapter_patched.create_game.return_value,
+                DEFAULT_GAME,
+            )
