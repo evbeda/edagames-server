@@ -46,6 +46,6 @@ async def details(game_id: str, continuation_token: str = None):
 
     return JSONResponse({
         'status': 'ERROR',
-        'code': '400',
+        'code': status,
         'message': message,
     }, status_code=status)
