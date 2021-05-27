@@ -21,10 +21,11 @@ def data_challenge(
     players: List[str],
     tournament_id: str,
     name: str,
+    accepted: List[str] = []
 ):
     data = {
         'players': players,
-        'accepted': [],
+        'accepted': accepted,
         'game': name,
     }
     if tournament_id:
