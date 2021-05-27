@@ -22,15 +22,14 @@ def data_challenge(
     tournament_id: str,
     name: str,
 ):
+    data = {
+        'players': players,
+        'accepted': [],
+        'game': name,
+    }
     if tournament_id:
-        data = {
-            'players': players,
+        data.update({
             'tournament_id': tournament_id,
-            'game': name,
-        }
-    else:
-        data = {
-            'players': players,
-            'game': name,
-        }
+        })
+
     return json.dumps(data)

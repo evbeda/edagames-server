@@ -34,12 +34,14 @@ class TestGame(unittest.TestCase):
         (
             ['Pedro', 'Pablo'],
             '0000-0001',
-            f'{{"players": ["Pedro", "Pablo"], "tournament_id": "0000-0001", "game": "{DEFAULT_GAME}"}}'
+            '{"players": ["Pedro", "Pablo"], '
+            f'"accepted": [], "game": "{DEFAULT_GAME}", '
+            '"tournament_id": "0000-0001"}'
         ),
         (
             ['Pedro', 'Pablo'],
             None,
-            f'{{"players": ["Pedro", "Pablo"], "game": "{DEFAULT_GAME}"}}'
+            f'{{"players": ["Pedro", "Pablo"], "accepted": [], "game": "{DEFAULT_GAME}"}}'
         ),
     ])
     def test_data_challenge(self, players, tournament_id, expected):
