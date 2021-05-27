@@ -1,11 +1,10 @@
-from typing import Dict
-
 from server.connection_manager import manager
 from server.websockets import notify_user_list_to_client
 from server.grpc_adapter import GRPCAdapterFactory
 from server.utilities_server_event import ServerEvent, make_challenge
 from server.redis_interface import redis_save, redis_get
 
+from typing import Dict
 from server.constants import (
     LIST_USERS,  # name_event
     ASK_CHALLENGE,
@@ -59,7 +58,15 @@ class AcceptChallenge(ServerEvent):
                 self.client,
             )
             if game_data is not None:
-                await self.start_game(game_data)
+                if (
+                    self.client in game_data['players']
+                    and self.client not in game_data['accepted']
+                ):
+                    game_data['accepted'].append(self.client)
+                    if all([player in game_data['accepted'] for player in game_data['players']]):
+                        await self.start_game(game_data)
+                    else:
+                        pass
 
     async def start_game(self, game_data: Dict):
         adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))

@@ -49,15 +49,19 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     async def test_AcceptChallenge_run(self, mock_start):
         data = {"action": "accept_challenge", "data": {"challenge_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}}
         challenge_id = 'challenge_id_from_request'
-        get_redis = 'data_from_redis'
+        get_redis = {
+            'name': DEFAULT_GAME,
+            'players': ['client1', 'client2'],
+            'accepted': ['client2'],
+        }
         with patch.object(ServerEvent, 'search_value', return_value=challenge_id) as mock_search:
             with patch('server.server_event.redis_get', return_value=get_redis) as mock_get:
-                await AcceptChallenge(data, self.client).run()
+                await AcceptChallenge(data, 'client1').run()
                 mock_search.assert_awaited_once_with(CHALLENGE_ID)
                 mock_get.assert_awaited_once_with(
                     challenge_id,
                     CHALLENGE_ID,
-                    self.client,
+                    'client1',
                 )
                 mock_start.assert_called_with(get_redis)
 
