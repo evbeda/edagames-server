@@ -35,15 +35,15 @@ class TestGame(unittest.TestCase):
             ['Pedro', 'Pablo'],
             '0000-0001',
             '{"players": ["Pedro", "Pablo"], '
-            f'"accepted": [], "game": "{DEFAULT_GAME}", '
+            f'"accepted": ["Pedro"], "game": "{DEFAULT_GAME}", '
             '"tournament_id": "0000-0001"}'
         ),
         (
             ['Pedro', 'Pablo'],
             None,
-            f'{{"players": ["Pedro", "Pablo"], "accepted": [], "game": "{DEFAULT_GAME}"}}'
+            f'{{"players": ["Pedro", "Pablo"], "accepted": ["Pedro"], "game": "{DEFAULT_GAME}"}}'
         ),
     ])
     def test_data_challenge(self, players, tournament_id, expected):
-        res = data_challenge(players, tournament_id, DEFAULT_GAME)
+        res = data_challenge(players, tournament_id, [players[0]], DEFAULT_GAME)
         self.assertEqual(res, expected)
