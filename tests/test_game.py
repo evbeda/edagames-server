@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import patch
 
+from parameterized.parameterized import parameterized
+
 from server.game import data_challenge, identifier, next_turn
 from server.constants import (
     DEFAULT_GAME,
@@ -28,8 +30,13 @@ class TestGame(unittest.TestCase):
             )
             self.assertEqual(turn_token, res)
 
-    def test_data_challenge(self):
-        players = ['Pedro', 'Pablo']
-        expected = f'''{{"players": ["Pedro", "Pablo"], "game": "{DEFAULT_GAME}"}}'''
-        res = data_challenge(players)
+    @parameterized.expand([
+        (
+            ['Pedro', 'Pablo'],
+            '0000-0001',
+            f'{{"players": ["Pedro", "Pablo"], "tournament_id": "0000-0001", "game": "{DEFAULT_GAME}"}}'
+        ),
+    ])
+    def test_data_challenge(self, players, tournament_id, expected):
+        res = data_challenge(players, tournament_id, DEFAULT_GAME)
         self.assertEqual(res, expected)
