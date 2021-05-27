@@ -13,3 +13,4 @@ class Challenge(BaseModel):
 class Tournament(BaseModel):
     tournament_id: str
     players: List[List[str]]
+    game_name: str = DEFAULT_GAME
