@@ -14,7 +14,6 @@ from server.web_requests import notify_end_game_to_web
 
 from server.constants import (
     TIME_SLEEP,
-    DEFAULT_GAME,
     TURN_TOKEN,
     GAME_ID,
     DATA,
@@ -24,11 +23,12 @@ from server.constants import (
 )
 
 
-async def make_challenge(players, game_name=DEFAULT_GAME):
+async def make_challenge(challenger, challenged, tournament_id, game_name):
     challenge_id = identifier()
+    players = [challenger, challenged]
     redis_save(
         challenge_id,
-        data_challenge(players, game_name),
+        data_challenge(players, tournament_id, game_name),
         CHALLENGE_ID,
     )
     await notify_challenge_to_client(
