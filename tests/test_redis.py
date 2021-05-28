@@ -10,6 +10,8 @@ import redis
 from server.redis import (
     add_to_set,
     append_to_stream,
+    delete_key,
+    remove_from_set,
     save_string,
     get_string,
     get_stream,
@@ -190,8 +192,6 @@ class TestRedis(unittest.TestCase):
         get_stream('key')
         logger_patched.error.assert_called()
 
-    from server.redis import redis_data
-
     @patch("server.redis.redis_data", new_callable=fakeredis.FakeStrictRedis)
     def test_add_to_set(self, redis_patched):
         key = 'test_key'
@@ -199,15 +199,22 @@ class TestRedis(unittest.TestCase):
         add_to_set(key, value)
         assert redis_patched.sismember(key, value)
 
-    @patch('server.redis.logger')
-    @patch("server.redis.redis_data")
-    def test_add_to_set_error(self, redis_patched, logger_patched):
-        key = 'test_key'
-        value = 'test_value'
-        redis_patched.sadd.side_effect = DataError()
-        add_to_set(key, value)
-        logger_patched.error.assert_called()
-
     @patch("server.redis.redis_data", new_callable=fakeredis.FakeStrictRedis)
     def test_remove_from_set(self, redis_patched):
-        pass
+        key = 'test_key'
+        values = ['test_value1', 'test_value2']
+        redis_patched.sadd(key, *values)
+        remove_from_set(key, values[0])
+        assert not redis_patched.sismember(key, values[0])
+
+    @parameterized.expand([
+        (add_to_set, 'sadd', {'key': 'test_key', 'value': 'test_value'}),
+        (remove_from_set, 'srem', {'key': 'test_key', 'value': 'test_value'}),
+        (delete_key, 'delete', {'key': 'test_key'}),
+    ])
+    @patch('server.redis.logger')
+    @patch("server.redis.redis_data")
+    def test_data_error(self, method, patched_method, args, redis_patched, logger_patched):
+        getattr(redis_patched, patched_method).side_effect = DataError()
+        method(**args)
+        logger_patched.error.assert_called()
