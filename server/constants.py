@@ -36,6 +36,7 @@ TURN_TOKEN = 'turn_token'
 TOKEN_COMPARE = 'token_compare'
 LOG = 'log'
 PLAIN_SEARCH = 'plain_search'
+CLIENT_LIST = 'client'
 
 # dict.get values
 DATA = 'data'

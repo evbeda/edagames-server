@@ -1,4 +1,6 @@
 from server.redis import (
+    add_to_set,
+    get_set,
     save_string,
     get_string,
     append_to_stream,
@@ -11,6 +13,7 @@ from server.websockets import (
 
 from server.constants import (
     CHALLENGE_ID,  # caller
+    CLIENT_LIST,
     TURN_TOKEN,
     TOKEN_COMPARE,
     GAME_ID,
@@ -58,6 +61,7 @@ def redis_save(key: str, value, caller: str):
         TURN_TOKEN: save_string,
         GAME_ID: save_string,
         LOG: append_to_stream,
+        CLIENT_LIST: add_to_set,
     }
     converted_key = key_conversion(key, caller)
     expire = expires_relation.get(caller, None)
@@ -72,6 +76,7 @@ async def redis_get(key: str, caller: str, client: str = EMPTY_PLAYER, **kwargs)
         GAME_ID: get_string,
         LOG: get_stream,
         PLAIN_SEARCH: get_string,
+        CLIENT_LIST: get_set,
     }
     converted_key = key_conversion(key, caller)
     data = redis_get_calls.get(caller)(converted_key, **kwargs)
@@ -87,6 +92,10 @@ async def redis_get(key: str, caller: str, client: str = EMPTY_PLAYER, **kwargs)
             f'DataError in {caller}, send a str',
         )
     return data
+
+
+def redis_delete(key: str, caller: str, value: str = None):
+    pass
 
 
 def key_conversion(key: str, caller: str):
