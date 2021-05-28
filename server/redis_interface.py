@@ -1,6 +1,7 @@
 from server.redis import (
     add_to_set,
     get_set,
+    remove_from_set,
     save_string,
     get_string,
     append_to_stream,
@@ -95,7 +96,12 @@ async def redis_get(key: str, caller: str, client: str = EMPTY_PLAYER, **kwargs)
 
 
 def redis_delete(key: str, caller: str, value: str = None):
-    pass
+    redis_del_calls = {
+        CLIENT_LIST: remove_from_set,
+    }
+    converted_key = key_conversion(key, caller)
+    data = redis_del_calls.get(caller)(converted_key, value)
+    return data
 
 
 def key_conversion(key: str, caller: str):
