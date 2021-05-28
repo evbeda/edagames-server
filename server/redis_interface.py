@@ -1,5 +1,6 @@
 from server.redis import (
     add_to_set,
+    delete_key,
     get_set,
     remove_from_set,
     save_string,
@@ -100,8 +101,10 @@ def redis_delete(key: str, caller: str, value: str = None):
         CLIENT_LIST: remove_from_set,
     }
     converted_key = key_conversion(key, caller)
-    data = redis_del_calls.get(caller)(converted_key, value)
-    return data
+    if value is not None:
+        redis_del_calls.get(caller)(converted_key, value)
+    else:
+        delete_key(converted_key)
 
 
 def key_conversion(key: str, caller: str):
