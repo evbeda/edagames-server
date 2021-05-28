@@ -3,6 +3,7 @@ from unittest.mock import patch
 from parameterized import parameterized
 
 from server.redis_interface import (
+    redis_delete,
     redis_get,
     redis_save,
     key_conversion,
@@ -10,6 +11,7 @@ from server.redis_interface import (
 
 from server.constants import (
     CHALLENGE_ID,
+    CLIENT_LIST,
     TURN_TOKEN,
     TOKEN_COMPARE,
     LOG,
@@ -102,3 +104,18 @@ class TestRedisInterface(unittest.IsolatedAsyncioTestCase):
                 mock_get_string.assert_called_once_with(converted_key)
                 mock_error.assert_awaited_once_with(client, f'DataError in {caller}, send a str')
                 self.assertEqual(res, return_data)
+
+    @patch('server.redis_interface.remove_from_set')
+    def test_redis_delete_value(self, remove_patched):
+        key = 'test_key'
+        caller = CLIENT_LIST
+        value = 'client_1'
+        redis_delete(key, caller, value)
+        remove_patched.assert_called_with(key, value)
+
+    @patch('server.redis_interface.delete_key')
+    def test_redis_delete(self, delete_patched):
+        key = 'test_key'
+        caller = CLIENT_LIST
+        redis_delete(key, caller)
+        delete_patched.assert_called_with(key)
