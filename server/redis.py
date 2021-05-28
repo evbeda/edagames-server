@@ -83,7 +83,7 @@ def get_string(key: str):
         return data
 
 
-def add_to_set(key: str, value: str, _):
+def add_to_set(key: str, value: str, _=None):
     try:
         return redis_data.sadd(key, value)
     except DataError as e:
