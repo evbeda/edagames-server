@@ -1,4 +1,6 @@
 from hashlib import sha1
+from redis.exceptions import DataError
+
 import unittest
 from unittest.mock import MagicMock, patch
 from parameterized import parameterized
@@ -6,6 +8,7 @@ import fakeredis
 import redis
 
 from server.redis import (
+    add_to_set,
     append_to_stream,
     save_string,
     get_string,
@@ -186,3 +189,25 @@ class TestRedis(unittest.TestCase):
         redis_patched.xrange.side_effect = redis.RedisError
         get_stream('key')
         logger_patched.error.assert_called()
+
+    from server.redis import redis_data
+
+    @patch("server.redis.redis_data", new_callable=fakeredis.FakeStrictRedis)
+    def test_add_to_set(self, redis_patched):
+        key = 'test_key'
+        value = 'test_value'
+        add_to_set(key, value)
+        assert redis_patched.sismember(key, value)
+
+    @patch('server.redis.logger')
+    @patch("server.redis.redis_data")
+    def test_add_to_set_error(self, redis_patched, logger_patched):
+        key = 'test_key'
+        value = 'test_value'
+        redis_patched.sadd.side_effect = DataError()
+        add_to_set(key, value)
+        logger_patched.error.assert_called()
+
+    @patch("server.redis.redis_data", new_callable=fakeredis.FakeStrictRedis)
+    def test_remove_from_set(self, redis_patched):
+        pass
