@@ -11,6 +11,7 @@ from server.redis import (
     add_to_set,
     append_to_stream,
     delete_key,
+    get_set,
     remove_from_set,
     save_string,
     get_string,
@@ -207,8 +208,25 @@ class TestRedis(unittest.TestCase):
         remove_from_set(key, values[0])
         assert not redis_patched.sismember(key, values[0])
 
+    @patch("server.redis.redis_data", new_callable=fakeredis.FakeStrictRedis)
+    def test_get_set(self, redis_patched):
+        key = 'test_key'
+        values = ['test_value1', 'test_value2']
+        redis_patched.sadd(key, *values)
+        clients = [v.decode() for v in get_set(key)]
+        [self.assertIn(client, values) for client in clients]
+
+    @patch("server.redis.redis_data", new_callable=fakeredis.FakeStrictRedis)
+    def test_delete_key(self, redis_patched):
+        key = 'test_key'
+        values = ['test_value1', 'test_value2']
+        redis_patched.sadd(key, *values)
+        delete_key(key)
+        assert not redis_patched.exists(key)
+
     @parameterized.expand([
         (add_to_set, 'sadd', {'key': 'test_key', 'value': 'test_value'}),
+        (get_set, 'smembers', {'key': 'test_key'}),
         (remove_from_set, 'srem', {'key': 'test_key', 'value': 'test_value'}),
         (delete_key, 'delete', {'key': 'test_key'}),
     ])

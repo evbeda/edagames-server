@@ -97,7 +97,7 @@ def remove_from_set(key: str, value: str):
 
 def get_set(key: str):
     try:
-        redis_data.smembers(key)
+        return redis_data.smembers(key)
     except DataError as e:
         logger.error(f'Error while getting data from redis in get_set: {e}')
         return REDIS_ERROR
