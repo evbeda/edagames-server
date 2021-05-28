@@ -36,15 +36,19 @@ def append_to_stream(key: str, data: Dict, *args):
 def get_stream(key: str, next_item: str = '-'):
     try:
         data = redis_data.xrange(key, min=next_item, count=LOG_PAGE_SIZE + 1)
+        if next_item != '-':
+            prev_token = sha1(next_item.encode()).hexdigest()
+        else:
+            prev_token = None
         if len(data) > LOG_PAGE_SIZE:
             moves = dict(data[:-1]).values()
             next_item = data[-1][0]
-            token = sha1(next_item.encode()).hexdigest()
-            save_string(token, next_item)
+            next_token = sha1(next_item.encode()).hexdigest()
+            save_string(next_token, next_item)
         else:
             moves = dict(data).values()
-            token = ''
-        return moves, token
+            next_token = None
+        return moves, prev_token, next_token
     except redis.RedisError as e:
         logger.error(f'Error while reading stream from Redis: {e}')
         return [], ''
