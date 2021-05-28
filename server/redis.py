@@ -23,7 +23,7 @@ redis_data = redis.Redis(
 )
 
 
-def append_to_stream(key: str, data: Dict, *args):
+def append_to_stream(key: str, data: Dict, *args, expire: int = DEFAULT_EXPIRE):
     try:
         parsed_data = {k: json.dumps(v) if type(v) == dict else v for k, v in data.items()}
         redis_data.xadd(key, parsed_data)
@@ -79,3 +79,15 @@ def get_string(key: str):
     else:
         logger.info(f'{key} not found, most likely expired')
         return data
+
+
+def add_to_set(key: str, value: str):
+    pass
+
+
+def remove_from_set(key: str, value: str):
+    pass
+
+
+def get_set(key: str):
+    pass
