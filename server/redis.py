@@ -105,3 +105,11 @@ def get_set(key: str):
     except DataError as e:
         logger.error(f'Error while getting data from redis in get_set: {e}')
         return REDIS_ERROR
+
+
+def delete_key(key: str):
+    try:
+        return redis_data.delete(key)
+    except DataError as e:
+        logger.error(f'Error while removing key in delete_key: {e}')
+        return REDIS_ERROR
