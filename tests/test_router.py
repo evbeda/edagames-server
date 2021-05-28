@@ -132,7 +132,7 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                     '/match_details',
                     params={
                         'game_id': test_game_id,
-                        'continuation_token': test_token,
+                        'page_token': test_token,
                     },
                 )
                 self.assertEqual(response.status_code, expected_status)
