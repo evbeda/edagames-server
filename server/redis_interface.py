@@ -47,6 +47,7 @@ relations = {
     GAME_ID: PREFIX_GAME,
     LOG: PREFIX_LOG,
     PLAIN_SEARCH: '',
+    CLIENT_LIST: '',
 }
 
 client_msgs = {
