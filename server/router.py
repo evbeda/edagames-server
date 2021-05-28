@@ -61,9 +61,9 @@ async def details(game_id: str, page_token: str = None):
             raise GameIdException('game_id should be a non-empty string')
         if page_token:
             next_item = await redis_get(page_token, PLAIN_SEARCH)
-            moves, token = await redis_get(game_id, LOG, next_item=next_item)
+            moves, prev_token, next_token = await redis_get(game_id, LOG, next_item=next_item)
         else:
-            moves, token = await redis_get(game_id)
+            moves, prev_token, next_token = await redis_get(game_id)
     except GameIdException as e:
         message = e.message
         status = 400
@@ -73,7 +73,8 @@ async def details(game_id: str, page_token: str = None):
     else:
         return JSONResponse({
             'details': moves,
-            'continuation_token': token,
+            'prev': prev_token,
+            'next': next_token,
         })
 
     return JSONResponse({
