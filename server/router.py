@@ -55,12 +55,12 @@ async def user_list():
 
 
 @router.get('/match_details')
-async def details(game_id: str, continuation_token: str = None):
+async def details(game_id: str, page_token: str = None):
     try:
         if not game_id:
             raise GameIdException('game_id should be a non-empty string')
-        if continuation_token:
-            next_item = await redis_get(continuation_token, PLAIN_SEARCH)
+        if page_token:
+            next_item = await redis_get(page_token, PLAIN_SEARCH)
             moves, token = await redis_get(game_id, LOG, next_item=next_item)
         else:
             moves, token = await redis_get(game_id)
