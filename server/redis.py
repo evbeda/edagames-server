@@ -8,6 +8,7 @@ from .environment import REDIS_HOST, REDIS_LOCAL_PORT
 
 from typing import Dict
 from server.constants import (
+    LOG_EXPIRE,
     REDIS_ERROR,
     DEFAULT_EXPIRE,
     LOG_PAGE_SIZE,
@@ -23,10 +24,11 @@ redis_data = redis.Redis(
 )
 
 
-def append_to_stream(key: str, data: Dict, *args, expire: int = DEFAULT_EXPIRE):
+def append_to_stream(key: str, data: Dict, expire: int = LOG_EXPIRE):
     try:
         parsed_data = {k: json.dumps(v) if type(v) == dict else v for k, v in data.items()}
         redis_data.xadd(key, parsed_data)
+        redis_data.expire(key, expire)
     except TypeError as e:
         logger.error(f'Error while parsing data in append_to_stream: {e}')
     except redis.RedisError as e:
@@ -77,13 +79,25 @@ def get_string(key: str):
         return data
 
 
-def add_to_set(key: str, value: str):
-    pass
+def add_to_set(key: str, value: str, _):
+    try:
+        return redis_data.sadd(key, value)
+    except DataError as e:
+        logger.error(f'Error while saving data in add_to_set: {e}')
+        return REDIS_ERROR
 
 
 def remove_from_set(key: str, value: str):
-    pass
+    try:
+        return redis_data.srem(key, value)
+    except DataError as e:
+        logger.error(f'Error while deleting data in remove_from_set: {e}')
+        return REDIS_ERROR
 
 
 def get_set(key: str):
-    pass
+    try:
+        redis_data.smembers(key)
+    except DataError as e:
+        logger.error(f'Error while getting data from redis in get_set: {e}')
+        return REDIS_ERROR

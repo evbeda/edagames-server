@@ -20,6 +20,7 @@ TURN = 'turn'
 TIME_SLEEP = 5
 TIME_CHALLENGE = 300
 DEFAULT_EXPIRE = 7200  # default expire of 2hs
+LOG_EXPIRE = 21600  # expire time for logs of 6h
 
 # Factory Event
 ACCEPT_CHALLENGE = 'accept_challenge'
