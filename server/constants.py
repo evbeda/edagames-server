@@ -7,6 +7,9 @@ EVENT_LIST_USERS = 'list_users'
 EVENT_GAME_OVER = 'game_over'
 EVENT_FEEDBACK = 'feedback'
 
+# Connection manager constants
+CLIENT_LIST_KEY = 'clients'
+
 # Exceptions
 GAMEIDERROR = 'GAMEID_ERROR'
 REDIS_ERROR = -1
