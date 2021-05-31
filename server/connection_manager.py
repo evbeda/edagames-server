@@ -1,10 +1,12 @@
 import asyncio
+from server.redis_interface import redis_delete, redis_save
 from fastapi import WebSocket
 import json
 import jwt
 from uvicorn.config import logger
 
 import server.constants as websocket_events
+from server.constants import CLIENT_LIST, CLIENT_LIST_KEY
 from .environment import JWT_TOKEN_KEY
 
 from typing import Dict, List
@@ -27,7 +29,10 @@ class ConnectionManager:
             return
         await websocket.accept()
         client = user_to_connect.get('user')
+
         self.connections[client] = websocket
+        redis_save(CLIENT_LIST_KEY, client, CLIENT_LIST)
+
         await self.notify_user_list_changed()
         return client
 
@@ -62,6 +67,7 @@ class ConnectionManager:
     async def remove_user(self, user):
         try:
             del self.connections[user]
+            redis_delete(CLIENT_LIST_KEY, CLIENT_LIST, user)
             await self.notify_user_list_changed()
         except KeyError as e:
             logger.info('[Websocket]exception {}'.format(e))
