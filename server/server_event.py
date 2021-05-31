@@ -5,6 +5,8 @@ from server.utilities_server_event import ServerEvent, make_challenge, start_gam
 from server.redis_interface import redis_save, redis_get
 
 from server.constants import (
+    CLIENT_LIST,
+    CLIENT_LIST_KEY,
     LIST_USERS,  # name_event
     ASK_CHALLENGE,
     ACCEPT_CHALLENGE,
@@ -26,7 +28,7 @@ class ListUsers(ServerEvent):
         self.name_event = LIST_USERS
 
     async def run(self):
-        users = list(manager.connections.keys())
+        users = redis_get(CLIENT_LIST_KEY, CLIENT_LIST)
         await notify_user_list_to_client(self.client, users)
 
 
