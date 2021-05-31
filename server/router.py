@@ -63,7 +63,7 @@ async def details(game_id: str, page_token: str = None):
             next_item = await redis_get(page_token, PLAIN_SEARCH)
             moves, prev_token, next_token = await redis_get(game_id, LOG, next_item=next_item)
         else:
-            moves, prev_token, next_token = await redis_get(game_id)
+            moves, prev_token, next_token = await redis_get(game_id, LOG)
     except GameIdException as e:
         message = e.message
         status = 400
