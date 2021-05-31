@@ -1,10 +1,9 @@
 from server.exception import GameIdException
-from server.constants import LOG, PLAIN_SEARCH
+from server.constants import CLIENT_LIST, CLIENT_LIST_KEY, LOG, PLAIN_SEARCH
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from server.models import Challenge, Tournament
-from server.connection_manager import manager
 from server.utilities_server_event import make_challenge, make_tournament
 from server.redis_interface import redis_get
 
@@ -50,8 +49,7 @@ async def tournament(tournament: Tournament):
 
 @router.get("/users")
 async def user_list():
-    # Switch to Redis, not all users are on the same instance
-    return JSONResponse({'users': list(manager.connections.keys())})
+    return JSONResponse({'users': redis_get(CLIENT_LIST_KEY, CLIENT_LIST)})
 
 
 @router.get('/match_details')
