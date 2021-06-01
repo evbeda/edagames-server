@@ -189,13 +189,10 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         )
         websocket_patched.send_text.assert_called_with(expected)
 
+    @patch('server.connection_manager.redis_get')
     @patch.object(ConnectionManager, 'broadcast')
-    async def test_notify_user_list_changed(self, broadcast_patched):
-        self.manager.connections = {
-            'client 1': 'websocket',
-            'client 2': 'websocket',
-            'client 3': 'websocket',
-        }
+    async def test_notify_user_list_changed(self, broadcast_patched, redis_get_patched):
+        redis_get_patched.return_value = ['client 1', 'client 2', 'client 3']
         await self.manager.notify_user_list_changed()
         broadcast_patched.assert_called_with(
             websocket_events.EVENT_LIST_USERS,

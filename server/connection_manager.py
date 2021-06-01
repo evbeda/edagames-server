@@ -1,5 +1,5 @@
 import asyncio
-from server.redis_interface import redis_delete, redis_save
+from server.redis_interface import redis_delete, redis_get, redis_save
 from fastapi import WebSocket
 import json
 import jwt
@@ -73,11 +73,12 @@ class ConnectionManager:
             logger.info('[Websocket]exception {}'.format(e))
 
     async def notify_user_list_changed(self):
-        logger.info('[Websocket]Users {}'.format(list(self.connections.keys())))
+        users = await redis_get(CLIENT_LIST_KEY, CLIENT_LIST)
+        logger.info('[Websocket]Users {}'.format(users))
         await self.broadcast(
             websocket_events.EVENT_LIST_USERS,
             {
-                'users': list(self.connections.keys()),
+                'users': users,
             },
         )
 
