@@ -1,4 +1,5 @@
 from hashlib import sha1
+import json
 import unittest
 from unittest.mock import MagicMock, patch
 from parameterized import parameterized
@@ -170,22 +171,24 @@ class TestRedis(unittest.TestCase):
         save_string_patched
     ):
         if next_item:
-            expected_prev_token = sha1(next_item.encode()).hexdigest()
+            expected_next_prev_token = sha1(next_item.encode()).hexdigest()
         else:
             next_item = '-'
-            expected_prev_token = None
+            expected_next_prev_token = None
         expected_log = dict(self.test_dataset[next_item_index:next_item_index + LOG_PAGE_SIZE]).values()
         redis_patched.xrange.return_value = self.test_dataset[next_item_index:next_item_index + LOG_PAGE_SIZE + 1]
-        log, prev_token, next_token = get_stream(key, next_item)
+        log, next_token = get_stream(key, next_item)
         redis_patched.xrange.assert_called_with(key, min=next_item, count=LOG_PAGE_SIZE + 1)
         self.assertEqual(list(log), list(expected_log))
         if has_token:
             expected_next_token = sha1(expected_next_item.encode()).hexdigest()
-            save_string_patched.assert_called_with(next_token, expected_next_item)
+            save_string_patched.assert_called_with(
+                next_token,
+                json.dumps((expected_next_item, expected_next_prev_token)),
+            )
         else:
             expected_next_token = None
         self.assertEqual(next_token, expected_next_token)
-        self.assertEqual(prev_token, expected_prev_token)
 
     @patch('server.redis.logger')
     @patch('server.redis.redis_data')
