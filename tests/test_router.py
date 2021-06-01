@@ -69,13 +69,13 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
             'test-0000-0001',
             'token-00000001',
             [
-                '00000001',
+                ('00000001', None),
                 ([
                     {'player': 'P1', 'from_row': 3, 'to_row': 2},
                     {'player': 'P2', 'from_row': 1, 'to_row': 3},
                     {'player': 'P1', 'from_row': 2, 'to_row': 1},
                     {'player': 'P2', 'from_row': 3, 'to_row': 4},
-                ], 'token-00000001', 'token-00000002'),
+                ], 'token-00000002'),
             ],
             200,
         ),
@@ -88,7 +88,7 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                     {'player': 'P2', 'from_row': 1, 'to_row': 3},
                     {'player': 'P1', 'from_row': 2, 'to_row': 1},
                     {'player': 'P2', 'from_row': 3, 'to_row': 4},
-                ], None, 'token-00000001'),
+                ], 'token-00000001'),
             ],
             200,
         ),
@@ -101,7 +101,7 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                     {'player': 'P2', 'from_row': 1, 'to_row': 3},
                     {'player': 'P1', 'from_row': 2, 'to_row': 1},
                     {'player': 'P2', 'from_row': 3, 'to_row': 4},
-                ], None, 'token-00000001'),
+                ], 'token-00000001'),
             ],
             200,
         ),
@@ -122,7 +122,21 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
             None,
             ValueError,
             500,
-        )
+        ),
+        (
+            'test-0000-0007',
+            'token-00000002',
+            [
+                ('00000001', 'token-00000001'),
+                ([
+                    {'player': 'P1', 'from_row': 3, 'to_row': 2},
+                    {'player': 'P2', 'from_row': 1, 'to_row': 3},
+                    {'player': 'P1', 'from_row': 2, 'to_row': 1},
+                    {'player': 'P2', 'from_row': 3, 'to_row': 4},
+                ], 'token-00000003'),
+            ],
+            200,
+        ),
     ])
     async def test_get_match_details(self, test_game_id, test_token, redis_get_return, expected_status):
         with patch('server.router.redis_get') as redis_get_patched:
