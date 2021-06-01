@@ -13,6 +13,8 @@ from server.utilities_server_event import ServerEvent
 
 from server.constants import (
     EMPTY_PLAYER,
+    MSG_TURN_TOKEN,
+    OPPONENT,
     CHALLENGE_ID,
     DEFAULT_GAME,
     LOG,
@@ -30,8 +32,8 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         data = {'action': 'list_users'}
         users = [self.client, 'User 2', 'User 3']
         with patch('server.server_event.notify_user_list_to_client', new_callable=AsyncMock) as notify_patched,\
-                patch('server.server_event.manager') as manager_patched:
-            manager_patched.connections.keys.return_value = users
+                patch('server.server_event.redis_get') as redis_get_patched:
+            redis_get_patched.return_value = users
             await ListUsers(data, self.client).run()
             notify_patched.assert_called_with(self.client, users)
 
@@ -104,13 +106,26 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         }
         with patch.object(ServerEvent, 'search_value', return_value='value') as mock_search:
             with patch("server.server_event.redis_get", return_value='value') as mock_get:
-                with patch('json.loads', return_value='json_value') as mock_json:
-                    with patch.object(Movements, 'execute_action', return_value='value') as mock_execute:
-                        await Movements(data, client).run()
-                        mock_search.assert_called()
-                        mock_get.assert_called()
-                        mock_json.asseer_called()
-                        mock_execute.assert_called()
+                with patch.object(Movements, 'execute_action', return_value='value') as mock_execute:
+                    await Movements(data, client).run()
+                    mock_search.assert_called()
+                    mock_get.assert_called()
+                    mock_execute.assert_called()
+
+    async def test_Movements_run_expired_token(self):
+        client = 'Test Client 1'
+        data = {
+            "action": "accept_challenge",
+            "data": {"turn_token": "303282d-f2e6-46ca-a04a-35d3d873712d", "board_id": 'c303282d'},
+        }
+        with patch.object(ServerEvent, 'search_value') as mock_search:
+            mock_search.side_effect = ['token', 'game_id']
+            with patch("server.server_event.redis_get", return_value=None) as mock_get:
+                with patch('server.server_event.notify_feedback', return_value='error') as mock_notify:
+                    await Movements(data, client).run()
+                    mock_search.assert_called()
+                    mock_get.assert_called()
+                    mock_notify.assert_called_with(client, f'{MSG_TURN_TOKEN}game_id')
 
     @patch('server.server_event.move')
     async def test_Movements_execute_action(self, mock_move):

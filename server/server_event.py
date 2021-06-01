@@ -1,5 +1,4 @@
-from server.connection_manager import manager
-from server.websockets import notify_user_list_to_client
+from server.websockets import notify_feedback, notify_user_list_to_client
 from server.grpc_adapter import GRPCAdapterFactory
 from server.utilities_server_event import ServerEvent, make_challenge, start_game, move
 from server.redis_interface import redis_save, redis_get
@@ -13,7 +12,8 @@ from server.constants import (
     MOVEMENTS,
     ABORT_GAME,
     CHALLENGE_ID,
-    GAME_ID,  # search in request
+    GAME_ID,
+    MSG_TURN_TOKEN,
     TURN_TOKEN,
     OPPONENT,
     LOG,
@@ -29,7 +29,7 @@ class ListUsers(ServerEvent):
         self.name_event = LIST_USERS
 
     async def run(self):
-        users = redis_get(CLIENT_LIST_KEY, CLIENT_LIST)
+        users = await redis_get(CLIENT_LIST_KEY, CLIENT_LIST)
         await notify_user_list_to_client(self.client, users)
 
 
@@ -86,7 +86,12 @@ class Movements(ServerEvent):
             TURN_TOKEN,
             self.client,
         )
-        if redis_game_id == turn_token:
+        if redis_game_id is None:
+            await notify_feedback(
+                self.client,
+                f'{MSG_TURN_TOKEN}{game_id}',
+            )
+        elif redis_game_id == turn_token:
             game = await redis_get(
                 game_id,
                 GAME_ID,
