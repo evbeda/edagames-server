@@ -18,7 +18,6 @@ from server.constants import (
     REDIS_ERROR,  # error
     TIME_SLEEP,  # timers expire
     TIME_CHALLENGE,
-    MSG_TURN_TOKEN,
 )
 
 
