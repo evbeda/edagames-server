@@ -49,7 +49,7 @@ async def tournament(tournament: Tournament):
 
 @router.get("/users")
 async def user_list():
-    return JSONResponse({'users': redis_get(CLIENT_LIST_KEY, CLIENT_LIST)})
+    return JSONResponse({'users': await redis_get(CLIENT_LIST_KEY, CLIENT_LIST)})
 
 
 @router.get('/match_details')

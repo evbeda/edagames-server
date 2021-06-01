@@ -4,7 +4,7 @@ from parameterized import parameterized
 from httpx import AsyncClient
 import json
 
-from server.server import app, manager
+from server.server import app
 
 from server.constants import DEFAULT_GAME
 
@@ -52,17 +52,16 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                 )
         self.assertEqual(response.status_code, 500)
 
-    async def test_update_users_in_django(self):
-        user_list = {"users": ["User 1"]}
-        user_dict = {'User 1': 'websockets'}
-
-        manager.connections = user_dict
-
+    @patch('server.router.redis_get')
+    async def test_update_users_in_django(self, redis_get_patched):
+        user_list = ['User 1', 'User 2']
+        users_dict = {'users': user_list}
+        redis_get_patched.return_value = user_list
         async with AsyncClient(app=app, base_url="http://test") as ac:
             response = await ac.get("/users")
 
-        assert response.status_code == 200
-        assert response.json() == user_list
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), users_dict)
 
     @parameterized.expand([
         (
