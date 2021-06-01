@@ -72,6 +72,8 @@ async def details(game_id: str, page_token: str = None):
         message = f'Unhandled exception ocurred: {e}'
         status = 500
     else:
+        # TODO: REMOVE
+        [m.update({'current_player': 'player2' if i % 2 else 'player1'}) for i, m in enumerate(moves)]
         return JSONResponse({
             'details': list(moves),
             'prev': prev_token,
