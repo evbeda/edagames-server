@@ -106,7 +106,7 @@ class Movements(ServerEvent):
     async def log_action(self, data):
         redis_save(
             data.game_id,
-            data,
+            data.play_data,
             LOG,
         )
 

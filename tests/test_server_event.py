@@ -159,27 +159,26 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     @patch('server.server_event.redis_save')
     async def test_movements_log_action(self, save_patched):
         test_id = 'test-0000-00000001'
-        current_player = 'Player 2'
+        play_data = {
+            'board_id': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+            'action': 'move',
+            'from_row': 3,
+            'from_col': 4,
+            'to_row': 4,
+            'to_col': 4,
+            'player_1': 'player1',
+            'player_2': 'player2',
+            'score_1': 12,
+            'score_2': 15,
+        }
         data = MagicMock(
             game_id=test_id,
-            current_player=current_player,
-            play_data={
-                'board_id': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-                'action': 'move',
-                'from_row': 3,
-                'from_col': 4,
-                'to_row': 4,
-                'to_col': 4,
-            },
+            play_data=play_data,
         )
-        modified_data = {
-            "turn": data.current_player,
-            "data": data.play_data,
-        }
         await Movements({}, self.client).log_action(data)
         save_patched.assert_called_once_with(
             test_id,
-            modified_data,
+            play_data,
             LOG,
         )
 
