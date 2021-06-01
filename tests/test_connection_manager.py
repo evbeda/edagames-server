@@ -48,7 +48,8 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         websocket = AsyncMock()
         notify_patched = AsyncMock()
         self.manager.notify_user_list_changed = notify_patched
-        with patch('server.connection_manager.JWT_TOKEN_KEY', TEST_TOKEN_KEY):
+        with patch('server.connection_manager.JWT_TOKEN_KEY', TEST_TOKEN_KEY),\
+                patch('server.connection_manager.redis_save'):
             client = await self.manager.connect(websocket, token)
         self.assertEqual(client, expected)
         websocket.accept.assert_called()
@@ -78,8 +79,9 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         websocket.close.assert_called()
         notify_patched.assert_not_called()
 
+    @patch('server.connection_manager.redis_delete')
     @patch.object(ConnectionManager, 'notify_user_list_changed')
-    async def test_remove_user(self, notify_patched):
+    async def test_remove_user(self, notify_patched, redis_delete_patched):
         self.manager.connections = {'Test Client 1': 'websocket'}
         await self.manager.remove_user('Test Client 1')
         self.assertEqual({}, self.manager.connections)
