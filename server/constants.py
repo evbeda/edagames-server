@@ -14,7 +14,6 @@ REDIS_ERROR = -1
 # Game constants
 DEFAULT_GAME = 'quoridor'
 EMPTY_PLAYER = ''
-TURN = 'turn'
 
 # Time constants
 TIME_SLEEP = 5
