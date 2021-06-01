@@ -104,9 +104,10 @@ class Movements(ServerEvent):
             await move(data_received, game_data.get(GAME_NAME))
 
     async def log_action(self, data):
+        play_data = {k: int(v) if type(v) == float else v for k, v in data.play_data}
         redis_save(
             data.game_id,
-            data.play_data,
+            play_data,
             LOG,
         )
 
