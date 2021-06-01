@@ -75,8 +75,7 @@ class TestRedisInterface(unittest.IsolatedAsyncioTestCase):
                 mock_get_string.assert_called_once_with(converted_key)
                 self.assertEqual(res, return_data)
 
-    @patch('server.redis_interface.notify_feedback')
-    async def test_redis_get_not_finded(self, mock_feedback):
+    async def test_redis_get_not_finded(self):
         key = 'default_key'
         caller = TURN_TOKEN
         client = 'test_client'
@@ -87,11 +86,9 @@ class TestRedisInterface(unittest.IsolatedAsyncioTestCase):
                 res = await redis_get(key, caller, client)
                 mock_key_conversion.assert_called_once_with(key, caller)
                 mock_get_string.assert_called_once_with(converted_key)
-                mock_feedback.assert_awaited_once_with(client, f'{MSG_TURN_TOKEN}{key}')
                 self.assertEqual(res, return_data)
 
-    @patch('server.redis_interface.notify_error_to_client')
-    async def test_redis_get_error(self, mock_error):
+    async def test_redis_get_error(self):
         key = 'default_key'
         caller = TURN_TOKEN
         client = 'test_client'
@@ -102,7 +99,6 @@ class TestRedisInterface(unittest.IsolatedAsyncioTestCase):
                 res = await redis_get(key, caller, client)
                 mock_key_conversion.assert_called_once_with(key, caller)
                 mock_get_string.assert_called_once_with(converted_key)
-                mock_error.assert_awaited_once_with(client, f'DataError in {caller}, send a str')
                 self.assertEqual(res, return_data)
 
     @patch('server.redis_interface.remove_from_set')

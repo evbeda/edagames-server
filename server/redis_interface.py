@@ -8,10 +8,6 @@ from server.redis import (
     append_to_stream,
     get_stream,
 )
-from server.websockets import (
-    notify_feedback,
-    notify_error_to_client,
-)
 
 from server.constants import (
     CHALLENGE_ID,  # caller
@@ -25,7 +21,6 @@ from server.constants import (
     PREFIX_GAME,
     PREFIX_LOG,
     EMPTY_PLAYER,  # web requests
-    REDIS_ERROR,  # error
     TIME_SLEEP,  # timers expire
     TIME_CHALLENGE,
     MSG_CHALLENGE,  # Feedback msgs
@@ -83,17 +78,6 @@ async def redis_get(key: str, caller: str, client: str = EMPTY_PLAYER, **kwargs)
     }
     converted_key = key_conversion(key, caller)
     data = redis_get_calls.get(caller)(converted_key, **kwargs)
-    if data is None:
-        msg = client_msgs.get(caller)
-        await notify_feedback(
-            client,
-            f'{msg}{key}',
-        )
-    elif data == REDIS_ERROR:
-        await notify_error_to_client(
-            client,
-            f'DataError in {caller}, send a str',
-        )
     return data
 
 
