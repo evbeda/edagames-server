@@ -72,7 +72,7 @@ async def details(game_id: str, page_token: str = None):
         status = 500
     else:
         return JSONResponse({
-            'details': moves,
+            'details': list(moves),
             'prev': prev_token,
             'next': next_token,
         })
