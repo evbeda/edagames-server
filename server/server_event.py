@@ -17,6 +17,7 @@ from server.constants import (
     LOG,
     EMPTY_PLAYER,  # game_over
     GAME_NAME,  # dict.get values
+
 )
 
 
@@ -37,7 +38,8 @@ class Challenge(ServerEvent):
 
     async def run(self):
         challenged = await self.search_value(OPPONENT)
-        await make_challenge([self.client, challenged])
+        game_name = await self.search_value(GAME_NAME)
+        await make_challenge(self.client, challenged, game_name)
 
 
 class AcceptChallenge(ServerEvent):
