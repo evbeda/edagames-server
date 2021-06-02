@@ -13,7 +13,6 @@ from server.utilities_server_event import ServerEvent
 
 from server.constants import (
     EMPTY_PLAYER,
-    OPPONENT,
     CHALLENGE_ID,
     DEFAULT_GAME,
     LOG,
@@ -39,11 +38,13 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     @patch('server.server_event.make_challenge')
     async def test_Challenge_run(self, mock_make_challenge):
         opponent = 'test_opponent'
+        game = DEFAULT_GAME
+        side = (opponent, game)
         response = {'data': {'opponent': opponent}}
-        with patch.object(ServerEvent, 'search_value', return_value=opponent) as mock_search:
+        with patch.object(ServerEvent, 'search_value', side_effect=iter(side)) as mock_search:
             await Challenge(response, self.client).run()
-            mock_search.assert_awaited_once_with(OPPONENT)
-            mock_make_challenge.assert_awaited_once_with([self.client, opponent])
+            mock_search.assert_called()
+            mock_make_challenge.assert_awaited_once_with(self.client, opponent, DEFAULT_GAME)
 
     @patch('server.server_event.start_game')
     async def test_AcceptChallenge_run(self, mock_start):
