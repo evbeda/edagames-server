@@ -152,11 +152,11 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(response.status_code, expected_status)
 
     async def test_tournament(self):
-        players = [['Player 1', 'Player 2'], ['Player 3', 'Player1']]
+        challenges = [['Player 1', 'Player 2'], ['Player 3', 'Player1']]
         tournament_id = 'test_tournament_id'
         data = {
             'tournament_id': tournament_id,
-            'players': players,
+            'challenges': challenges,
         }
         expected = {**data, 'game_name': DEFAULT_GAME}
         status = 200
@@ -168,14 +168,14 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                 )
         self.assertEqual(response.status_code, status)
         self.assertEqual(response.json(), json.dumps(expected))
-        mock_make_tournament.assert_awaited_once_with(tournament_id, players, DEFAULT_GAME)
+        mock_make_tournament.assert_awaited_once_with(tournament_id, challenges, DEFAULT_GAME)
 
     async def test_tournament_error(self):
-        players = [['Player 1', 'Player 2'], ['Player 3', 'Player1']]
+        challenges = [['Player 1', 'Player 2'], ['Player 3', 'Player1']]
         tournament_id = 'test_tournament_id'
         data = {
             'tournament_id': tournament_id,
-            'players': players,
+            'challenges': challenges,
         }
         status = 500
         with patch('server.router.make_tournament') as mock_make_tournament:
@@ -186,4 +186,4 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
                     json=data,
                 )
         self.assertEqual(response.status_code, status)
-        mock_make_tournament.assert_awaited_once_with(tournament_id, players, DEFAULT_GAME)
+        mock_make_tournament.assert_awaited_once_with(tournament_id, challenges, DEFAULT_GAME)
