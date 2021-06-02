@@ -4,6 +4,7 @@ from server.grpc_adapter import GRPCAdapterFactory
 from server.utilities_server_event import ServerEvent, make_challenge, start_game, move
 from server.redis_interface import redis_save, redis_get
 
+
 from server.constants import (
     LIST_USERS,  # name_event
     ASK_CHALLENGE,
@@ -39,7 +40,7 @@ class Challenge(ServerEvent):
     async def run(self):
         challenged = await self.search_value(OPPONENT)
         game_name = await self.search_value(GAME_NAME)
-        await make_challenge(self.client, challenged, game_name)
+        await make_challenge(self.client, [challenged], game_name)
 
 
 class AcceptChallenge(ServerEvent):

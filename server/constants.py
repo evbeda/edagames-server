@@ -16,7 +16,7 @@ DEFAULT_GAME = 'quoridor'
 EMPTY_PLAYER = ''
 
 # Time constants
-TIME_SLEEP = 5
+TIME_SLEEP = 120
 TIME_CHALLENGE = 300
 DEFAULT_EXPIRE = 7200  # default expire of 2hs
 

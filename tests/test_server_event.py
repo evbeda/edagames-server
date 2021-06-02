@@ -44,7 +44,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         with patch.object(ServerEvent, 'search_value', side_effect=iter(side)) as mock_search:
             await Challenge(response, self.client).run()
             mock_search.assert_called()
-            mock_make_challenge.assert_awaited_once_with(self.client, opponent, DEFAULT_GAME)
+            mock_make_challenge.assert_awaited_once_with(self.client, [opponent], DEFAULT_GAME)
 
     @patch('server.server_event.start_game')
     async def test_AcceptChallenge_run(self, mock_start):
