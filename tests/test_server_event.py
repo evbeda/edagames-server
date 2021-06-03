@@ -14,7 +14,6 @@ from server.utilities_server_event import ServerEvent
 from server.constants import (
     EMPTY_PLAYER,
     MSG_TURN_TOKEN,
-    OPPONENT,
     CHALLENGE_ID,
     DEFAULT_GAME,
     LOG,
