@@ -221,7 +221,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             mock_next.assert_called_once_with(game_id)
             mock_end_data.assert_called_once_with(turn_data)
             mock_notify_end_to_client.assert_called_once_with(players, turn_data)
-            mock_notify_end_to_web.assert_called_once_with(game_id, test_end_data)
+            mock_notify_end_to_web.assert_called_once_with(game_id, None, test_end_data)
 
     @patch('server.utilities_server_event.move')
     @patch('server.utilities_server_event.redis_save')
