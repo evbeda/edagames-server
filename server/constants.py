@@ -62,3 +62,6 @@ MSG_GAME_ID = 'Invalid game id: '
 
 # Log constants
 LOG_PAGE_SIZE = 20
+
+# Rabbit constants
+RABBIT_CLIENT_EXCHANGE = 'client_messages'
