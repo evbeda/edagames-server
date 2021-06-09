@@ -16,6 +16,7 @@ from typing import Dict, List
 from server.constants import (
     GAME_NAME,
     TIME_SLEEP,
+    TOURNAMENT_ID,
     TURN_TOKEN,
     GAME_ID,
     DATA,
@@ -116,4 +117,4 @@ class ServerEvent:
         next_turn(data.game_id)
         end_data = make_end_data_for_web(data.turn_data)
         await notify_end_game_to_client(game.get(PLAYERS), data.turn_data)
-        await notify_end_game_to_web(data.game_id, end_data)
+        await notify_end_game_to_web(data.game_id, game.get(TOURNAMENT_ID), end_data)
