@@ -12,6 +12,7 @@ from server.redis import (
 from server.constants import (
     CHALLENGE_ID,  # caller
     CLIENT_LIST,
+    TOKEN_EXPIRE,
     TURN_TOKEN,
     TOKEN_COMPARE,
     GAME_ID,
@@ -21,7 +22,6 @@ from server.constants import (
     PREFIX_GAME,
     PREFIX_LOG,
     EMPTY_PLAYER,  # web requests
-    TIME_SLEEP,  # timers expire
     TIME_CHALLENGE,
     MSG_CHALLENGE,  # Feedback msgs
     MSG_TURN_TOKEN,
@@ -32,7 +32,7 @@ from server.constants import (
 
 expires_relation = {
     CHALLENGE_ID: TIME_CHALLENGE,
-    TURN_TOKEN: TIME_SLEEP,
+    TURN_TOKEN: TOKEN_EXPIRE,
 }
 
 relations = {
