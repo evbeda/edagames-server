@@ -1,3 +1,4 @@
+import asyncio
 import json
 import pika
 from pika.exchange_type import ExchangeType
@@ -17,14 +18,27 @@ class QueueManager:
         self.channel.exchange_declare(RABBIT_CLIENT_EXCHANGE, ExchangeType.direct)
         self.channel.queue_declare(auto_delete=True)
         self.channel.queue_bind('', RABBIT_CLIENT_EXCHANGE)
+        self.listener = None
 
     @staticmethod
     def get_instance():
-        return getattr(QueueManager, 'instance', QueueManager())
+        instance = getattr(QueueManager, 'instance', None) or QueueManager()
+        return instance
 
-    async def listen(self):
-        self.channel.basic_consume('', QueueManager.message_callback)
-        self.channel.start_consuming()
+    async def consume(self):
+        try:
+            self.channel.start_consuming()
+        except asyncio.CancelledError:
+            self.listener = None
+
+    def listen(self):
+        if self.listener is None:
+            self.channel.basic_consume('', QueueManager.message_callback)
+            self.listener = asyncio.create_task(self.consume())
+
+    def stop(self):
+        if self.listener:
+            self.listener.cancel()
 
     @staticmethod
     def message_callback(ch, method, properties, body):
