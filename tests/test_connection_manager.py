@@ -24,6 +24,12 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         self.manager = ConnectionManager()
+        self.manager.queue_manager = MagicMock()
+
+    def test_set_queue_manager(self):
+        queue_manager = MagicMock()
+        self.manager.set_queue_manager(queue_manager)
+        self.assertEqual(self.manager.queue_manager, queue_manager)
 
     @parameterized.expand([
         (

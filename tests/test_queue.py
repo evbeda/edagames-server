@@ -25,6 +25,11 @@ class TestQueue(unittest.TestCase):
         self.manager.channel = MagicMock()
         self.manager.receiver = MagicMock()
 
+    def test_set_message_receiver(self):
+        recv = MagicMock()
+        self.manager.set_message_receiver(recv)
+        self.assertEqual(self.manager.receiver, recv)
+
     @patch.object(QueueManager, '_consume', new=MagicMock())
     @patch('asyncio.create_task')
     def test_listen(self, create_task_patched):
@@ -41,6 +46,13 @@ class TestQueue(unittest.TestCase):
         self.manager.listen()
         self.manager.channel.basic_consume.assert_not_called()
         self.assertEqual(self.manager.listener, 1)
+
+    @patch('asyncio.wait_for', new=MagicMock())
+    def test_stop(self):
+        listener = MagicMock()
+        self.manager.listener = listener
+        self.manager.stop()
+        self.assertEqual(self.manager.listener, None)
 
     @patch('asyncio.create_task', new=MagicMock())
     def test_message_callback(self):
