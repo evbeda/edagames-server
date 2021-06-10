@@ -48,18 +48,24 @@ class ConnectionManager:
 
     async def bulk_send(self, clients: List[str], event: str, data: Dict):
         for client in clients:
-            asyncio.create_task(self._send(
-                self.connections.get(client),
-                event,
-                data,
-            ))
+            try:
+                asyncio.create_task(self._send(
+                    self.connections[client],
+                    event,
+                    data,
+                ))
+            except KeyError:
+                self.queue_manager.send(client, event, data)
 
     async def send(self, client: str, event: str, data: Dict):
-        await self._send(
-            self.connections.get(client),
-            event,
-            data,
-        )
+        try:
+            await self._send(
+                self.connections[client],
+                event,
+                data,
+            )
+        except KeyError:
+            self.queue_manager.send(client, event, data)
 
     async def _send(self, client_ws: WebSocket, event: str, data: Dict):
         logger.info(f'[Websocket] Send: Event: {event}, data: {data}')
