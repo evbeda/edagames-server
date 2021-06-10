@@ -10,3 +10,4 @@ typing-extensions==3.7.4.3
 websockets==8.1
 edagames-grpc==1.1.0
 redis==3.5.3
+pika==1.2.0
