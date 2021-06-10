@@ -1,3 +1,4 @@
+from server.constants import RABBIT_CLIENT_EXCHANGE
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -67,10 +68,29 @@ class TestQueue(unittest.TestCase):
         channel.basic_ack.assert_called_with(1)
 
     def test_send(self):
-        pass
+        self.manager.send(
+            'some_client',
+            'list_users',
+            {"users": ["bot1", "bot2", "bot3"]}
+        )
+        self.manager.channel.basic_publish.assert_called_with(
+            RABBIT_CLIENT_EXCHANGE,
+            'some_client',
+            'list_users//{"users": ["bot1", "bot2", "bot3"]}',
+        )
 
     def test_register_client(self):
-        pass
+        self.manager.register_client('some_client')
+        self.manager.channel.queue_bind.assert_called_with(
+            '',
+            RABBIT_CLIENT_EXCHANGE,
+            'some_client'
+        )
 
     def test_unregister_client(self):
-        pass
+        self.manager.unregister_client('some_client')
+        self.manager.channel.queue_unbind.assert_called_with(
+            '',
+            RABBIT_CLIENT_EXCHANGE,
+            'some_client'
+        )
