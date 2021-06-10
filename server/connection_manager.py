@@ -1,9 +1,10 @@
 import asyncio
-from server.redis_interface import redis_delete, redis_get, redis_save
 from fastapi import WebSocket
 import json
 import jwt
 from uvicorn.config import logger
+
+from server.redis_interface import redis_delete, redis_get, redis_save
 
 import server.constants as websocket_events
 from server.constants import CLIENT_LIST, CLIENT_LIST_KEY
@@ -15,6 +16,11 @@ from typing import Dict, List
 class ConnectionManager:
     def __init__(self):
         self.connections = {}
+        self.queue_manager = None
+        ConnectionManager.instance = self
+
+    def set_queue_manager(self, manager):
+        self.queue_manager = manager
 
     async def connect(self, websocket: WebSocket, token: str):
         encoded_token = token.encode()
@@ -32,6 +38,7 @@ class ConnectionManager:
 
         self.connections[client] = websocket
         redis_save(CLIENT_LIST_KEY, client, CLIENT_LIST)
+        self.queue_manager.register_client(client)
 
         await self.notify_user_list_changed()
         return client
@@ -66,8 +73,9 @@ class ConnectionManager:
 
     async def remove_user(self, user):
         try:
-            del self.connections[user]
+            self.queue_manager.unregister_client(user)
             redis_delete(CLIENT_LIST_KEY, CLIENT_LIST, user)
+            del self.connections[user]
             await self.notify_user_list_changed()
         except KeyError as e:
             logger.info('[Websocket]exception {}'.format(e))
@@ -81,6 +89,3 @@ class ConnectionManager:
                 'users': users,
             },
         )
-
-
-manager = ConnectionManager()

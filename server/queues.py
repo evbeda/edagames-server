@@ -17,6 +17,7 @@ class QueueManager:
         self.channel.queue_bind('', RABBIT_CLIENT_EXCHANGE)
         self.listener = None
         self.receiver = None
+        QueueManager.instance = self
 
     def set_message_receiver(self, receiver):
         # TODO: receiver should be an interface implemented by ConnectionManager

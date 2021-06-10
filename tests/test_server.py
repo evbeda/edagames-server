@@ -10,7 +10,9 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         websocket = AsyncMock()
         websocket.receive_text.side_effect = starlette.websockets.WebSocketDisconnect()
 
-        with patch('server.server.manager', new_callable=AsyncMock) as manager_patched:
+        with patch('server.server.ConnectionManager.instance') as manager_patched:
+            manager_patched.connect = AsyncMock()
+            manager_patched.remove_user = AsyncMock()
             manager_patched.connect.return_value = 'User 1'
             await server.session(websocket, 'token')
             manager_patched.connect.assert_called_with(websocket, 'token')

@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from server.connection_manager import ConnectionManager
 from server.websockets import (
@@ -31,6 +31,7 @@ class TestWebsockets(unittest.IsolatedAsyncioTestCase):
             },
         )
 
+    @patch('server.queues.QueueManager', new=MagicMock())
     @patch.object(ConnectionManager, 'bulk_send', new_callable=AsyncMock)
     async def test_notify_challenge_to_client(self, send_patched):
         challenge_sender = 'User 1'
