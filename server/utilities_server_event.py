@@ -23,6 +23,7 @@ from server.constants import (
     PLAYERS,
     CHALLENGE_ID,
     TOKEN_COMPARE,
+    EMPTY_PLAYER,
 )
 
 
@@ -89,7 +90,15 @@ async def make_penalize(data, game_name, past_token):
     if token_valid == past_token:
         adapter = await GRPCAdapterFactory.get_adapter(game_name)
         data = await adapter.penalize(data.game_id)
-        await make_move(data)
+        if data.game_id:
+            game_data = await redis_get(
+                data.game_id,
+                GAME_ID,
+            )
+            if data.current_player == EMPTY_PLAYER:
+                await ServerEvent.game_over(data, game_data)
+            else:
+                await move(data, game_data.get(GAME_NAME))
 
 
 def make_end_data_for_web(data):
@@ -113,7 +122,8 @@ class ServerEvent:
             )
         return value_search
 
-    async def game_over(self, data, game: dict):
+    @classmethod
+    async def game_over(cls, data, game: dict):
         next_turn(data.game_id)
         end_data = make_end_data_for_web(data.turn_data)
         await notify_end_game_to_client(game.get(PLAYERS), data.turn_data)
