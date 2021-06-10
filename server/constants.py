@@ -65,3 +65,4 @@ LOG_PAGE_SIZE = 20
 
 # Rabbit constants
 RABBIT_CLIENT_EXCHANGE = 'client_messages'
+RABBIT_CANCEL_TIMEOUT = 5.0

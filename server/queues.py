@@ -6,7 +6,7 @@ from pika.exchange_type import ExchangeType
 from server.connection_manager import manager
 
 from server.environment import RABBIT_HOST, RABBIT_PORT
-from server.constants import RABBIT_CLIENT_EXCHANGE
+from server.constants import RABBIT_CANCEL_TIMEOUT, RABBIT_CLIENT_EXCHANGE
 
 
 class QueueManager:
@@ -25,20 +25,21 @@ class QueueManager:
         instance = getattr(QueueManager, 'instance', None) or QueueManager()
         return instance
 
-    async def consume(self):
-        try:
-            self.channel.start_consuming()
-        except asyncio.CancelledError:
-            self.listener = None
+    async def _consume(self):
+        self.channel.start_consuming()
 
     def listen(self):
         if self.listener is None:
             self.channel.basic_consume('', QueueManager.message_callback)
-            self.listener = asyncio.create_task(self.consume())
+            self.listener = asyncio.create_task(self._consume())
 
     def stop(self):
         if self.listener:
-            self.listener.cancel()
+            self.channel.stop_consuming()
+            asyncio.wait_for(self.listener, RABBIT_CANCEL_TIMEOUT)
+            if not self.listener.done():
+                self.listener.cancel()
+            self.listener = None
 
     @staticmethod
     def message_callback(ch, method, properties, body):
