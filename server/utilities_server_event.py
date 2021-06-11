@@ -89,16 +89,16 @@ async def make_penalize(data, game_name, past_token):
     )
     if token_valid == past_token:
         adapter = await GRPCAdapterFactory.get_adapter(game_name)
-        data = await adapter.penalize(data.game_id)
-        if data.game_id:
+        data_penalize = await adapter.penalize(data.game_id)
+        if data_penalize.game_id:
             game_data = await redis_get(
-                data.game_id,
+                data_penalize.game_id,
                 GAME_ID,
             )
-            if data.current_player == EMPTY_PLAYER:
-                await ServerEvent.game_over(data, game_data)
+            if data_penalize.current_player == EMPTY_PLAYER:
+                await ServerEvent.game_over(data_penalize, game_data)
             else:
-                await move(data, game_data.get(GAME_NAME))
+                await move(data_penalize, game_data.get(GAME_NAME))
 
 
 def make_end_data_for_web(data):
