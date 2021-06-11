@@ -102,10 +102,10 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
             gadapter_patched.assert_called_with(DEFAULT_GAME)
             mock_make_move.assert_awaited_once_with(adapter_patched.penalize.return_value)
 
-    @patch('server.utilities_server_event.make_move')
+    @patch.object(ServerEvent, 'game_over')
     @patch('server.utilities_server_event.GRPCAdapterFactory.get_adapter')
     @patch('server.utilities_server_event.asyncio.sleep')
-    async def test_make_penalize_called_move(self, mock_sleep, gadapter_patched, mock_make_move):
+    async def test_make_penalize_called_move(self, mock_sleep, gadapter_patched, mock_game_over):
         player_2 = 'Pablo'
         game_id = '123987'
         turn_token = 'turn_token'
@@ -114,13 +114,13 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
         }
         data = MagicMock(
             game_id=game_id,
-            current_player=EMPTY_PLAYER,
+            current_player=player_2,
         )
         game_name = DEFAULT_GAME
         adapter_patched = AsyncMock()
         adapter_patched.penalize.return_value = MagicMock(
             game_id=game_id,
-            current_player=player_2,
+            current_player=EMPTY_PLAYER,
         )
         gadapter_patched.return_value = adapter_patched
         with patch('server.utilities_server_event.redis_get', side_effect=[turn_token, game]) as mock_get:
@@ -128,7 +128,7 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
             mock_sleep.assert_awaited_once_with(TIME_SLEEP)
             mock_get.assert_called()
             gadapter_patched.assert_called_with(DEFAULT_GAME)
-            mock_make_move.assert_awaited_once_with(adapter_patched.penalize.return_value)
+            mock_game_over.assert_awaited_once_with(adapter_patched.penalize.return_value, game)
 
     @patch('server.utilities_server_event.make_move')
     @patch('server.utilities_server_event.GRPCAdapterFactory.get_adapter')

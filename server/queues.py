@@ -40,7 +40,6 @@ class QueueManager:
             self.listener = None
 
     def message_callback(self, ch, method, properties, body):
-        print(body.decode())
         event, data = body.decode().split('//')
         data = json.loads(data)
         asyncio.create_task(self.receiver.send(method.routing_key, event, data))
