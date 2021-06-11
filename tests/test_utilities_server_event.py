@@ -21,6 +21,8 @@ from server.constants import (
     TOKEN_COMPARE,
     CHALLENGE_ID,
     GAME_ID,
+    GAME_NAME,
+    EMPTY_PLAYER,
 )
 
 
@@ -74,11 +76,14 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
     @patch('server.utilities_server_event.make_move')
     @patch('server.utilities_server_event.GRPCAdapterFactory.get_adapter')
     @patch('server.utilities_server_event.asyncio.sleep')
-    async def test_make_penalize_called(self, mock_sleep, gadapter_patched, mock_move):
+    async def test_make_penalize_called(self, mock_sleep, gadapter_patched, mock_make_move):
         player_1 = 'Pedro'
         player_2 = 'Pablo'
         game_id = '123987'
         turn_token = 'turn_token'
+        game = {
+            GAME_NAME: 'quoridor'
+        }
         data = MagicMock(
             game_id=game_id,
             current_player=player_1,
@@ -90,16 +95,40 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
             current_player=player_2,
         )
         gadapter_patched.return_value = adapter_patched
-        with patch('server.utilities_server_event.redis_get', return_value=turn_token) as mock_get:
+        with patch('server.utilities_server_event.redis_get', side_effect=[turn_token, game]) as mock_get:
             await make_penalize(data, game_name, turn_token)
             mock_sleep.assert_awaited_once_with(TIME_SLEEP)
-            mock_get.assert_awaited_once_with(
-                game_id,
-                TOKEN_COMPARE,
-                player_1,
-            )
+            mock_get.assert_called()
             gadapter_patched.assert_called_with(DEFAULT_GAME)
-            mock_move.assert_awaited_once_with(adapter_patched.penalize.return_value)
+            mock_make_move.assert_awaited_once_with(adapter_patched.penalize.return_value)
+
+    @patch('server.utilities_server_event.make_move')
+    @patch('server.utilities_server_event.GRPCAdapterFactory.get_adapter')
+    @patch('server.utilities_server_event.asyncio.sleep')
+    async def test_make_penalize_called_move(self, mock_sleep, gadapter_patched, mock_make_move):
+        player_2 = 'Pablo'
+        game_id = '123987'
+        turn_token = 'turn_token'
+        game = {
+            GAME_NAME: 'quoridor'
+        }
+        data = MagicMock(
+            game_id=game_id,
+            current_player=EMPTY_PLAYER,
+        )
+        game_name = DEFAULT_GAME
+        adapter_patched = AsyncMock()
+        adapter_patched.penalize.return_value = MagicMock(
+            game_id=game_id,
+            current_player=player_2,
+        )
+        gadapter_patched.return_value = adapter_patched
+        with patch('server.utilities_server_event.redis_get', side_effect=[turn_token, game]) as mock_get:
+            await make_penalize(data, game_name, turn_token)
+            mock_sleep.assert_awaited_once_with(TIME_SLEEP)
+            mock_get.assert_called()
+            gadapter_patched.assert_called_with(DEFAULT_GAME)
+            mock_make_move.assert_awaited_once_with(adapter_patched.penalize.return_value)
 
     @patch('server.utilities_server_event.make_move')
     @patch('server.utilities_server_event.GRPCAdapterFactory.get_adapter')
