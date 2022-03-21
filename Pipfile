@@ -1,0 +1,32 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+click = "==7.1.2"
+edagames-grpc = "==1.1.0"
+fastapi = "==0.63.0"
+h11 = "==0.12.0"
+pika = "==1.2.0"
+pydantic = "==1.8.2"
+redis = "==3.5.3"
+requests = "==2.25.1"
+starlette = "==0.13.6"
+typing-extensions = "==3.7.4.3"
+uvicorn = "==0.13.4"
+websockets = "==8.1"
+PyJWT = "==2.0.1"
+
+[dev-packages]
+coverage = "==5.5"
+fakeredis = "==1.5.0"
+flake8 = "==3.9.0"
+httpx = "==0.17.1"
+mccabe = "==0.6.1"
+parameterized = "==0.8.1"
+pycodestyle = "==2.7.0"
+pyflakes = "==2.3.1"
+
+[requires]
+python_version = "3.8"
