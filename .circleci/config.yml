@@ -21,7 +21,7 @@ jobs:
           command: pipenv sync --dev
       - run:
           name: Running Tests
-          command: pipenv run coverage run -m unittest && coverage xml && coverage report -m
+          command: pipenv run coverage run -m unittest && pipenv run coverage xml && pipenv run coverage report -m
       - run:
           name: Update CodeClimate coverage report
           command: |
