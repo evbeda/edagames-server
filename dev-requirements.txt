@@ -1,9 +1,0 @@
-coverage==5.5
-fakeredis==1.5.0
-flake8==3.9.0
-httpx==0.17.1
-mccabe==0.6.1
-parameterized==0.8.1
-pycodestyle==2.7.0
-pyflakes==2.3.1
-
