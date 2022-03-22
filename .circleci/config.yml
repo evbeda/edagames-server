@@ -28,7 +28,7 @@ jobs:
               ./cc-test-reporter after-build --exit-code $?
       - run:
           name: Running Flake8
-          command: flake8
+          command: pipenv run flake8
   trigger-main-repo-update:
     docker:
       - image: curlimages/curl
