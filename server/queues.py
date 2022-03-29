@@ -9,11 +9,11 @@ from server.constants import RABBIT_CANCEL_TIMEOUT, RABBIT_CLIENT_EXCHANGE
 
 class QueueManager:
 
-    def __init__(self):
+    def __init__(self, queue_name='default'):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(RABBIT_HOST, RABBIT_PORT))
         self.channel = self.connection.channel()
         self.channel.exchange_declare(RABBIT_CLIENT_EXCHANGE, ExchangeType.direct)
-        self.channel.queue_declare(auto_delete=True)
+        self.channel.queue_declare(queue_name, auto_delete=True)
         self.channel.queue_bind('', RABBIT_CLIENT_EXCHANGE)
         self.listener = None
         self.receiver = None
