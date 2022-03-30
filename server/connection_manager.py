@@ -38,7 +38,7 @@ class ConnectionManager:
 
         self.connections[client] = websocket
         redis_save(CLIENT_LIST_KEY, client, CLIENT_LIST)
-        self.queue_manager.register_client(client)
+        # self.queue_manager.register_client(client)
 
         await self.notify_user_list_changed()
         return client
@@ -55,7 +55,8 @@ class ConnectionManager:
                     data,
                 ))
             except KeyError:
-                self.queue_manager.send(client, event, data)
+                pass
+                # self.queue_manager.send(client, event, data)
 
     async def send(self, client: str, event: str, data: Dict):
         try:
@@ -65,7 +66,8 @@ class ConnectionManager:
                 data,
             )
         except KeyError:
-            self.queue_manager.send(client, event, data)
+            # self.queue_manager.send(client, event, data)
+            pass
 
     async def _send(self, client_ws: WebSocket, event: str, data: Dict):
         logger.info(f'[Websocket] Send: Event: {event}, data: {data}')
@@ -79,7 +81,7 @@ class ConnectionManager:
 
     async def remove_user(self, user):
         try:
-            self.queue_manager.unregister_client(user)
+            # self.queue_manager.unregister_client(user)
             redis_delete(CLIENT_LIST_KEY, CLIENT_LIST, user)
             del self.connections[user]
             await self.notify_user_list_changed()
