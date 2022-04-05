@@ -58,11 +58,9 @@ class AcceptChallenge(ServerEvent):
                 self.client,
             )
             if game_data is not None:
-                if (
-                    self.client in game_data['players']
-                    and self.client not in game_data['accepted']
-                ):
+                if self.client not in game_data['accepted']:
                     game_data['accepted'].append(self.client)
+                if self.client in game_data['players']:
                     if all([player in game_data['accepted'] for player in game_data['players']]):
                         await start_game(game_data)
                     else:
