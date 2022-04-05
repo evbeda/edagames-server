@@ -17,6 +17,7 @@ from server.constants import (
     TOKEN_COMPARE,
     GAME_ID,
     LOG,
+    LOG_EXPIRE,
     PREFIX_CHALLENGE,  # prefix
     PREFIX_TURN_TOKEN,
     PREFIX_GAME,
@@ -62,7 +63,7 @@ def redis_save(key: str, value, caller: str):
         CLIENT_LIST: add_to_set,
     }
     converted_key = key_conversion(key, caller)
-    expire = expires_relation.get(caller, None)
+    expire = expires_relation.get(caller, LOG_EXPIRE)
     redis_save_calls.get(caller, None)(converted_key, value, expire)
 
 
