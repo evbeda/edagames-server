@@ -18,14 +18,13 @@ from typing import Dict, List
 
 
 class APIGatewayConnectionManager(ConnectionManager):
-    instance: 'APIGatewayConnectionManager'
     client_id_to_bot: Dict
     bot_to_client_id: Dict
 
     def __init__(self):
         self.client_id_to_bot = {}
         self.bot_to_client_id = {}
-        APIGatewayConnectionManager.instance = self
+        ConnectionManager.instance = self
 
     async def connect(self, client_id: str, token: str):
         encoded_token = token.encode()
