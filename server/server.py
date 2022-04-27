@@ -12,6 +12,9 @@ app.include_router(router)
 
 @app.websocket("/ws/")
 async def session(websocket: WebSocket, token):
+    if ConnectionManager.connection_type != 'websocket':
+        return
+
     client = await ConnectionManager.instance.connect(websocket, token)
     if client is None:
         return
@@ -29,6 +32,9 @@ async def session(websocket: WebSocket, token):
 
 @app.post("/apigw-ws/connect")
 async def apigw_connect(request: Request):
+    if ConnectionManager.connection_type != 'api_gateway':
+        return
+
     connection_manager = APIGatewayConnectionManager.instance
     logger.info(f'BODY: {await request.body()}')
     req_body = await request.json()
@@ -40,11 +46,15 @@ async def apigw_connect(request: Request):
     except (KeyError, AuthenticationError):
         # Explicitly disconnect if auth fails using DELETE @connections api
         await connection_manager.disconnect(client_id)
+        return {}
 
     await connection_manager.connect(client_id, token)
 
 @app.post("/apigw-ws/disconnect")
 async def apigw_disconnect(request: Request):
+    if ConnectionManager.connection_type != 'api_gateway':
+        return
+
     connection_manager = APIGatewayConnectionManager.instance
     req_body = await request.json()
     client_id = req_body["client_id"]
@@ -54,6 +64,9 @@ async def apigw_disconnect(request: Request):
 
 @app.post("/apigw-ws/message")
 async def apigw_message(request: Request):
+    if ConnectionManager.connection_type != 'api_gateway':
+        return
+
     req_body = await request.json()
     client_id = req_body["client_id"]
 

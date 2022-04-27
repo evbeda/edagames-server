@@ -25,6 +25,7 @@ class APIGatewayConnectionManager(ConnectionManager):
         self.client_id_to_bot = {}
         self.bot_to_client_id = {}
         ConnectionManager.instance = self
+        ConnectionManager.connection_type = 'api_gateway'
 
     async def connect(self, client_id: str, token: str):
         encoded_token = token.encode()

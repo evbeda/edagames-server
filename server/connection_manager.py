@@ -7,6 +7,7 @@ class AuthenticationError(BaseException):
 
 class ConnectionManager:
     instance: 'ConnectionManager'
+    connection_type: str
 
     async def connect(self, *args, **kwargs):
         raise NotImplementedError
