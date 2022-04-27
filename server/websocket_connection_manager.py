@@ -19,6 +19,7 @@ class ConnectionManagerWS(ConnectionManager):
         self.connections = {}
         self.queue_manager = None
         ConnectionManager.instance = self
+        ConnectionManager.connection_type = 'websocket'
 
     def set_queue_manager(self, manager):
         self.queue_manager = manager
