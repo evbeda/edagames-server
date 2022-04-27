@@ -1,6 +1,7 @@
 from asyncio.log import logger
 import starlette
 from fastapi import FastAPI, WebSocket, Request
+from fastapi.responses import JSONResponse
 from server.connection_manager import ConnectionManager, AuthenticationError
 from .router import router
 from server.apigw_connection_manager import APIGatewayConnectionManager
@@ -42,6 +43,9 @@ async def apigw_connect(request: Request):
         client_id = req_body["client_id"]
     except (json.JSONDecodeError, KeyError):
         logger.error("Connect to this server using API Gateway")
+        return JSONResponse({
+            'error': 'Connect to this server using API Gateway'
+        }, status_code=400)
 
     try:
         # Verify client using request.json()['query']['token']
@@ -65,6 +69,9 @@ async def apigw_disconnect(request: Request):
         client_id = req_body["client_id"]
     except (json.JSONDecodeError, KeyError):
         logger.error("Connect to this server using API Gateway")
+        return JSONResponse({
+            'error': 'Connect to this server using API Gateway'
+        }, status_code=400)
 
     # Remove client from list on $disconnect
     await connection_manager.disconnect(client_id)
@@ -79,6 +86,9 @@ async def apigw_message(request: Request):
         client_id = req_body["client_id"]
     except (json.JSONDecodeError, KeyError):
         logger.error("Connect to this server using API Gateway")
+        return JSONResponse({
+            'error': 'Connect to this server using API Gateway'
+        }, status_code=400)
 
     try:
         message = json.loads(req_body['message'])
