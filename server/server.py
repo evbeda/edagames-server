@@ -36,9 +36,12 @@ async def apigw_connect(request: Request):
         return
 
     connection_manager = APIGatewayConnectionManager.instance
-    logger.info(f'BODY: {await request.body()}')
-    req_body = await request.json()
-    client_id = req_body["client_id"]
+
+    try:
+        req_body = await request.json()
+        client_id = req_body["client_id"]
+    except (json.JSONDecodeError, KeyError):
+        logger.error("Connect to this server using API Gateway")
 
     try:
         # Verify client using request.json()['query']['token']
@@ -56,8 +59,12 @@ async def apigw_disconnect(request: Request):
         return
 
     connection_manager = APIGatewayConnectionManager.instance
-    req_body = await request.json()
-    client_id = req_body["client_id"]
+
+    try:
+        req_body = await request.json()
+        client_id = req_body["client_id"]
+    except (json.JSONDecodeError, KeyError):
+        logger.error("Connect to this server using API Gateway")
 
     # Remove client from list on $disconnect
     await connection_manager.disconnect(client_id)
@@ -67,8 +74,11 @@ async def apigw_message(request: Request):
     if ConnectionManager.connection_type != 'api_gateway':
         return
 
-    req_body = await request.json()
-    client_id = req_body["client_id"]
+    try:
+        req_body = await request.json()
+        client_id = req_body["client_id"]
+    except (json.JSONDecodeError, KeyError):
+        logger.error("Connect to this server using API Gateway")
 
     try:
         message = json.loads(req_body['message'])
