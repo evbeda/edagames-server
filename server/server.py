@@ -37,9 +37,9 @@ async def apigw_connect(request: Request):
         token = req_body['query']['token']
     except (KeyError, AuthenticationError):
         # Explicitly disconnect if auth fails using DELETE @connections api
-        connection_manager.disconnect(client_id)
+        await connection_manager.disconnect(client_id)
 
-    connection_manager.connect(client_id, token)
+    await connection_manager.connect(client_id, token)
 
 @app.post("/apigw-ws/disconnect")
 async def apigw_disconnect(request: Request):
@@ -48,11 +48,10 @@ async def apigw_disconnect(request: Request):
     client_id = req_body["client_id"]
 
     # Remove client from list on $disconnect
-    connection_manager.disconnect(client_id)
+    await connection_manager.disconnect(client_id)
 
 @app.post("/apigw-ws/message")
 async def apigw_message(request: Request):
-    connection_manager = APIGatewayConnectionManager.instance
     req_body = await request.json()
     client_id = req_body["client_id"]
 

@@ -1,12 +1,13 @@
 import asyncio
 import json
 import jwt
-import logging
+from uvicorn.config import logger
 
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import JSONResponse
 from uvicorn.config import logger
 
+from server.connection_manager import ConnectionManager
 from server.redis_interface import redis_delete, redis_get, redis_save
 
 import server.constants as websocket_events
@@ -22,7 +23,7 @@ class AuthenticationError(BaseException):
     pass
 
 
-class APIGatewayConnectionManager:
+class APIGatewayConnectionManager(ConnectionManager):
     instance: 'APIGatewayConnectionManager'
     client_id_to_bot: Dict
     bot_to_client_id: Dict
@@ -32,7 +33,7 @@ class APIGatewayConnectionManager:
         self.bot_to_client_id = {}
         APIGatewayConnectionManager.instance = self
 
-    def connect(self, client_id: str, token: str):
+    async def connect(self, client_id: str, token: str):
         encoded_token = token.encode()
         try:
             user_to_connect = jwt.decode(
@@ -55,7 +56,7 @@ class APIGatewayConnectionManager:
 
         asyncio.create_task(self.notify_user_list_changed())
 
-    def disconnect(self, client_id: str):
+    async def disconnect(self, client_id: str):
         pass
 
     async def notify_user_list_changed(self):
