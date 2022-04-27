@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request, Response
 from fastapi.responses import JSONResponse
 from uvicorn.config import logger
 
-from server.connection_manager import ConnectionManager
+from server.connection_manager import ConnectionManager, AuthenticationError
 from server.redis_interface import redis_delete, redis_get, redis_save
 
 import server.constants as websocket_events
@@ -15,10 +15,6 @@ from server.constants import CLIENT_LIST, CLIENT_LIST_KEY
 from .environment import JWT_TOKEN_KEY
 
 from typing import Dict, List
-
-
-class AuthenticationError(BaseException):
-    pass
 
 
 class APIGatewayConnectionManager(ConnectionManager):

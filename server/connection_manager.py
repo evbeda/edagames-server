@@ -1,6 +1,10 @@
 from typing import Dict, List
 
 
+class AuthenticationError(BaseException):
+    pass
+
+
 class ConnectionManager:
     instance: 'ConnectionManager'
 
