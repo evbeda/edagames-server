@@ -1,3 +1,4 @@
+from asyncio.log import logger
 import starlette
 from fastapi import FastAPI, WebSocket, Request
 from server.connection_manager import ConnectionManager, AuthenticationError
@@ -29,12 +30,13 @@ async def session(websocket: WebSocket, token):
 @app.post("/apigw-ws/connect")
 async def apigw_connect(request: Request):
     connection_manager = APIGatewayConnectionManager.instance
+    logger.info(f'BODY: {await request.body()}')
     req_body = await request.json()
     client_id = req_body["client_id"]
 
     try:
         # Verify client using request.json()['query']['token']
-        token = req_body['query']['token']
+        token = json.loads(req_body['query'])['token']
     except (KeyError, AuthenticationError):
         # Explicitly disconnect if auth fails using DELETE @connections api
         await connection_manager.disconnect(client_id)
