@@ -16,8 +16,6 @@ from .environment import JWT_TOKEN_KEY
 
 from typing import Dict, List
 
-router = APIRouter()
-
 
 class AuthenticationError(BaseException):
     pass
