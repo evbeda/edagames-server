@@ -23,6 +23,7 @@ class ConnectionManager:
         self.queue_manager = manager
 
     async def connect(self, websocket: WebSocket, token: str):
+        logger.info('Connection in progress!')
         encoded_token = token.encode()
         try:
             user_to_connect = jwt.decode(
@@ -31,10 +32,12 @@ class ConnectionManager:
                 algorithms=["HS256"],
             )
         except jwt.exceptions.InvalidTokenError:
+            logger.info('Invalid Token!')
             await websocket.close()
             return
         await websocket.accept()
         client = user_to_connect.get('user')
+        logger.info(f'User connected {client}')
 
         self.connections[client] = websocket
         redis_save(CLIENT_LIST_KEY, client, CLIENT_LIST)

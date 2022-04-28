@@ -100,21 +100,22 @@ class Movements(ServerEvent):
 
     async def execute_action(self, game_data: dict, game_id: str):
         adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
+        await self.log_action(game_id, self.response)
         data_received = await adapter.execute_action(
             game_id,
             self.response
         )
-        await self.log_action(data_received)
+        await self.log_action(game_id, data_received.play_data)
         if data_received.current_player == EMPTY_PLAYER:
             await self.game_over(data_received, game_data)
         else:
             await move(data_received, game_data.get(GAME_NAME))
 
-    async def log_action(self, data):
-        play_data = {k: int(v) if type(v) == float else v for k, v in data.play_data.items()}
+    async def log_action(self, game_id, data):
+        data = {k: int(v) if type(v) == float else v for k, v in data.items()}
         redis_save(
-            data.game_id,
-            play_data,
+            game_id,
+            data,
             LOG,
         )
 
