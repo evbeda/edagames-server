@@ -143,9 +143,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             Gadapter_patched.return_value = adapter_patched
             await Movements({}, client).execute_action(game_data, game_id)
             Gadapter_patched.assert_called_with(DEFAULT_GAME)
-            log_patched.assert_awaited_once_with(
-                adapter_patched.execute_action.return_value,
-            )
+            self.assertEqual(log_patched.call_count, 2)
             mock_move.assert_awaited_once_with(
                 adapter_patched.execute_action.return_value,
                 DEFAULT_GAME,
@@ -186,11 +184,11 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             'score_1': 12,
             'score_2': 15,
         }
-        data = MagicMock(
+        MagicMock(
             game_id=test_id,
             play_data=play_data,
         )
-        await Movements({}, self.client).log_action(data)
+        await Movements({}, self.client).log_action(test_id, play_data)
         save_patched.assert_called_once_with(
             test_id,
             play_data,
