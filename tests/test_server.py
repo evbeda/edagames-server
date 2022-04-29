@@ -11,6 +11,10 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         ConnectionManager.instance = AsyncMock()
         ConnectionManager.connection_type = 'websocket'
 
+    def tearDown(self) -> None:
+        ConnectionManager.instance = None
+        ConnectionManager.connection_type = None
+
     async def test_session_open_close(self):
         websocket = AsyncMock()
         websocket.receive_text.side_effect = starlette.websockets.WebSocketDisconnect()

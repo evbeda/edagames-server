@@ -16,9 +16,9 @@ from typing import Dict, List
 
 class ConnectionManagerWS(ConnectionManager):
     def __init__(self):
+        super().__init__()
         self.connections = {}
         self.queue_manager = None
-        ConnectionManager.instance = self
         ConnectionManager.connection_type = 'websocket'
 
     def set_queue_manager(self, manager):
