@@ -122,3 +122,6 @@ class APIGatewayConnectionManager(ConnectionManager):
             )
         except Exception as e:
             logger.warning(f'[APIGateway] Error while sending message to client ({client_apigw}): {e}')
+
+    def validate_client(self, client_apigw: str) -> bool:
+        return client_apigw in self.client_id_to_bot.keys()

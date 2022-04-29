@@ -1,3 +1,4 @@
+from typing import Dict
 from uvicorn.config import logger
 import starlette
 from fastapi import FastAPI, WebSocket, Request
@@ -97,11 +98,18 @@ async def apigw_message(request: Request):
             'error': 'Connect to this server using API Gateway'
         }, status_code=400)
 
-    try:
-        message = json.loads(req_body['message'])
-    except json.decoder.JSONDecodeError as e:
-        logger.info(f'Client ({client_id}) sent an invalid message: {e}')
-        message = {}
+    if not connection_manager.validate_client(client_id):
+        await connection_manager._send(client_id, 'Error', 'Unauthorized')
+        await connection_manager.disconnect(client_id)
+        return JSONResponse({
+            'error': 'Unauthorized'
+        }, status_code=401)
 
-    bot_name = connection_manager.client_id_to_bot[client_id]
-    await FactoryServerEvent.get_event(message, bot_name).run()
+    if isinstance(message := req_body['message'], Dict):
+        bot_name = connection_manager.client_id_to_bot[client_id]
+        await FactoryServerEvent.get_event(message, bot_name).run()
+    else:
+        logger.info(f'Client ({client_id}) sent an invalid message: {message}')
+        return JSONResponse({
+            'error': 'Invalid message'
+        }, status_code=400)
