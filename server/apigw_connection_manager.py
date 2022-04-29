@@ -57,13 +57,12 @@ class APIGatewayConnectionManager(ConnectionManager):
             redis_delete(CLIENT_LIST_KEY, CLIENT_LIST, client_id)
             await self.notify_user_list_changed()
         except Exception as e:
-            logger.error(f'Client ({client_id}) not found in Redis')
+            logger.error(f'Client ({client_id}) not found in Redis: {e}')
         try:
             del self.bot_to_client_id[self.client_id_to_bot[client_id]]
             del self.client_id_to_bot[client_id]
         except KeyError:
             logger.info(f'Client ({client_id}) not found locally')
-
 
     async def notify_user_list_changed(self):
         try:
