@@ -51,7 +51,8 @@ async def apigw_connect(request: Request):
         # Verify client using request.json()['query']['token']
         token = json.loads(req_body['query'])['token']
         await connection_manager.connect(client_id, token)
-    except (json.JSONDecodeError, KeyError, AuthenticationError):
+    except (json.JSONDecodeError, KeyError, AuthenticationError) as e:
+        logger.warning(f'Error authenticating client ({client_id}): {e}')
         # Explicitly disconnect if auth fails using DELETE @connections api
         await connection_manager.disconnect(client_id)
         return
@@ -91,7 +92,8 @@ async def apigw_message(request: Request):
 
     try:
         message = json.loads(req_body['message'])
-    except json.decoder.JSONDecodeError:
+    except json.decoder.JSONDecodeError as e:
+        logger.info(f'Client ({client_id}) sent an invalid message: {e}')
         message = {}
 
     await FactoryServerEvent.get_event(message, client_id).run()
