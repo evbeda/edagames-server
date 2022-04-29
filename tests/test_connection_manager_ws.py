@@ -3,7 +3,7 @@ import jwt
 from parameterized import parameterized
 from unittest.mock import MagicMock, AsyncMock, patch, call
 
-from server.connection_manager import ConnectionManager
+from server.websocket_connection_manager import ConnectionManagerWS
 import server.constants as websocket_events
 
 
@@ -20,10 +20,10 @@ def generate_token_truncated():
     return '.'.join([t[:15] for t in split_token])
 
 
-class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
+class TestConnectionManagerWS(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
-        self.manager = ConnectionManager()
+        self.manager = ConnectionManagerWS()
         self.manager.queue_manager = MagicMock()
 
     def test_set_queue_manager(self):
@@ -54,8 +54,8 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         websocket = AsyncMock()
         notify_patched = AsyncMock()
         self.manager.notify_user_list_changed = notify_patched
-        with patch('server.connection_manager.JWT_TOKEN_KEY', TEST_TOKEN_KEY),\
-                patch('server.connection_manager.redis_save'):
+        with patch('server.websocket_connection_manager.JWT_TOKEN_KEY', TEST_TOKEN_KEY),\
+                patch('server.websocket_connection_manager.redis_save'):
             client = await self.manager.connect(websocket, token)
         self.assertEqual(client, expected)
         websocket.accept.assert_called()
@@ -79,14 +79,14 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         websocket = AsyncMock()
         notify_patched = AsyncMock()
         self.manager.notify_user_list_changed = notify_patched
-        with patch('server.connection_manager.JWT_TOKEN_KEY', TEST_TOKEN_KEY):
+        with patch('server.websocket_connection_manager.JWT_TOKEN_KEY', TEST_TOKEN_KEY):
             await self.manager.connect(websocket, token)
         self.assertEqual({}, self.manager.connections)
         websocket.close.assert_called()
         notify_patched.assert_not_called()
 
-    @patch('server.connection_manager.redis_delete')
-    @patch.object(ConnectionManager, 'notify_user_list_changed')
+    @patch('server.websocket_connection_manager.redis_delete')
+    @patch.object(ConnectionManagerWS, 'notify_user_list_changed')
     async def test_remove_user(self, notify_patched, redis_delete_patched):
         self.manager.connections = {'Test Client 1': 'websocket'}
         await self.manager.remove_user('Test Client 1')
@@ -114,7 +114,7 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         event = 'event'
         data = {'data': "Test Message 1"}
         self.manager.connections = connections
-        with patch.object(ConnectionManager, 'bulk_send') as bulk_send_patched:
+        with patch.object(ConnectionManagerWS, 'bulk_send') as bulk_send_patched:
             await self.manager.broadcast(event, data)
         bulk_send_patched.assert_called_with(
             connections.keys(),
@@ -122,7 +122,7 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
             data,
         )
 
-    @patch.object(ConnectionManager, '_send')
+    @patch.object(ConnectionManagerWS, '_send')
     async def test_manager_send(self, send_patched):
         user = 'User'
         event = 'event'
@@ -151,7 +151,7 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         event = 'event'
         data = {'data': "Test Message 1"}
         with patch('asyncio.create_task') as create_task_patched,\
-                patch.object(ConnectionManager, '_send', new_callable=MagicMock) as send_patched:
+                patch.object(ConnectionManagerWS, '_send', new_callable=MagicMock) as send_patched:
             await self.manager.bulk_send(clients, event, data)
         await self.manager.bulk_send(clients, event, data)
         self.assertEqual(len(create_task_patched.mock_calls), len(clients))
@@ -195,8 +195,8 @@ class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
         )
         websocket_patched.send_text.assert_called_with(expected)
 
-    @patch('server.connection_manager.redis_get')
-    @patch.object(ConnectionManager, 'broadcast')
+    @patch('server.websocket_connection_manager.redis_get')
+    @patch.object(ConnectionManagerWS, 'broadcast')
     async def test_notify_user_list_changed(self, broadcast_patched, redis_get_patched):
         redis_get_patched.return_value = ['client 1', 'client 2', 'client 3']
         await self.manager.notify_user_list_changed()
