@@ -113,9 +113,9 @@ class ServerEvent:
         self.response = response
         self.client = client
 
-    async def search_value(self, value):
+    async def search_value(self, value, default=None):
         try:
-            value_search = self.response.get(DATA, {}).get(value)
+            value_search = self.response.get(DATA, {}).get(value, default)
         except:
             value_search = None
         if value_search is None:

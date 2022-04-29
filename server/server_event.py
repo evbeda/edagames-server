@@ -19,7 +19,7 @@ from server.constants import (
     LOG,
     EMPTY_PLAYER,  # game_over
     GAME_NAME,  # dict.get values
-
+    DEFAULT_GAME,
 )
 
 
@@ -40,7 +40,7 @@ class Challenge(ServerEvent):
 
     async def run(self):
         challenged = await self.search_value(OPPONENT)
-        game_name = await self.search_value(GAME_NAME)
+        game_name = await self.search_value(GAME_NAME, DEFAULT_GAME)
         await make_challenge(self.client, challenged, game_name)
 
 
