@@ -17,6 +17,7 @@ typing-extensions = "==3.7.4.3"
 uvicorn = "==0.13.4"
 websockets = "==8.1"
 PyJWT = "==2.0.1"
+boto3 = "*"
 
 [dev-packages]
 coverage = "==5.5"
