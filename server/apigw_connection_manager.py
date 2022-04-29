@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import boto3
 import jwt
 
@@ -23,7 +24,14 @@ class APIGatewayConnectionManager(ConnectionManager):
         self.client_id_to_bot = {}
         self.bot_to_client_id = {}
         ConnectionManager.connection_type = 'api_gateway'
-        self._client = boto3.client('apigatewaymanagementapi')
+        self._client = boto3.client(
+            'apigatewaymanagementapi',
+            endpoint_url='https://{api_id}.execute-api.{region}.amazonaws.com/{stage}'.format(
+                api_id=os.getenv('AWS_APIGATEWAY_ID'),
+                region=os.getenv('AWS_DEFAULT_REGION'),
+                stage=os.getenv('AWS_APIGATEWAY_STAGE'),
+            )
+        )
 
     async def connect(self, client_id: str, token: str):
         encoded_token = token.encode()
