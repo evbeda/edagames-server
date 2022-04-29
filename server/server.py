@@ -1,3 +1,4 @@
+import os
 from typing import Dict
 from uvicorn.config import logger
 import starlette
@@ -11,6 +12,8 @@ import json
 
 app = FastAPI()
 app.include_router(router)
+
+AWS_APIGW_SECRET = os.getenv('AWS_APIGW_SECRET')
 
 
 @app.websocket("/ws/")
@@ -36,19 +39,21 @@ async def session(websocket: WebSocket, token):
 
 @app.post("/apigw-ws/connect")
 async def apigw_connect(request: Request):
-    if ConnectionManager.connection_type != 'api_gateway':
-        return
+    try:
+        if (
+            ConnectionManager.connection_type != 'api_gateway'
+            or (req_body := request.json())['aws_apigw_secret'] != AWS_APIGW_SECRET
+        ):
+            logger.warning(f'User requested direct connection: {request.client.host}')
+            raise AuthenticationError('API Gateway key mismatch')
+    except (KeyError, json.JSONDecodeError, AuthenticationError):
+        return JSONResponse({
+            'error': 'Forbidden',
+            'source_ip': request.client.host,
+        }, status_code=403)
 
     connection_manager = APIGatewayConnectionManager.instance
-
-    try:
-        req_body = await request.json()
-        client_id = req_body["client_id"]
-    except (json.JSONDecodeError, KeyError):
-        logger.error("Connect to this server using API Gateway")
-        return JSONResponse({
-            'error': 'Connect to this server using API Gateway'
-        }, status_code=400)
+    client_id = req_body["client_id"]
 
     try:
         # Verify client using request.json()['query']['token']
@@ -64,19 +69,21 @@ async def apigw_connect(request: Request):
 
 @app.post("/apigw-ws/disconnect")
 async def apigw_disconnect(request: Request):
-    if ConnectionManager.connection_type != 'api_gateway':
-        return
+    try:
+        if (
+            ConnectionManager.connection_type != 'api_gateway'
+            or (req_body := request.json())['aws_apigw_secret'] != AWS_APIGW_SECRET
+        ):
+            logger.warning(f'User requested direct connection: {request.client.host}')
+            raise AuthenticationError('API Gateway key mismatch')
+    except (KeyError, json.JSONDecodeError, AuthenticationError):
+        return JSONResponse({
+            'error': 'Forbidden',
+            'source_ip': request.client.host,
+        }, status_code=403)
 
     connection_manager = APIGatewayConnectionManager.instance
-
-    try:
-        req_body = await request.json()
-        client_id = req_body["client_id"]
-    except (json.JSONDecodeError, KeyError):
-        logger.error("Connect to this server using API Gateway")
-        return JSONResponse({
-            'error': 'Connect to this server using API Gateway'
-        }, status_code=400)
+    client_id = req_body["client_id"]
 
     # Remove client from list on $disconnect
     await connection_manager.disconnect(client_id)
@@ -84,19 +91,21 @@ async def apigw_disconnect(request: Request):
 
 @app.post("/apigw-ws/message")
 async def apigw_message(request: Request):
-    if ConnectionManager.connection_type != 'api_gateway':
-        return
+    try:
+        if (
+            ConnectionManager.connection_type != 'api_gateway'
+            or (req_body := request.json())['aws_apigw_secret'] != AWS_APIGW_SECRET
+        ):
+            logger.warning(f'User requested direct connection: {request.client.host}')
+            raise AuthenticationError('API Gateway key mismatch')
+    except (KeyError, json.JSONDecodeError, AuthenticationError):
+        return JSONResponse({
+            'error': 'Forbidden',
+            'source_ip': request.client.host,
+        }, status_code=403)
 
     connection_manager = APIGatewayConnectionManager.instance
-
-    try:
-        req_body = await request.json()
-        client_id = req_body["client_id"]
-    except (json.JSONDecodeError, KeyError):
-        logger.error("Connect to this server using API Gateway")
-        return JSONResponse({
-            'error': 'Connect to this server using API Gateway'
-        }, status_code=400)
+    client_id = req_body["client_id"]
 
     if not connection_manager.validate_client(client_id):
         await connection_manager._send(client_id, 'Error', 'Unauthorized')
