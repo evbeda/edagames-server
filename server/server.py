@@ -16,7 +16,7 @@ app.include_router(router)
 AWS_APIGW_SECRET = os.getenv('AWS_APIGW_SECRET')
 
 
-@app.websocket("/ws/")
+@app.websocket("/ws")
 async def session(websocket: WebSocket, token):
     if ConnectionManager.connection_type != 'websocket':
         return
