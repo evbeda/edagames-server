@@ -1,4 +1,4 @@
-from asyncio.log import logger
+from uvicorn.config import logger
 import starlette
 from fastapi import FastAPI, WebSocket, Request
 from fastapi.responses import JSONResponse
@@ -49,9 +49,10 @@ async def apigw_connect(request: Request):
 
     try:
         # Verify client using request.json()['query']['token']
-        token = json.loads(req_body['query'])['token']
+        parsed_query = req_body['query'].strip('{}').split(', ')
+        token = [v for (k, v) in [x.split('=') for x in parsed_query] if k == 'token'][0]
         await connection_manager.connect(client_id, token)
-    except (json.JSONDecodeError, KeyError, AuthenticationError) as e:
+    except (json.JSONDecodeError, IndexError, AuthenticationError) as e:
         logger.warning(f'Error authenticating client ({client_id}): {e}')
         # Explicitly disconnect if auth fails using DELETE @connections api
         await connection_manager.disconnect(client_id)
