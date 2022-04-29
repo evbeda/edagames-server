@@ -2,12 +2,8 @@ import asyncio
 import json
 import boto3
 import jwt
-from uvicorn.config import logger
 
-from fastapi import APIRouter, Request, Response
-from fastapi.responses import JSONResponse
 from uvicorn.config import logger
-
 from server.connection_manager import ConnectionManager, AuthenticationError
 from server.redis_interface import redis_delete, redis_get, redis_save
 
