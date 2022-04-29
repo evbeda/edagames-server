@@ -54,9 +54,15 @@ class APIGatewayConnectionManager(ConnectionManager):
 
     async def disconnect(self, client_id: str):
         try:
-            self._client.delete_connection(client_id)
+            self._client.delete_connection(ConnectionId=client_id)
         except Exception as e:
             logger.info(f'Error while deleting client connection: {e}')
+
+        try:
+            del self.bot_to_client_id[self.client_id_to_bot[client_id]]
+            del self.client_id_to_bot[client_id]
+        except KeyError:
+            logger.info(f'Client ({client_id}) not found')
 
     async def notify_user_list_changed(self):
         pass
