@@ -9,7 +9,7 @@ app = FastAPI()
 app.include_router(router)
 
 
-@app.websocket("/ws/")
+@app.websocket("/ws")
 async def session(websocket: WebSocket, token):
     client = await ConnectionManager.instance.connect(websocket, token)
     if client is None:

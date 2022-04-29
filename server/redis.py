@@ -41,7 +41,7 @@ def get_stream(key: str, next_item: str = '-'):
         if next_item != '-':
             next_prev_token = sha1(next_item.encode()).hexdigest()
         else:
-            next_prev_token = None
+            next_prev_token = '-'
         if len(data) > LOG_PAGE_SIZE:
             moves = dict(data[:-1]).values()
             next_item = data[-1][0]
