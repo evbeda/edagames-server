@@ -1,5 +1,6 @@
 import asyncio
 import json
+import boto3
 import jwt
 from uvicorn.config import logger
 
@@ -26,6 +27,7 @@ class APIGatewayConnectionManager(ConnectionManager):
         self.bot_to_client_id = {}
         ConnectionManager.instance = self
         ConnectionManager.connection_type = 'api_gateway'
+        self._client = boto3.client('apigatewaymanagementapi')
 
     async def connect(self, client_id: str, token: str):
         encoded_token = token.encode()
