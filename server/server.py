@@ -82,6 +82,8 @@ async def apigw_message(request: Request):
     if ConnectionManager.connection_type != 'api_gateway':
         return
 
+    connection_manager = APIGatewayConnectionManager.instance
+
     try:
         req_body = await request.json()
         client_id = req_body["client_id"]
@@ -97,4 +99,5 @@ async def apigw_message(request: Request):
         logger.info(f'Client ({client_id}) sent an invalid message: {e}')
         message = {}
 
-    await FactoryServerEvent.get_event(message, client_id).run()
+    bot_name = connection_manager.client_id_to_bot[client_id]
+    await FactoryServerEvent.get_event(message, bot_name).run()

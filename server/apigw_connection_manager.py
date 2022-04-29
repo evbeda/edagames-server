@@ -4,6 +4,7 @@ import boto3
 import jwt
 from uvicorn.config import logger
 
+from botocore import ApiGa
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import JSONResponse
 from uvicorn.config import logger
@@ -82,10 +83,35 @@ class APIGatewayConnectionManager(ConnectionManager):
         await self.bulk_send(self.bot_to_client_id.keys(), event, data)
 
     async def bulk_send(self, clients: List[str], event: str, data: Dict):
-        pass
+        for client in clients:
+            try:
+                asyncio.create_task(self._send(
+                    self.bot_to_client_id[client],
+                    event,
+                    data,
+                ))
+            except KeyError:
+                pass
 
     async def send(self, client: str, event: str, data: Dict):
-        pass
+        try:
+            await self._send(
+                self.bot_to_client_id[client],
+                event,
+                data,
+            )
+        except KeyError:
+            pass
 
-    async def _send(self):
-        pass
+    async def _send(self, client_apigw: str, event: str, data: Dict):
+        logger.info(f'[APIGateway] Send: Event: {event}, data: {data}')
+        try:
+            self._client.post_to_connection(
+                Data=json.dumps({
+                    'event': event,
+                    'data': data,
+                }).encode(),
+                ConnectionId=client_apigw
+            )
+        except Exception as e:
+            logger.warning(f'[APIGateway] Error while sending message to client ({client_apigw}): {e}')
