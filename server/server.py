@@ -50,12 +50,11 @@ async def apigw_connect(request: Request):
     try:
         # Verify client using request.json()['query']['token']
         token = json.loads(req_body['query'])['token']
-    except (KeyError, AuthenticationError):
+        await connection_manager.connect(client_id, token)
+    except (json.JSONDecodeError, KeyError, AuthenticationError):
         # Explicitly disconnect if auth fails using DELETE @connections api
         await connection_manager.disconnect(client_id)
-        return {}
-
-    await connection_manager.connect(client_id, token)
+        return
 
 @app.post("/apigw-ws/disconnect")
 async def apigw_disconnect(request: Request):
