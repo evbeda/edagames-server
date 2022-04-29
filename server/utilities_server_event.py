@@ -114,7 +114,10 @@ class ServerEvent:
         self.client = client
 
     async def search_value(self, value):
-        value_search = self.response.get(DATA, {}).get(value)
+        try:
+            value_search = self.response.get(DATA, {}).get(value)
+        except:
+            value_search = None
         if value_search is None:
             await notify_error_to_client(
                 self.client,
