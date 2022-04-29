@@ -23,9 +23,9 @@ class APIGatewayConnectionManager(ConnectionManager):
     bot_to_client_id: Dict
 
     def __init__(self):
+        super().__init__()
         self.client_id_to_bot = {}
         self.bot_to_client_id = {}
-        ConnectionManager.instance = self
         ConnectionManager.connection_type = 'api_gateway'
         self._client = boto3.client('apigatewaymanagementapi')
 

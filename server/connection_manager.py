@@ -9,6 +9,9 @@ class ConnectionManager:
     instance: 'ConnectionManager'
     connection_type: str
 
+    def __init__(self) -> None:
+        ConnectionManager.instance = self
+
     async def connect(self, *args, **kwargs):
         raise NotImplementedError
 

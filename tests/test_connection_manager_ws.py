@@ -4,6 +4,7 @@ from parameterized import parameterized
 from unittest.mock import MagicMock, AsyncMock, patch, call
 
 from server.websocket_connection_manager import ConnectionManagerWS
+from server.connection_manager import ConnectionManager
 import server.constants as websocket_events
 
 
@@ -25,6 +26,10 @@ class TestConnectionManagerWS(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.manager = ConnectionManagerWS()
         self.manager.queue_manager = MagicMock()
+
+    def tearDown(self) -> None:
+        ConnectionManager.instance = None
+        ConnectionManager.connection_type = None
 
     def test_set_queue_manager(self):
         queue_manager = MagicMock()
