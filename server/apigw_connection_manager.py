@@ -65,7 +65,18 @@ class APIGatewayConnectionManager(ConnectionManager):
             logger.info(f'Client ({client_id}) not found')
 
     async def notify_user_list_changed(self):
-        pass
+        try:
+            users = await redis_get(CLIENT_LIST_KEY, CLIENT_LIST)
+        except Exception as e:
+            logger.warning(f'Could not read user list from Redis: {e}')
+            users = list(self.bot_to_client_id.keys())
+        logger.info('[APIGateway] Users {}'.format(users))
+        await self.broadcast(
+            websocket_events.EVENT_LIST_USERS,
+            {
+                'users': users,
+            },
+        )
 
     async def broadcast(self, event: str, data: Dict):
         pass
