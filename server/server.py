@@ -11,6 +11,7 @@ import json
 app = FastAPI()
 app.include_router(router)
 
+
 @app.websocket("/ws/")
 async def session(websocket: WebSocket, token):
     if ConnectionManager.connection_type != 'websocket':
@@ -30,6 +31,7 @@ async def session(websocket: WebSocket, token):
     except starlette.websockets.WebSocketDisconnect:
         await ConnectionManager.instance.remove_user(client)
         return
+
 
 @app.post("/apigw-ws/connect")
 async def apigw_connect(request: Request):
@@ -58,6 +60,7 @@ async def apigw_connect(request: Request):
         await connection_manager.disconnect(client_id)
         return
 
+
 @app.post("/apigw-ws/disconnect")
 async def apigw_disconnect(request: Request):
     if ConnectionManager.connection_type != 'api_gateway':
@@ -76,6 +79,7 @@ async def apigw_disconnect(request: Request):
 
     # Remove client from list on $disconnect
     await connection_manager.disconnect(client_id)
+
 
 @app.post("/apigw-ws/message")
 async def apigw_message(request: Request):

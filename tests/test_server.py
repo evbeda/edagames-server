@@ -1,7 +1,7 @@
 import unittest
 from server.connection_manager import ConnectionManager
 import server.server as server
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import patch, AsyncMock
 import starlette
 
 
