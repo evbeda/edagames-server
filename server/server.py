@@ -45,6 +45,7 @@ async def apigw_connect(request: Request):
             or (req_body := await request.json())['aws_apigw_secret'] != AWS_APIGW_SECRET
         ):
             logger.warning(f'User requested direct connection: {request.client.host}')
+            await APIGatewayConnectionManager.instance.disconnect(req_body["client_id"])
             raise AuthenticationError('API Gateway key mismatch')
     except (KeyError, json.JSONDecodeError, AuthenticationError):
         return JSONResponse({
@@ -75,6 +76,7 @@ async def apigw_disconnect(request: Request):
             or (req_body := await request.json())['aws_apigw_secret'] != AWS_APIGW_SECRET
         ):
             logger.warning(f'User requested direct connection: {request.client.host}')
+            await APIGatewayConnectionManager.instance.disconnect(req_body["client_id"])
             raise AuthenticationError('API Gateway key mismatch')
     except (KeyError, json.JSONDecodeError, AuthenticationError):
         return JSONResponse({
@@ -97,6 +99,7 @@ async def apigw_message(request: Request):
             or (req_body := await request.json())['aws_apigw_secret'] != AWS_APIGW_SECRET
         ):
             logger.warning(f'User requested direct connection: {request.client.host}')
+            await APIGatewayConnectionManager.instance.disconnect(req_body["client_id"])
             raise AuthenticationError('API Gateway key mismatch')
     except (KeyError, json.JSONDecodeError, AuthenticationError):
         return JSONResponse({
