@@ -79,7 +79,7 @@ class APIGatewayConnectionManager(ConnectionManager):
         )
 
     async def broadcast(self, event: str, data: Dict):
-        pass
+        await self.bulk_send(self.bot_to_client_id.keys(), event, data)
 
     async def bulk_send(self, clients: List[str], event: str, data: Dict):
         pass
