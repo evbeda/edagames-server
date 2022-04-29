@@ -4,7 +4,6 @@ import boto3
 import jwt
 from uvicorn.config import logger
 
-from botocore import ApiGa
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import JSONResponse
 from uvicorn.config import logger
