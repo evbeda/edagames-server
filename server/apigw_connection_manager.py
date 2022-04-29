@@ -53,7 +53,10 @@ class APIGatewayConnectionManager(ConnectionManager):
         asyncio.create_task(self.notify_user_list_changed())
 
     async def disconnect(self, client_id: str):
-        self._client.delete_connection(client_id)
+        try:
+            self._client.delete_connection(client_id)
+        except Exception as e:
+            logger.info(f'Error while deleting client connection: {e}')
 
     async def notify_user_list_changed(self):
         pass
