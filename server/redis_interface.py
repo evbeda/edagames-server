@@ -67,6 +67,15 @@ def redis_save(key: str, value, caller: str):
     redis_save_calls.get(caller, None)(converted_key, value, expire)
 
 
+async def log_action(game_id, data):
+    data = {k: int(v) if type(v) == float else v for k, v in data.items()}
+    redis_save(
+        game_id,
+        data,
+        LOG,
+    )
+
+
 async def redis_get(key: str, caller: str, client: str = EMPTY_PLAYER, **kwargs):
     redis_get_calls = {
         CHALLENGE_ID: get_string,

@@ -2,7 +2,11 @@ import asyncio
 from uvicorn.config import logger
 
 from server.game import next_turn, identifier, data_challenge
-from server.redis_interface import redis_save, redis_get
+from server.redis_interface import (
+    log_action,
+    redis_save,
+    redis_get,
+)
 from server.grpc_adapter import GRPCAdapterFactory
 from server.exception import GameIdException
 from server.websockets import (
@@ -89,6 +93,14 @@ async def make_penalize(data, game_name, past_token):
         data.current_player,
     )
     if token_valid == past_token:
+        await log_action(
+            data.game_id,
+            {
+                'game_id':data.game_id,
+                'player': data.current_player,
+                'event': 'timeout',
+            },
+        )
         adapter = await GRPCAdapterFactory.get_adapter(game_name)
         data_penalize = await adapter.penalize(data.game_id)
         if data_penalize.game_id:
