@@ -123,6 +123,9 @@ class APIGatewayConnectionManager(ConnectionManager):
                 ConnectionId=client_apigw
             )
         except Exception as e:
+            # Remove "gone" clients
+            if 'GoneException' in str(e):
+                self.disconnect(client_apigw)
             logger.warning(f'[APIGateway] Error while sending message to client ({client_apigw}): {e}')
 
     def validate_client(self, client_apigw: str) -> bool:
