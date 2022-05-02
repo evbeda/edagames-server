@@ -125,3 +125,23 @@ async def apigw_message(request: Request):
         return JSONResponse({
             'error': 'Invalid message'
         }, status_code=400)
+
+
+@app.on_event("startup.complete")
+def startup_complete():
+    ConnectionManager.instance.broadcast(
+        'server_ready',
+        {
+            'message': 'Server is ready to accept messages',
+        }
+    )
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    ConnectionManager.instance.broadcast(
+        'server_shutdown',
+        {
+            'message': 'Server shutting down',
+        }
+    )
