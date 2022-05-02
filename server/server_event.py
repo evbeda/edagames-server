@@ -1,8 +1,11 @@
 from server.websockets import notify_feedback, notify_user_list_to_client
 from server.grpc_adapter import GRPCAdapterFactory
 from server.utilities_server_event import ServerEvent, make_challenge, start_game, move
-from server.redis_interface import redis_save, redis_get
-
+from server.redis_interface import (
+    log_action,
+    redis_save,
+    redis_get,
+)
 from server.constants import (
     CLIENT_LIST,
     CLIENT_LIST_KEY,
@@ -100,24 +103,16 @@ class Movements(ServerEvent):
 
     async def execute_action(self, game_data: dict, game_id: str):
         adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
-        await self.log_action(game_id, self.response)
+        await log_action(game_id, self.response)
         data_received = await adapter.execute_action(
             game_id,
             self.response
         )
-        await self.log_action(game_id, data_received.play_data)
+        await log_action(game_id, data_received.play_data)
         if data_received.current_player == EMPTY_PLAYER:
             await self.game_over(data_received, game_data)
         else:
             await move(data_received, game_data.get(GAME_NAME))
-
-    async def log_action(self, game_id, data):
-        data = {k: int(v) if type(v) == float else v for k, v in data.items()}
-        redis_save(
-            game_id,
-            data,
-            LOG,
-        )
 
 
 class AbortGame(ServerEvent):
