@@ -19,7 +19,7 @@ DEFAULT_GAME = 'quoridor'
 EMPTY_PLAYER = ''
 
 # Time constants
-TIME_SLEEP = 3
+TIME_SLEEP = 15
 TIME_CHALLENGE = 300
 TOKEN_EXPIRE = TIME_SLEEP + 15
 DEFAULT_EXPIRE = 7200  # default expire of 2hs
