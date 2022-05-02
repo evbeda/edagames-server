@@ -16,7 +16,6 @@ from server.constants import (
     MSG_TURN_TOKEN,
     CHALLENGE_ID,
     DEFAULT_GAME,
-    LOG,
     GAME_ID,
     TURN_TOKEN,
 )
@@ -133,7 +132,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         game_id = 'test_game_id'
         turn_data = {'player_1': client, 'score_1': 1000, 'player_2': 'client2', 'score_2': 500}
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched,\
-                patch.object(Movements, 'log_action') as log_patched:
+                patch('server.server_event.log_action') as log_patched:
             adapter_patched = AsyncMock()
             adapter_patched.execute_action.return_value = MagicMock(
                 turn_data=turn_data,
@@ -156,7 +155,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         game_id = 'test_game_id'
         turn_data = {'player_1': 'client1', 'score_1': 1000, 'player_2': 'client2', 'score_2': 500}
         with patch('server.server_event.GRPCAdapterFactory.get_adapter') as g_adapter_patched,\
-                patch.object(Movements, 'log_action'):
+                patch('server.server_event.log_action'):
             adapter_patched = AsyncMock()
             adapter_patched.execute_action.return_value = MagicMock(
                 turn_data=turn_data,
@@ -168,32 +167,6 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 adapter_patched.execute_action.return_value,
                 game_data,
             )
-
-    @patch('server.server_event.redis_save')
-    async def test_movements_log_action(self, save_patched):
-        test_id = 'test-0000-00000001'
-        play_data = {
-            'board_id': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-            'action': 'move',
-            'from_row': 3,
-            'from_col': 4,
-            'to_row': 4,
-            'to_col': 4,
-            'player_1': 'player1',
-            'player_2': 'player2',
-            'score_1': 12,
-            'score_2': 15,
-        }
-        MagicMock(
-            game_id=test_id,
-            play_data=play_data,
-        )
-        await Movements({}, self.client).log_action(test_id, play_data)
-        save_patched.assert_called_once_with(
-            test_id,
-            play_data,
-            LOG,
-        )
 
     @parameterized.expand([
         (

@@ -19,7 +19,6 @@ from server.constants import (
     MSG_TURN_TOKEN,
     TURN_TOKEN,
     OPPONENT,
-    LOG,
     EMPTY_PLAYER,  # game_over
     GAME_NAME,  # dict.get values
     DEFAULT_GAME,
