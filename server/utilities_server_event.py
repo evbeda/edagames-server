@@ -117,7 +117,7 @@ class ServerEvent:
     async def search_value(self, value, default=None):
         try:
             value_search = self.response.get(DATA, {}).get(value, default)
-        except Exception as e:
+        except Exception:
             logger.info(f'Value not found in message: {value}')
             value_search = None
         if value_search is None:
