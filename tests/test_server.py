@@ -1,10 +1,19 @@
 import unittest
+from server.connection_manager import ConnectionManager
 import server.server as server
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import patch, AsyncMock
 import starlette
 
 
 class TestServer(unittest.IsolatedAsyncioTestCase):
+
+    def setUp(self) -> None:
+        ConnectionManager.instance = AsyncMock()
+        ConnectionManager.connection_type = 'websocket'
+
+    def tearDown(self) -> None:
+        ConnectionManager.instance = None
+        ConnectionManager.connection_type = None
 
     async def test_session_open_close(self):
         websocket = AsyncMock()
@@ -17,13 +26,3 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
             await server.session(websocket, 'token')
             manager_patched.connect.assert_called_with(websocket, 'token')
             manager_patched.remove_user.assert_called_with('User 1')
-
-    async def test_session_invalid_client(self):
-        websocket = MagicMock()
-        websocket.close = AsyncMock()
-
-        add_user_patched = MagicMock()
-        add_user_patched.return_value = None
-        server.add_user = add_user_patched
-
-        await server.session(websocket, 'token')

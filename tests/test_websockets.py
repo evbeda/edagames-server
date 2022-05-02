@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from server.connection_manager import ConnectionManager
+# from server.websocket_connection_manager import ConnectionManagerWS
 from server.websockets import (
     notify_error_to_client,
     notify_challenge_to_client,
@@ -15,14 +16,23 @@ import server.constants as websocket_events
 
 
 class TestWebsockets(unittest.IsolatedAsyncioTestCase):
+    def setUp(self) -> None:
+        ConnectionManager()
+
+    def tearDown(self) -> None:
+        ConnectionManager.instance = None
+
     @patch.object(ConnectionManager, 'send', new_callable=AsyncMock)
     async def test_notify_error_to_client(self, send_patched):
         client = 'User 1'
         error = 'message error'
-        await notify_error_to_client(
-            client,
-            error,
-        )
+        try:
+            await notify_error_to_client(
+                client,
+                error,
+            )
+        except Exception as e:
+            print(e)
         send_patched.assert_awaited_once_with(
             client,
             websocket_events.EVENT_SEND_ERROR,

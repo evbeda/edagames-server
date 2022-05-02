@@ -1,4 +1,5 @@
 import asyncio
+from uvicorn.config import logger
 
 from server.game import next_turn, identifier, data_challenge
 from server.redis_interface import redis_save, redis_get
@@ -113,8 +114,12 @@ class ServerEvent:
         self.response = response
         self.client = client
 
-    async def search_value(self, value):
-        value_search = self.response.get(DATA, {}).get(value)
+    async def search_value(self, value, default=None):
+        try:
+            value_search = self.response.get(DATA, {}).get(value, default)
+        except Exception:
+            logger.info(f'Value not found in message: {value}')
+            value_search = None
         if value_search is None:
             await notify_error_to_client(
                 self.client,
