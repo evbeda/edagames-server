@@ -96,7 +96,7 @@ async def make_penalize(data, game_name, past_token):
         await log_action(
             data.game_id,
             {
-                'game_id':data.game_id,
+                'game_id': data.game_id,
                 'player': data.current_player,
                 'event': 'timeout',
             },
