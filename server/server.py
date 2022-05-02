@@ -127,12 +127,12 @@ async def apigw_message(request: Request):
         }, status_code=400)
 
 
-@app.on_event("startup.complete")
+@app.on_event("startup")
 def startup_complete():
     ConnectionManager.instance.broadcast(
-        'server_ready',
+        'server_starting',
         {
-            'message': 'Server is ready to accept messages',
+            'message': 'Server instance is starting',
         }
     )
 
@@ -142,6 +142,6 @@ def shutdown_event():
     ConnectionManager.instance.broadcast(
         'server_shutdown',
         {
-            'message': 'Server shutting down',
+            'message': 'Server instance is shutting down',
         }
     )
