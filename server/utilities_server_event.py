@@ -143,5 +143,6 @@ class ServerEvent:
     async def game_over(cls, data, game: dict):
         next_turn(data.game_id)
         end_data = make_end_data_for_web(data.turn_data)
+        data.turn_data["game_id"] = data.game_id
         await notify_end_game_to_client(game.get(PLAYERS), data.turn_data)
         await notify_end_game_to_web(data.game_id, game.get(TOURNAMENT_ID), end_data)
