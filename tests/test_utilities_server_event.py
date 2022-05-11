@@ -239,7 +239,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             'name': DEFAULT_GAME,
         }
         game_id = 'f34i3f'
-        turn_data = 'test_turn_data'
+        turn_data = {"turn_data": "turn_data"}
         data = MagicMock(
             game_id=game_id,
             turn_data=turn_data,
