@@ -128,8 +128,8 @@ async def apigw_message(request: Request):
 
 
 @app.on_event("startup")
-def startup_complete():
-    ConnectionManager.instance.broadcast(
+async def startup_complete():
+    await ConnectionManager.instance.broadcast(
         'server_starting',
         {
             'message': 'Server instance is starting',
@@ -138,8 +138,8 @@ def startup_complete():
 
 
 @app.on_event("shutdown")
-def shutdown_event():
-    ConnectionManager.instance.broadcast(
+async def shutdown_event():
+    await ConnectionManager.instance.broadcast(
         'server_shutdown',
         {
             'message': 'Server instance is shutting down',
