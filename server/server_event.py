@@ -23,6 +23,7 @@ from server.constants import (
     GAME_NAME,  # dict.get values
     DEFAULT_GAME,
 )
+from uvicorn.config import logger
 
 
 class ListUsers(ServerEvent):
@@ -64,6 +65,9 @@ class AcceptChallenge(ServerEvent):
                     game_data['accepted'].append(self.client)
                 if self.client in game_data['players']:
                     if all([player in game_data['accepted'] for player in game_data['players']]):
+                        logger.info("-------------------game_data----------------------")
+                        logger.info(game_data)
+                        logger.info("F-------------------game_data----------------------F")
                         await start_game(game_data)
                     else:
                         await redis_save(

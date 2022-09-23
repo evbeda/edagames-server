@@ -40,6 +40,10 @@ async def move(data, game_name: str):
 async def start_game(game_data: Dict):
     adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
     data_received = await adapter.create_game(game_data.get(PLAYERS))
+    logger.info("---------------------start_game_data_received---------------------------")
+    logger.info(data_received.game_id)
+    logger.info(data_received.turn_data)
+    logger.info("F---------------------start_game_data_received--------------------------F")
     redis_save(
         data_received.game_id,
         game_data,
@@ -92,7 +96,13 @@ async def make_penalize(data, game_name, past_token):
         TOKEN_COMPARE,
         data.current_player,
     )
+    logger.info("-----------------------data---------------------")
+    logger.info(data)
+    logger.info("F----------------------data--------------------F")
     if token_valid == past_token:
+        logger.info("-----------------------past_token_logger_info---------------------")
+        logger.info(past_token)
+        logger.info("F----------------------past_token_logger_info--------------------F")
         await log_action(
             data.game_id,
             {

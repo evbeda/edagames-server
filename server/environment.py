@@ -18,4 +18,4 @@ RABBIT_HOST = load_env_var('RABBIT_HOST', 'localhost')
 RABBIT_PORT = load_env_var('RABBIT_PORT', '5672')
 
 # Temporary?
-FAKE_SERVICE_DISCOVERY_QUORIDOR_HOST_PORT = load_env_var('QUORIDOR_HOST_PORT', 'localhost:50051')
+FAKE_SERVICE_DISCOVERY_QUORIDOR_HOST_PORT = load_env_var('WUMPUS_HOST_PORT', 'localhost:50051')
