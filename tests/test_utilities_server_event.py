@@ -257,7 +257,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     async def test_start_game(self, mock_save, mock_move):
         game_id = 'asd123'
         game_data = {
-            'name': DEFAULT_GAME,
+            'game': DEFAULT_GAME,
             'players': ['client1', 'clint2'],
         }
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:

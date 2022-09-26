@@ -1,3 +1,4 @@
+from asyncio.log import logger
 from server.server_event import (
     AcceptChallenge,
     Movements,
@@ -25,5 +26,7 @@ EVENT = {
 class FactoryServerEvent(object):
     @staticmethod
     def get_event(data, client):
+        logger.error(data)
+        logger.error(client)
         event = EVENT.get(data.get('action'), Movements)
         return event(data, client)

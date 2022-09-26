@@ -15,7 +15,7 @@ GAMEIDERROR = 'GAMEID_ERROR'
 REDIS_ERROR = -1
 
 # Game constants
-DEFAULT_GAME = 'quoridor'
+DEFAULT_GAME = 'wumpus'
 EMPTY_PLAYER = ''
 
 # Time constants
@@ -45,7 +45,7 @@ CLIENT_LIST = 'client'
 
 # dict.get values
 DATA = 'data'
-GAME_NAME = 'name'
+GAME_NAME = 'game'
 PLAYERS = 'players'
 
 # Prefixes

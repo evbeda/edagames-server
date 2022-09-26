@@ -128,7 +128,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     @patch('server.server_event.move')
     async def test_Movements_execute_action(self, mock_move):
         client = 'client1'
-        game_data = {'name': DEFAULT_GAME, 'players': [client, 'client2']}
+        game_data = {'game': DEFAULT_GAME, 'players': [client, 'client2']}
         game_id = 'test_game_id'
         turn_data = {'player_1': client, 'score_1': 1000, 'player_2': 'client2', 'score_2': 500}
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched,\
