@@ -1,13 +1,13 @@
 from edagames_grpc.client import ClientGRPC
 
-from server.environment import FAKE_SERVICE_DISCOVERY_QUORIDOR_HOST_PORT
+from server.environment import FAKE_SERVICE_DISCOVERY_GAME_HOST_PORT
 
 
 cached_adapters = {}
 
 
 def discover_game(game_name: str):
-    return FAKE_SERVICE_DISCOVERY_QUORIDOR_HOST_PORT.split(':')
+    return FAKE_SERVICE_DISCOVERY_GAME_HOST_PORT.split(':')
 
 
 class GRPCAdapterFactory:
