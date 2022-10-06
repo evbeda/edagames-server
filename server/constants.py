@@ -16,7 +16,7 @@ REDIS_ERROR = -1
 
 # Game constants
 DEFAULT_GAME = 'wumpus'
-GAME_HOST_PORT = "WUMPUS_HOST_PORT"
+GAME_HOST_PORT = {'wumpus':"WUMPUS_HOST_PORT", 'quoridor':"QUORIDOR_HOST_PORT"}
 GAME_PORT = "localhost:50052"
 EMPTY_PLAYER = ''
 

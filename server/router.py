@@ -11,13 +11,17 @@ router = APIRouter()
 
 
 @router.post("/challenge")
+
 async def challenge(challenge: Challenge):
+
+    print('challenge', challenge.game_name)
     try:
         await make_challenge(
             challenge.challenger,
             challenge.challenged,
             challenge.game_name
         )
+        print('recived form',challenge)
         return challenge
     except Exception as e:
         message = f'Unhandled exception ocurred: {e}'
