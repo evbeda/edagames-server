@@ -11,7 +11,6 @@ from server.constants import (
     LOG_EXPIRE,
     REDIS_ERROR,
     DEFAULT_EXPIRE,
-    LOG_PAGE_SIZE,
 )
 
 
@@ -37,12 +36,37 @@ def append_to_stream(key: str, data: Dict, expire: int = LOG_EXPIRE):
 
 def get_stream(key: str, next_item: str = '-'):
     try:
-        data = redis_data.xrange(key, min=next_item, count=LOG_PAGE_SIZE + 1)
+        len_d = redis_data.xlen(key)
+        data = redis_data.xrange(key, min=next_item, count=len_d + 1)
         if next_item != '-':
             next_prev_token = sha1(next_item.encode()).hexdigest()
         else:
             next_prev_token = '-'
-        if len(data) > LOG_PAGE_SIZE:
+        if len(data) > len_d:
+            moves = dict(data[:-1]).values()
+            next_item = data[-1][0]
+            next_token = sha1(next_item.encode()).hexdigest()
+            save_string(next_token, json.dumps((next_item, next_prev_token)))
+        else:
+            moves = dict(data).values()
+            next_token = None
+        return moves, next_token
+    except redis.RedisError as e:
+        logger.error(f'Error while reading stream from Redis: {e}')
+        return [], ''
+
+
+def get_all_stream(key: str, next_item: str = '-'):
+    try:
+        
+        data = redis_data.xrange(key, min=next_item, count=len_d + 1)
+        len_d = 200
+
+        if next_item != '-':
+            next_prev_token = sha1(next_item.encode()).hexdigest()
+        else:
+            next_prev_token = '-'
+        if len(data) > len_d:
             moves = dict(data[:-1]).values()
             next_item = data[-1][0]
             next_token = sha1(next_item.encode()).hexdigest()
