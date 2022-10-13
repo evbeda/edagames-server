@@ -38,18 +38,8 @@ def get_stream(key: str, next_item: str = '-'):
     try:
         len_d = redis_data.xlen(key)
         data = redis_data.xrange(key, min=next_item, count=len_d + 1)
-        if next_item != '-':
-            next_prev_token = sha1(next_item.encode()).hexdigest()
-        else:
-            next_prev_token = '-'
-        if len(data) > len_d:
-            moves = dict(data[:-1]).values()
-            next_item = data[-1][0]
-            next_token = sha1(next_item.encode()).hexdigest()
-            save_string(next_token, json.dumps((next_item, next_prev_token)))
-        else:
-            moves = dict(data).values()
-            next_token = None
+        moves = dict(data).values()
+        next_token = None
         return moves, next_token
     except redis.RedisError as e:
         logger.error(f'Error while reading stream from Redis: {e}')
