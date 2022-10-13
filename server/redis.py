@@ -1,6 +1,5 @@
 import json
 import redis
-from hashlib import sha1
 from redis.exceptions import DataError
 from uvicorn.config import logger
 

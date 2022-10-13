@@ -1,5 +1,3 @@
-from hashlib import sha1
-import json
 from redis.exceptions import DataError
 
 import unittest
@@ -153,50 +151,32 @@ class TestRedis(unittest.TestCase):
             'test_game_0000_0001',
             None,
             0,
-            '1621518388234-0',
-            True,
         ),
         (
             'test_game_0000_0002',
             '1621518388234-0',
             20,
-            '1621518390214-0',
-            False,
         ),
     ])
-    @patch('server.redis.save_string')
     @patch('server.redis.redis_data')
     def test_get_stream(
         self,
         key,
         next_item,
         next_item_index,
-        expected_next_item,
-        has_token,
         redis_patched,
-        save_string_patched
     ):
-        if next_item:
-            expected_next_prev_token = sha1(next_item.encode()).hexdigest()
-        else:
-            next_item = '-'
-            expected_next_prev_token = '-'
+        next_item = '-'
         len_data = len(self.test_dataset)
-        expected_log = dict(self.test_dataset[next_item_index:next_item_index + (LOG_PAGE_SIZE+180)]).values()
-        redis_patched.xrange.return_value = self.test_dataset[next_item_index:next_item_index + (LOG_PAGE_SIZE+180) + 1]
+        expected_log = dict(self.test_dataset[next_item_index:next_item_index + (LOG_PAGE_SIZE + 180)]).values()
+        redis_patched.xrange.return_value = self.test_dataset[
+            next_item_index:next_item_index + (LOG_PAGE_SIZE + 180) + 1
+        ]
         redis_patched.xlen.return_value = len_data
         log, next_token = get_stream(key, next_item)
-        #  redis_patched.xrange.assert_called_with(key, min=next_item, count=LOG_PAGE_SIZE + 1)
-        redis_patched.xrange.assert_called_with(key, min=next_item, count = len_data + 1)
+        redis_patched.xrange.assert_called_with(key, min=next_item, count=len_data + 1)
         self.assertEqual(list(log), list(expected_log))
-        if has_token:
-            expected_next_token = sha1(expected_next_item.encode()).hexdigest()
-            save_string_patched.assert_called_with(
-                next_token,
-                json.dumps((expected_next_item, expected_next_prev_token)),
-            )
-        else:
-            expected_next_token = None
+        expected_next_token = None
         self.assertEqual(next_token, expected_next_token)
 
     @patch('server.redis.logger')
