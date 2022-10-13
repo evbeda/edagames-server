@@ -36,7 +36,7 @@ def append_to_stream(key: str, data: Dict, expire: int = LOG_EXPIRE):
 
 def get_stream(key: str, next_item: str = '-'):
     try:
-        len_d = 200
+        len_d = redis_data.xlen(key)
         data = redis_data.xrange(key, min=next_item, count=len_d + 1)
         if next_item != '-':
             next_prev_token = sha1(next_item.encode()).hexdigest()
