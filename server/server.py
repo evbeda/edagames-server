@@ -39,6 +39,8 @@ async def session(websocket: WebSocket, token):
 
 @app.post("/apigw-ws/connect")
 async def apigw_connect(request: Request):
+    logger.error(f'\n\nthe request ({request})')
+    logger.error(f'the request ({request.json()})\n\n')
     try:
         if (
             ConnectionManager.connection_type != 'api_gateway'
@@ -93,6 +95,8 @@ async def apigw_disconnect(request: Request):
 
 @app.post("/apigw-ws/message")
 async def apigw_message(request: Request):
+    logger.error(f'\n\nthe request ({request})')
+    logger.error(f'the request ({request.json()})\n\n')
     try:
         if (
             ConnectionManager.connection_type != 'api_gateway'
