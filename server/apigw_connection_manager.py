@@ -1,6 +1,5 @@
 import asyncio
 import json
-import os
 import boto3
 import jwt
 
@@ -24,16 +23,9 @@ class APIGatewayConnectionManager(ConnectionManager):
         self.client_id_to_bot = {}
         self.bot_to_client_id = {}
         ConnectionManager.connection_type = 'api_gateway'
-        self._client = boto3.client(
-            'apigatewaymanagementapi',
-            endpoint_url='https://{api_id}.execute-api.{region}.amazonaws.com/{stage}'.format(
-                api_id=os.getenv('AWS_APIGATEWAY_ID'),
-                region=os.getenv('AWS_DEFAULT_REGION'),
-                stage=os.getenv('AWS_APIGATEWAY_STAGE'),
-            )
-        )
+        self.all_boto3_clients = dict()
 
-    async def connect(self, client_id: str, token: str):
+    async def connect(self, apigw_url: str, client_id: str, token: str):
         encoded_token = token.encode()
         try:
             user_to_connect = jwt.decode(
@@ -54,11 +46,12 @@ class APIGatewayConnectionManager(ConnectionManager):
 
         redis_save(CLIENT_LIST_KEY, bot_name, CLIENT_LIST)
 
-        await self.notify_user_list_changed()
+        await self.notify_user_list_changed(apigw_url)
 
-    async def disconnect(self, client_id: str):
+    async def disconnect(self, apigw_url: str, client_id: str):
         try:
-            self._client.delete_connection(ConnectionId=client_id)
+            client = self.get_client(apigw_url)
+            client.delete_connection(ConnectionId=client_id)
         except Exception as e:
             logger.info(f'Error while deleting client connection: {e}')
         try:
@@ -70,11 +63,11 @@ class APIGatewayConnectionManager(ConnectionManager):
         try:
             redis_delete(CLIENT_LIST_KEY, CLIENT_LIST, bot_name)
             del bot_name
-            await self.notify_user_list_changed()
+            await self.notify_user_list_changed(apigw_url)
         except Exception as e:
             logger.error(f'Client ({self.client_id_to_bot[client_id]}) not found in Redis: {e}')
 
-    async def notify_user_list_changed(self):
+    async def notify_user_list_changed(self, apigw_url: str):
         try:
             users = await redis_get(CLIENT_LIST_KEY, CLIENT_LIST)
         except Exception as e:
@@ -82,19 +75,21 @@ class APIGatewayConnectionManager(ConnectionManager):
             users = list(self.bot_to_client_id.keys())
         logger.info('[APIGateway] Users {}'.format(users))
         await self.broadcast(
+            apigw_url,
             websocket_events.EVENT_LIST_USERS,
             {
                 'users': users,
             },
         )
 
-    async def broadcast(self, event: str, data: Dict):
-        await self.bulk_send(self.bot_to_client_id.keys(), event, data)
+    async def broadcast(self, apigw_url: str, event: str, data: Dict):
+        await self.bulk_send(apigw_url, self.bot_to_client_id.keys(), event, data)
 
-    async def bulk_send(self, clients: List[str], event: str, data: Dict):
+    async def bulk_send(self, apigw_url: str, clients: List[str], event: str, data: Dict):
         for client in clients:
             try:
                 asyncio.create_task(self._send(
+                    apigw_url,
                     self.bot_to_client_id[client],
                     event,
                     data,
@@ -102,9 +97,10 @@ class APIGatewayConnectionManager(ConnectionManager):
             except KeyError:
                 pass
 
-    async def send(self, client: str, event: str, data: Dict):
+    async def send(self, apigw_url: str, client: str, event: str, data: Dict):
         try:
             await self._send(
+                apigw_url,
                 self.bot_to_client_id[client],
                 event,
                 data,
@@ -112,10 +108,11 @@ class APIGatewayConnectionManager(ConnectionManager):
         except KeyError:
             pass
 
-    async def _send(self, client_apigw: str, event: str, data: Dict):
+    async def _send(self, apigw_url: str, client_apigw: str, event: str, data: Dict):
         logger.info(f'[APIGateway] Send: Event: {event}, data: {data}')
         try:
-            self._client.post_to_connection(
+            client = self.get_client(apigw_url)
+            client.post_to_connection(
                 Data=json.dumps({
                     'event': event,
                     'data': data,
@@ -125,8 +122,13 @@ class APIGatewayConnectionManager(ConnectionManager):
         except Exception as e:
             # Remove "gone" clients
             if 'GoneException' in str(e):
-                self.disconnect(client_apigw)
+                self.disconnect(apigw_url, client_apigw)
             logger.warning(f'[APIGateway] Error while sending message to client ({client_apigw}): {e}')
 
     def validate_client(self, client_apigw: str) -> bool:
         return client_apigw in self.client_id_to_bot.keys()
+
+    def get_client(self, apigw_url: str) -> boto3.client:
+        if apigw_url not in self.all_boto3_clients:
+            self.all_boto3_clients[apigw_url] = boto3.client('apigatewaymanagementapi', endpoint_url=apigw_url)
+        return self.all_boto3_clients[apigw_url]
