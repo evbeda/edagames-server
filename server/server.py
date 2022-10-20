@@ -47,8 +47,7 @@ async def apigw_connect(request: Request):
             or (req_body := await request.json())['aws_apigw_secret'] != AWS_APIGW_SECRET
         ):
             logger.warning(f'User requested direct connection: {request.client.host}')
-            apigw_url = req_body["apigw_ws_endpoint"]
-            await APIGatewayConnectionManager.instance.disconnect(apigw_url, req_body["client_id"])
+            await APIGatewayConnectionManager.instance.disconnect(req_body["client_id"])
             raise AuthenticationError('API Gateway key mismatch')
     except (KeyError, json.JSONDecodeError, AuthenticationError):
         return JSONResponse({
@@ -58,17 +57,16 @@ async def apigw_connect(request: Request):
 
     connection_manager = APIGatewayConnectionManager.instance
     client_id = req_body["client_id"]
-    apigw_url = req_body["apigw_ws_endpoint"]
 
     try:
         # Verify client using request.json()['query']['token']
         parsed_query = req_body['query'].strip('{}').split(', ')
         token = [v for (k, v) in [x.split('=') for x in parsed_query] if k == 'token'][0]
-        await connection_manager.connect(apigw_url, client_id, token)
+        await connection_manager.connect(client_id, token)
     except (json.JSONDecodeError, IndexError, AuthenticationError) as e:
         logger.warning(f'Error authenticating client ({client_id}): {e}')
         # Explicitly disconnect if auth fails using DELETE @connections api
-        await connection_manager.disconnect(apigw_url, client_id)
+        await connection_manager.disconnect(client_id)
         return
 
 
@@ -80,8 +78,7 @@ async def apigw_disconnect(request: Request):
             or (req_body := await request.json())['aws_apigw_secret'] != AWS_APIGW_SECRET
         ):
             logger.warning(f'User requested direct connection: {request.client.host}')
-            apigw_url = req_body["apigw_ws_endpoint"]
-            await APIGatewayConnectionManager.instance.disconnect(apigw_url, req_body["client_id"])
+            await APIGatewayConnectionManager.instance.disconnect(req_body["client_id"])
             raise AuthenticationError('API Gateway key mismatch')
     except (KeyError, json.JSONDecodeError, AuthenticationError):
         return JSONResponse({
@@ -91,10 +88,9 @@ async def apigw_disconnect(request: Request):
 
     connection_manager = APIGatewayConnectionManager.instance
     client_id = req_body["client_id"]
-    apigw_url = req_body["apigw_ws_endpoint"]
 
     # Remove client from list on $disconnect
-    await connection_manager.disconnect(apigw_url, client_id)
+    await connection_manager.disconnect(client_id)
 
 
 @app.post("/apigw-ws/message")
@@ -107,8 +103,7 @@ async def apigw_message(request: Request):
             or (req_body := await request.json())['aws_apigw_secret'] != AWS_APIGW_SECRET
         ):
             logger.warning(f'User requested direct connection: {request.client.host}')
-            apigw_url = req_body["apigw_ws_endpoint"]
-            await APIGatewayConnectionManager.instance.disconnect(apigw_url, req_body["client_id"])
+            await APIGatewayConnectionManager.instance.disconnect(req_body["client_id"])
             raise AuthenticationError('API Gateway key mismatch')
     except (KeyError, json.JSONDecodeError, AuthenticationError):
         return JSONResponse({
@@ -118,11 +113,10 @@ async def apigw_message(request: Request):
 
     connection_manager = APIGatewayConnectionManager.instance
     client_id = req_body["client_id"]
-    apigw_url = req_body["apigw_ws_endpoint"]
 
     if not connection_manager.validate_client(client_id):
-        await connection_manager._send(apigw_url, client_id, 'Error', 'Unauthorized')
-        await connection_manager.disconnect(apigw_url, client_id)
+        await connection_manager._send(client_id, 'Error', 'Unauthorized')
+        await connection_manager.disconnect(client_id)
         return JSONResponse({
             'error': 'Unauthorized'
         }, status_code=401)
@@ -137,23 +131,21 @@ async def apigw_message(request: Request):
         }, status_code=400)
 
 
-# @app.on_event("startup")
-# async def startup_complete():
-#     await ConnectionManager.instance.broadcast(
-#         '',
-#         'server_starting',
-#         {
-#             'message': 'Server instance is starting',
-#         }
-#     )
+@app.on_event("startup")
+async def startup_complete():
+    await ConnectionManager.instance.broadcast(
+        'server_starting',
+        {
+            'message': 'Server instance is starting',
+        }
+    )
 
 
-# @app.on_event("shutdown")
-# async def shutdown_event():
-#     await ConnectionManager.instance.broadcast(
-#         '',
-#         'server_shutdown',
-#         {
-#             'message': 'Server instance is shutting down',
-#         }
-#     )
+@app.on_event("shutdown")
+async def shutdown_event():
+    await ConnectionManager.instance.broadcast(
+        'server_shutdown',
+        {
+            'message': 'Server instance is shutting down',
+        }
+    )
