@@ -1,6 +1,5 @@
 import asyncio
 import json
-import os
 import boto3
 import jwt
 
@@ -24,16 +23,10 @@ class APIGatewayConnectionManager(ConnectionManager):
         self.client_id_to_bot = {}
         self.bot_to_client_id = {}
         ConnectionManager.connection_type = 'api_gateway'
-        self._client = boto3.client(
-            'apigatewaymanagementapi',
-            endpoint_url='https://{api_id}.execute-api.{region}.amazonaws.com/{stage}'.format(
-                api_id=os.getenv('AWS_APIGATEWAY_ID'),
-                region=os.getenv('AWS_DEFAULT_REGION'),
-                stage=os.getenv('AWS_APIGATEWAY_STAGE'),
-            )
-        )
+        self.client_id_to_apigw_url = {}
+        self.all_boto3_clients = {}
 
-    async def connect(self, client_id: str, token: str):
+    async def connect(self, apigw_url: str, client_id: str, token: str):
         encoded_token = token.encode()
         try:
             user_to_connect = jwt.decode(
@@ -52,13 +45,18 @@ class APIGatewayConnectionManager(ConnectionManager):
             bot_name: client_id
         })
 
+        self.client_id_to_apigw_url.update({
+            client_id: apigw_url
+        })
+
         redis_save(CLIENT_LIST_KEY, bot_name, CLIENT_LIST)
 
         await self.notify_user_list_changed()
 
     async def disconnect(self, client_id: str):
         try:
-            self._client.delete_connection(ConnectionId=client_id)
+            boto3_client = self.get_boto3_client(client_id)
+            boto3_client.delete_connection(ConnectionId=client_id)
         except Exception as e:
             logger.info(f'Error while deleting client connection: {e}')
         try:
@@ -67,6 +65,13 @@ class APIGatewayConnectionManager(ConnectionManager):
         except KeyError:
             logger.info(f'Client ({client_id}) not found locally')
             return
+
+        try:
+            del self.client_id_to_apigw_url[client_id]
+        except KeyError:
+            logger.info(f'APIGW URL for Client ({client_id}) not found locally')
+            return
+
         try:
             redis_delete(CLIENT_LIST_KEY, CLIENT_LIST, bot_name)
             del bot_name
@@ -115,7 +120,8 @@ class APIGatewayConnectionManager(ConnectionManager):
     async def _send(self, client_apigw: str, event: str, data: Dict):
         logger.info(f'[APIGateway] Send: Event: {event}, data: {data}')
         try:
-            self._client.post_to_connection(
+            boto3_client = self.get_boto3_client(client_apigw)
+            boto3_client.post_to_connection(
                 Data=json.dumps({
                     'event': event,
                     'data': data,
@@ -130,3 +136,9 @@ class APIGatewayConnectionManager(ConnectionManager):
 
     def validate_client(self, client_apigw: str) -> bool:
         return client_apigw in self.client_id_to_bot.keys()
+
+    def get_boto3_client(self, client_id: str) -> boto3.client:
+        apigw_url = self.client_id_to_apigw_url[client_id]
+        if apigw_url not in self.all_boto3_clients:
+            self.all_boto3_clients[apigw_url] = boto3.client('apigatewaymanagementapi', endpoint_url=apigw_url)
+        return self.all_boto3_clients[apigw_url]

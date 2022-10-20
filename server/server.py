@@ -57,12 +57,13 @@ async def apigw_connect(request: Request):
 
     connection_manager = APIGatewayConnectionManager.instance
     client_id = req_body["client_id"]
+    apigw_url = req_body["apigw_ws_endpoint"]
 
     try:
         # Verify client using request.json()['query']['token']
         parsed_query = req_body['query'].strip('{}').split(', ')
         token = [v for (k, v) in [x.split('=') for x in parsed_query] if k == 'token'][0]
-        await connection_manager.connect(client_id, token)
+        await connection_manager.connect(apigw_url, client_id, token)
     except (json.JSONDecodeError, IndexError, AuthenticationError) as e:
         logger.warning(f'Error authenticating client ({client_id}): {e}')
         # Explicitly disconnect if auth fails using DELETE @connections api
