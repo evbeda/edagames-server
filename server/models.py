@@ -8,6 +8,7 @@ class Challenge(BaseModel):
     challenger: str
     challenged: List[str]
     game_name: str = DEFAULT_GAME
+    debug_mode: bool = False
 
 
 class Tournament(BaseModel):

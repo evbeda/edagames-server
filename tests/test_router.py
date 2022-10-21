@@ -26,15 +26,22 @@ class TestRouter(unittest.IsolatedAsyncioTestCase):
         data = {
             "challenger": challenger,
             "challenged": challenged,
+            "debug_mode": False,
         }
         expected = {**data, 'game_name': DEFAULT_GAME}
+        debug_mode = False
         with patch('server.router.make_challenge') as mock_make_challenge:
             async with AsyncClient(app=app, base_url="http://test") as ac:
                 response = await ac.post(
                     "/challenge",
                     json=data
                 )
-        mock_make_challenge.assert_awaited_once_with(challenger, challenged, DEFAULT_GAME)
+        mock_make_challenge.assert_awaited_once_with(
+            challenger,
+            challenged,
+            DEFAULT_GAME,
+            debug_mode,
+        )
         self.assertEqual(response.status_code, status)
         self.assertEqual(response.json(), expected)
 

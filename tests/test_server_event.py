@@ -51,9 +51,10 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         data = {"action": "accept_challenge", "data": {"challenge_id": "c303282d-f2e6-46ca-a04a-35d3d873712d"}}
         challenge_id = 'challenge_id_from_request'
         get_redis = {
-            'name': DEFAULT_GAME,
+            'game': DEFAULT_GAME,
             'players': ['client1', 'client2'],
             'accepted': ['client2'],
+            'debug': False,
         }
         with patch.object(ServerEvent, 'search_value', return_value=challenge_id) as mock_search:
             with patch('server.server_event.redis_get', return_value=get_redis) as mock_get:
@@ -75,6 +76,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             'name': DEFAULT_GAME,
             'players': ['client1', 'client2'],
             'accepted': [],
+            'debug_mode': False,
         }
         save_redis = get_redis.copy()
         save_redis.update({
@@ -128,7 +130,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
     @patch('server.server_event.move')
     async def test_Movements_execute_action(self, mock_move):
         client = 'client1'
-        game_data = {'game': DEFAULT_GAME, 'players': [client, 'client2']}
+        game_data = {'game': DEFAULT_GAME, 'players': [client, 'client2'], 'debug_mode': False}
         game_id = 'test_game_id'
         turn_data = {'player_1': client, 'score_1': 1000, 'player_2': 'client2', 'score_2': 500}
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as Gadapter_patched,\
@@ -140,12 +142,14 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
                 game_id=game_id,
             )
             Gadapter_patched.return_value = adapter_patched
+            debug_mode = False
             await Movements({}, client).execute_action(game_data, game_id)
             Gadapter_patched.assert_called_with(DEFAULT_GAME)
             self.assertEqual(log_patched.call_count, 2)
             mock_move.assert_awaited_once_with(
                 adapter_patched.execute_action.return_value,
                 DEFAULT_GAME,
+                debug_mode,
             )
 
     @patch.object(ServerEvent, 'game_over')

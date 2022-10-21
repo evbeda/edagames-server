@@ -47,6 +47,7 @@ CLIENT_LIST = 'client'
 
 # dict.get values
 DATA = 'data'
+DEBUG_MODE = 'debug_mode'
 GAME_NAME = 'game'
 PLAYERS = 'players'
 
