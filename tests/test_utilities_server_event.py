@@ -1,5 +1,7 @@
+import json
 import unittest
 from unittest.mock import patch, MagicMock, AsyncMock, call
+
 from parameterized import parameterized
 
 from server.utilities_server_event import (
@@ -38,9 +40,10 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
         data_challenge = 'test_data_challenge'
         with patch('server.utilities_server_event.identifier', return_value=challenge_id) as mock_identifier:
             with patch('server.utilities_server_event.data_challenge', return_value=data_challenge) as mock_data:
-                await make_challenge(challenger, challenged, DEFAULT_GAME)
+                debug_mode = False
+                await make_challenge(challenger, challenged, DEFAULT_GAME, debug_mode)
                 mock_identifier.assert_called_once_with()
-                mock_data.assert_called_once_with(players, [challenger], DEFAULT_GAME)
+                mock_data.assert_called_once_with(players, [challenger], DEFAULT_GAME, debug_mode)
                 mock_save.assert_called_once_with(
                     challenge_id,
                     data_challenge,
@@ -51,6 +54,78 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
                     challenger,
                     challenge_id,
                 )
+
+    @parameterized.expand(
+        [
+            (
+                "Enable",
+                "JuanBot",
+                ["PedroBot"],
+                True,
+            ),
+            (
+                "Disable",
+                "JuanBot",
+                ["PedroBot"],
+                False,
+            ),
+        ]
+    )
+    async def test_make_challenge_with_debug_mode(
+        self,
+        name,
+        challenger,
+        challenged,
+        debug_mode,
+    ):
+        challenge_id = 'test_challenge_id'
+        players = [challenger, *challenged]
+        data_challenge = json.dumps({
+            'players': players,
+            'accepted': [challenger],
+            'game': DEFAULT_GAME,
+            'debug_mode': debug_mode,
+        })
+        with \
+                patch('server.utilities_server_event.identifier', return_value=challenge_id) as mock_identifier, \
+                patch('server.utilities_server_event.redis_save') as mock_save, \
+                patch('server.utilities_server_event.notify_challenge_to_client') as mock_notify:
+
+            await make_challenge(challenger, challenged, DEFAULT_GAME, debug_mode)
+            mock_identifier.assert_called_once()
+            mock_save.assert_called_once_with(challenge_id, data_challenge, CHALLENGE_ID,)
+            mock_notify.assert_awaited_once_with(
+                challenged,
+                challenger,
+                challenge_id,
+            )
+
+    @patch('server.utilities_server_event.identifier')
+    @patch('server.utilities_server_event.redis_save')
+    @patch('server.utilities_server_event.notify_challenge_to_client')
+    async def test_make_challenge_without_debug_mode_param(
+        self,
+        mock_notify,
+        mock_save,
+        mock_identifier,
+    ):
+        challenge_id = 'test_challenge_id'
+        mock_identifier.return_value = challenge_id
+        players = ["JuanBot", *["PedroBot"]]
+        data_challenge = json.dumps({
+            'players': players,
+            'accepted': ["JuanBot"],
+            'game': DEFAULT_GAME,
+            'debug_mode': False,
+        })
+        await make_challenge("JuanBot", ["PedroBot"], DEFAULT_GAME)
+        mock_identifier.assert_called_once_with()
+        mock_save.assert_called_once_with(challenge_id, data_challenge, CHALLENGE_ID,)
+        mock_notify.assert_awaited_once_with(
+            ["PedroBot"],
+            "JuanBot",
+            challenge_id,
+        )
 
     @patch('server.utilities_server_event.notify_your_turn')
     async def test_make_move(self, mock_notify_your_turn):
@@ -95,8 +170,9 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
             current_player=player_2,
         )
         gadapter_patched.return_value = adapter_patched
+        debug_mode = False
         with patch('server.utilities_server_event.redis_get', side_effect=[turn_token, game]) as mock_get:
-            await make_penalize(data, game_name, turn_token)
+            await make_penalize(data, game_name, turn_token, debug_mode,)
             mock_sleep.assert_awaited_once_with(TIME_SLEEP)
             mock_get.assert_called()
             gadapter_patched.assert_called_with(DEFAULT_GAME)
@@ -124,7 +200,8 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
         )
         gadapter_patched.return_value = adapter_patched
         with patch('server.utilities_server_event.redis_get', side_effect=[turn_token, game]) as mock_get:
-            await make_penalize(data, game_name, turn_token)
+            debug_mode = False
+            await make_penalize(data, game_name, turn_token, debug_mode,)
             mock_sleep.assert_awaited_once_with(TIME_SLEEP)
             mock_get.assert_called()
             gadapter_patched.assert_called_with(DEFAULT_GAME)
@@ -144,7 +221,8 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
         )
         game_name = DEFAULT_GAME
         with patch('server.utilities_server_event.redis_get', return_value=turn_token_2) as mock_get:
-            await make_penalize(data, game_name, turn_token_1)
+            debug_mode = False
+            await make_penalize(data, game_name, turn_token_1, debug_mode,)
             mock_sleep.assert_awaited_once_with(TIME_SLEEP)
             mock_get.assert_awaited_once_with(
                 game_id,
@@ -224,9 +302,10 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             turn_data={},
         )
         game_name = DEFAULT_GAME
-        await move(data, game_name)
+        debug_mode = True
+        await move(data, game_name, debug_mode,)
         mock_make_move.assert_awaited_once_with(data)
-        mock_make_penalize.assert_called_once_with(data, game_name, 'test_token')
+        mock_make_penalize.assert_called_once_with(data, game_name, 'test_token', debug_mode,)
         mock_asyncio.assert_called_once_with('ret_penalize')
 
     @patch('server.utilities_server_event.notify_end_game_to_web')
@@ -259,6 +338,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
         game_data = {
             'game': DEFAULT_GAME,
             'players': ['client1', 'clint2'],
+            'debug_mode': False,
         }
         with patch('server.server_event.GRPCAdapterFactory.get_adapter', new_callable=AsyncMock) as g_adapter_patched:
             adapter_patched = AsyncMock()
@@ -279,6 +359,7 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             mock_move.assert_awaited_once_with(
                 adapter_patched.create_game.return_value,
                 DEFAULT_GAME,
+                False,
             )
 
     @patch('server.utilities_server_event.start_game')
@@ -290,5 +371,6 @@ class TestServerEvent(unittest.IsolatedAsyncioTestCase):
             'tournament_id': tournament_id,
             'players': players,
             'name': DEFAULT_GAME,
+            'debug_mode': False,
         }) for players in games]
         start_game_patched.assert_has_calls(calls)

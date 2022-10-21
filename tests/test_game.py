@@ -4,8 +4,10 @@ from unittest.mock import patch
 from parameterized.parameterized import parameterized
 
 from server.game import data_challenge, identifier, next_turn
-from server.constants import (
-    DEFAULT_GAME,
+from server.constants import DEFAULT_GAME
+from tests.test_scenarios import (
+    DATA_CHALLENGE_SCENARIO_DEBUG_FALSE,
+    DATA_CHALLENGE_SCENARIO_DEBUG_TRUE,
 )
 
 
@@ -32,15 +34,27 @@ class TestGame(unittest.TestCase):
 
     @parameterized.expand([
         (
-            ['Pedro', 'Pablo'],
-            '{"players": ["Pedro", "Pablo"], '
-            f'"accepted": ["Pedro"], "game": "{DEFAULT_GAME}"}}'
+            "debug_false",
+            ["JuanBot", "PedroBot"],
+            ["JuanBot"],
+            False,
+            DATA_CHALLENGE_SCENARIO_DEBUG_TRUE,
         ),
         (
-            ['Pedro', 'Pablo'],
-            f'{{"players": ["Pedro", "Pablo"], "accepted": ["Pedro"], "game": "{DEFAULT_GAME}"}}'
+            "debug_true",
+            ["JuanBot", "PedroBot"],
+            ["JuanBot"],
+            True,
+            DATA_CHALLENGE_SCENARIO_DEBUG_FALSE,
         ),
     ])
-    def test_data_challenge(self, players, expected):
-        res = data_challenge(players, [players[0]], DEFAULT_GAME)
+    def test_data_challenge(
+        self,
+        name,
+        players,
+        accepted,
+        debug_mode,
+        expected,
+    ):
+        res = data_challenge(players, accepted, DEFAULT_GAME, debug_mode)
         self.assertEqual(res, expected)

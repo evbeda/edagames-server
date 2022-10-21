@@ -21,11 +21,13 @@ def data_challenge(
     players: List[str],
     accepted: List[str],
     name: str,
+    debug_mode: bool,
 ):
     data = {
         'players': players,
         'accepted': accepted,
         'game': name,
+        'debug_mode': debug_mode,
     }
 
     return json.dumps(data)

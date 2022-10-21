@@ -7,21 +7,22 @@ from server.redis_interface import (
     redis_get,
 )
 from server.constants import (
+    ABORT_GAME,
+    ACCEPT_CHALLENGE,
+    ASK_CHALLENGE,
+    CHALLENGE_ID,
     CLIENT_LIST,
     CLIENT_LIST_KEY,
-    LIST_USERS,  # name_event
-    ASK_CHALLENGE,
-    ACCEPT_CHALLENGE,
-    MOVEMENTS,
-    ABORT_GAME,
-    CHALLENGE_ID,
-    GAME_ID,
-    MSG_TURN_TOKEN,
-    TURN_TOKEN,
-    OPPONENT,
-    EMPTY_PLAYER,  # game_over
-    GAME_NAME,  # dict.get values
+    DEBUG_MODE,
     DEFAULT_GAME,
+    EMPTY_PLAYER,  # game_over
+    GAME_ID,
+    GAME_NAME,  # dict.get values
+    LIST_USERS,  # name_event
+    MOVEMENTS,
+    MSG_TURN_TOKEN,
+    OPPONENT,
+    TURN_TOKEN,
 )
 
 
@@ -111,7 +112,11 @@ class Movements(ServerEvent):
         if data_received.current_player == EMPTY_PLAYER:
             await self.game_over(data_received, game_data)
         else:
-            await move(data_received, game_data.get(GAME_NAME))
+            await move(
+                data_received,
+                game_data.get(GAME_NAME),
+                game_data.get(DEBUG_MODE),
+            )
 
 
 class AbortGame(ServerEvent):

@@ -1,14 +1,36 @@
+from typing import (
+    Dict,
+    List,
+)
+
 import asyncio
 from uvicorn.config import logger
 
-from server.game import next_turn, identifier, data_challenge
+from server.constants import (
+    CHALLENGE_ID,
+    DATA,
+    DEBUG_MODE,
+    EMPTY_PLAYER,
+    GAME_ID,
+    GAME_NAME,
+    PLAYERS,
+    TIME_SLEEP,
+    TOKEN_COMPARE,
+    TOURNAMENT_ID,
+    TURN_TOKEN,
+)
+from server.exception import GameIdException
+from server.game import (
+    next_turn,
+    identifier,
+    data_challenge,
+)
+from server.grpc_adapter import GRPCAdapterFactory
 from server.redis_interface import (
     log_action,
     redis_save,
     redis_get,
 )
-from server.grpc_adapter import GRPCAdapterFactory
-from server.exception import GameIdException
 from server.websockets import (
     notify_challenge_to_client,
     notify_your_turn,
@@ -17,24 +39,21 @@ from server.websockets import (
 )
 from server.web_requests import notify_end_game_to_web
 
-from typing import Dict, List
-from server.constants import (
-    GAME_NAME,
-    TIME_SLEEP,
-    TOURNAMENT_ID,
-    TURN_TOKEN,
-    GAME_ID,
-    DATA,
-    PLAYERS,
-    CHALLENGE_ID,
-    TOKEN_COMPARE,
-    EMPTY_PLAYER,
-)
 
-
-async def move(data, game_name: str):
+async def move(
+    data,
+    game_name: str,
+    debug_mode: bool,
+):
     token = await make_move(data)
-    asyncio.create_task(make_penalize(data, game_name, token))
+    asyncio.create_task(
+        make_penalize(
+            data,
+            game_name,
+            token,
+            debug_mode,
+        )
+    )
 
 
 async def start_game(game_data: Dict):
@@ -45,15 +64,29 @@ async def start_game(game_data: Dict):
         game_data,
         GAME_ID,
     )
-    await move(data_received, game_data.get(GAME_NAME))
+    await move(
+        data_received,
+        game_data.get(GAME_NAME),
+        game_data.get(DEBUG_MODE),
+    )
 
 
-async def make_challenge(challenger, challenged, game_name):
+async def make_challenge(
+    challenger,
+    challenged,
+    game_name,
+    debug_mode=False,
+):
     challenge_id = identifier()
     players = [challenger, *challenged]
     redis_save(
         challenge_id,
-        data_challenge(players, [challenger], game_name),
+        data_challenge(
+            players,
+            [challenger],
+            game_name,
+            debug_mode,
+        ),
         CHALLENGE_ID,
     )
     await notify_challenge_to_client(
@@ -69,6 +102,7 @@ async def make_tournament(tournament_id: str, games: List[List[str]], game_name:
             'tournament_id': tournament_id,
             'players': players,
             'name': game_name,
+            'debug_mode': False
         })
 
 
@@ -85,7 +119,12 @@ async def make_move(data):
     return turn_token
 
 
-async def make_penalize(data, game_name, past_token):
+async def make_penalize(
+    data,
+    game_name,
+    past_token,
+    debug_mode,
+):
     await asyncio.sleep(TIME_SLEEP)
     token_valid = await redis_get(
         data.game_id,
@@ -111,7 +150,11 @@ async def make_penalize(data, game_name, past_token):
             if data_penalize.current_player == EMPTY_PLAYER:
                 await ServerEvent.game_over(data_penalize, game_data)
             else:
-                await move(data_penalize, game_data.get(GAME_NAME))
+                await move(
+                    data_penalize,
+                    game_data.get(GAME_NAME),
+                    debug_mode,
+                )
 
 
 def make_end_data_for_web(data):
