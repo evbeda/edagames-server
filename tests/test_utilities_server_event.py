@@ -17,8 +17,9 @@ from server.utilities_server_event import (
 from server.exception import GameIdException
 
 from server.constants import (
+    DEBUG_AWAIT,
     DEFAULT_GAME,
-    TIME_SLEEP,
+    NORMAL_AWAIT,
     TURN_TOKEN,
     TOKEN_COMPARE,
     CHALLENGE_ID,
@@ -157,7 +158,7 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
         game_id = '123987'
         turn_token = 'turn_token'
         game = {
-            GAME_NAME: 'quoridor'
+            GAME_NAME: DEFAULT_GAME
         }
         data = MagicMock(
             game_id=game_id,
@@ -173,7 +174,7 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
         debug_mode = False
         with patch('server.utilities_server_event.redis_get', side_effect=[turn_token, game]) as mock_get:
             await make_penalize(data, game_name, turn_token, debug_mode,)
-            mock_sleep.assert_awaited_once_with(TIME_SLEEP)
+            mock_sleep.assert_awaited_once_with(NORMAL_AWAIT)
             mock_get.assert_called()
             gadapter_patched.assert_called_with(DEFAULT_GAME)
             mock_make_move.assert_awaited_once_with(adapter_patched.penalize.return_value)
@@ -202,7 +203,7 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
         with patch('server.utilities_server_event.redis_get', side_effect=[turn_token, game]) as mock_get:
             debug_mode = False
             await make_penalize(data, game_name, turn_token, debug_mode,)
-            mock_sleep.assert_awaited_once_with(TIME_SLEEP)
+            mock_sleep.assert_awaited_once_with(NORMAL_AWAIT)
             mock_get.assert_called()
             gadapter_patched.assert_called_with(DEFAULT_GAME)
             mock_game_over.assert_awaited_once_with(adapter_patched.penalize.return_value, game)
@@ -223,7 +224,7 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
         with patch('server.utilities_server_event.redis_get', return_value=turn_token_2) as mock_get:
             debug_mode = False
             await make_penalize(data, game_name, turn_token_1, debug_mode,)
-            mock_sleep.assert_awaited_once_with(TIME_SLEEP)
+            mock_sleep.assert_awaited_once_with(NORMAL_AWAIT)
             mock_get.assert_awaited_once_with(
                 game_id,
                 TOKEN_COMPARE,
@@ -231,6 +232,40 @@ class TestMakeFunctions(unittest.IsolatedAsyncioTestCase):
             )
             gadapter_patched.assert_not_called()
             mock_move.assert_not_called()
+
+    @patch('server.utilities_server_event.asyncio.sleep')
+    @patch('server.utilities_server_event.redis_get', return_value='token1')
+    async def test_make_penalize_call_in_debug_mode(self, mock_get, mock_sleep):
+        player_1 = 'Pedro'
+        game_id = '123987'
+        data = MagicMock(
+            game_id=game_id,
+            current_player=player_1,
+        )
+        game_name = DEFAULT_GAME
+        turn_token_1 = 'token2'
+        debug_mode = True
+
+        await make_penalize(data, game_name, turn_token_1, debug_mode,)
+        mock_sleep.assert_awaited_once_with(DEBUG_AWAIT)
+        mock_get.assert_awaited_once_with(game_id, TOKEN_COMPARE, player_1,)
+
+    @patch('server.utilities_server_event.asyncio.sleep')
+    @patch('server.utilities_server_event.redis_get', return_value='token1')
+    async def test_make_penalize_call_in_normal_mode(self, mock_get, mock_sleep):
+        player_1 = 'Pedro'
+        game_id = '123987'
+        data = MagicMock(
+            game_id=game_id,
+            current_player=player_1,
+        )
+        game_name = DEFAULT_GAME
+        turn_token_1 = 'token2'
+        debug_mode = False
+
+        await make_penalize(data, game_name, turn_token_1, debug_mode,)
+        mock_sleep.assert_awaited_once_with(NORMAL_AWAIT)
+        mock_get.assert_awaited_once_with(game_id, TOKEN_COMPARE, player_1,)
 
     @parameterized.expand([
         # Dicctionary in order

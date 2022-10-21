@@ -9,12 +9,13 @@ from uvicorn.config import logger
 from server.constants import (
     CHALLENGE_ID,
     DATA,
+    DEBUG_AWAIT,
     DEBUG_MODE,
     EMPTY_PLAYER,
     GAME_ID,
     GAME_NAME,
+    NORMAL_AWAIT,
     PLAYERS,
-    TIME_SLEEP,
     TOKEN_COMPARE,
     TOURNAMENT_ID,
     TURN_TOKEN,
@@ -125,7 +126,8 @@ async def make_penalize(
     past_token,
     debug_mode,
 ):
-    await asyncio.sleep(TIME_SLEEP)
+    PENALIZE_AWAIT = DEBUG_AWAIT if debug_mode else NORMAL_AWAIT
+    await asyncio.sleep(PENALIZE_AWAIT)
     token_valid = await redis_get(
         data.game_id,
         TOKEN_COMPARE,
