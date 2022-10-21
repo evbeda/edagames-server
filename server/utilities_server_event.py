@@ -43,7 +43,7 @@ from server.web_requests import notify_end_game_to_web
 async def move(
     data,
     game_name: str,
-    debug_mode: bool,
+    debug_mode,
 ):
     token = await make_move(data)
     asyncio.create_task(
