@@ -97,9 +97,7 @@ async def apigw_disconnect(request: Request):
 
 @app.post("/apigw-ws/message")
 async def apigw_message(request: Request):
-    logger.error(f'the BODY ({await request.body()})\n\n')
-    logger.error(f'the request HEADER ({request.headers})\n\n')
-    logger.error(f'the request all ({await request.json()})\n\n')
+
     try:
         if (
             ConnectionManager.connection_type != 'api_gateway'
@@ -109,7 +107,8 @@ async def apigw_message(request: Request):
             await APIGatewayConnectionManager.instance.disconnect(req_body["client_id"])
             raise AuthenticationError('API Gateway key mismatch')
     except (KeyError, json.JSONDecodeError, AuthenticationError):
-        logger.error('forbbdiden en POST ROUTE apigw_message()')
+        logger.info('An error ocurred while starting to process the message in the $default route')
+        logger.info(f'the BODY of the request was ({await request.body()})\n\n')
         logger.error(f'\n\n{traceback.format_exc()}\n\n')
         return JSONResponse({
             'error': 'Forbidden',
@@ -122,6 +121,8 @@ async def apigw_message(request: Request):
     if not connection_manager.validate_client(client_id):
         await connection_manager._send(client_id, 'Error', 'Unauthorized')
         await connection_manager.disconnect(client_id)
+        logger.info(f'the BODY of the request was ({await request.body()})\n\n')
+
         return JSONResponse({
             'error': 'Unauthorized'
         }, status_code=401)
@@ -131,6 +132,7 @@ async def apigw_message(request: Request):
         await FactoryServerEvent.get_event(message, bot_name).run()
     else:
         logger.info(f'Client ({client_id}) sent an invalid message: {message}')
+        logger.info(f'the BODY of the request was ({await request.body()})\n\n')
         return JSONResponse({
             'error': 'Invalid message'
         }, status_code=400)
