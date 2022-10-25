@@ -9,6 +9,8 @@ from .router import router
 from server.apigw_connection_manager import APIGatewayConnectionManager
 from server.factory_event_server import FactoryServerEvent
 import json
+import traceback
+
 
 app = FastAPI()
 app.include_router(router)
@@ -95,9 +97,9 @@ async def apigw_disconnect(request: Request):
 
 @app.post("/apigw-ws/message")
 async def apigw_message(request: Request):
-    logger.error(f'the request all ({await request.json()})\n\n')
+    logger.error(f'the BODY ({await request.body()})\n\n')
     logger.error(f'the request HEADER ({request.headers})\n\n')
-
+    logger.error(f'the request all ({await request.json()})\n\n')
     try:
         if (
             ConnectionManager.connection_type != 'api_gateway'
@@ -108,7 +110,7 @@ async def apigw_message(request: Request):
             raise AuthenticationError('API Gateway key mismatch')
     except (KeyError, json.JSONDecodeError, AuthenticationError):
         logger.error('forbbdiden en POST ROUTE apigw_message()')
-
+        logger.error(f'\n\n{traceback.format_exc()}\n\n')
         return JSONResponse({
             'error': 'Forbidden',
             'source_ip': request.client.host,
