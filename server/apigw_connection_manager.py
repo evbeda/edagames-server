@@ -99,6 +99,8 @@ class APIGatewayConnectionManager(ConnectionManager):
     async def bulk_send(self, clients: List[str], event: str, data: Dict):
         for client in clients:
             try:
+                logger.error('bulk_send en apigw_connection')
+
                 asyncio.create_task(self._send(
                     self.bot_to_client_id[client],
                     event,

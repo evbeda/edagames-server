@@ -95,6 +95,9 @@ async def apigw_disconnect(request: Request):
 
 @app.post("/apigw-ws/message")
 async def apigw_message(request: Request):
+    logger.error(f'the request all ({await request.json()})\n\n')
+    logger.error(f'the request HEADER ({request.headers})\n\n')
+
     try:
         if (
             ConnectionManager.connection_type != 'api_gateway'
@@ -104,6 +107,8 @@ async def apigw_message(request: Request):
             await APIGatewayConnectionManager.instance.disconnect(req_body["client_id"])
             raise AuthenticationError('API Gateway key mismatch')
     except (KeyError, json.JSONDecodeError, AuthenticationError):
+        logger.error('forbbdiden en POST ROUTE apigw_message()')
+
         return JSONResponse({
             'error': 'Forbidden',
             'source_ip': request.client.host,
