@@ -3,19 +3,23 @@ import redis
 from redis.exceptions import DataError
 from uvicorn.config import logger
 
-from .environment import REDIS_HOST, REDIS_LOCAL_PORT
+# from .environment import REDIS_HOST, REDIS_LOCAL_PORT
 
 from typing import Dict
+
+from server.redis_services import ElastiCache_Api_client
 from server.constants import (
     LOG_EXPIRE,
     REDIS_ERROR,
     DEFAULT_EXPIRE,
 )
 
+elastiCache_api_client = ElastiCache_Api_client()
+REDIS_HOST, REDIS_PORT = elastiCache_api_client.get_host_port()
 
 redis_data = redis.Redis(
     host=REDIS_HOST,
-    port=REDIS_LOCAL_PORT,
+    port=REDIS_PORT,
     db=0,
     charset="utf-8",
     decode_responses=True,
