@@ -140,6 +140,8 @@ async def apigw_message(request: Request):
 
 @app.on_event("startup")
 async def startup_complete():
+    from server.websocket_connection_manager import ConnectionManagerWS
+    ConnectionManagerWS()
     await ConnectionManager.instance.broadcast(
         'server_starting',
         {

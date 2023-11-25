@@ -18,4 +18,4 @@ if __name__ == '__main__':
     # connection_manager.set_queue_manager(queue_manager)
     # queue_manager.set_message_receiver(connection_manager)
 
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run('server.server:app', host="0.0.0.0", port=int(os.environ.get('PORT', 5000)), reload=True, workers=2)

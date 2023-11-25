@@ -15,9 +15,9 @@ GAMEIDERROR = 'GAMEID_ERROR'
 REDIS_ERROR = -1
 
 # Game constants
-DEFAULT_GAME = 'wumpus'
-GAME_HOST_PORT = "WUMPUS_HOST_PORT"
-GAME_PORT = "localhost:50052"
+DEFAULT_GAME = 'connect4'
+GAME_HOST_PORT = "GAME_HOST_PORT"
+GAME_PORT = "localhost:50051"
 EMPTY_PLAYER = ''
 
 # Time constants

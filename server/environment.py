@@ -14,7 +14,7 @@ def load_env_var(name: str, default: str = None):
         return var
 
 
-JWT_TOKEN_KEY = load_env_var('TOKEN_KEY', 'EDAGame$!2021')
+JWT_TOKEN_KEY = load_env_var('SECRET_KEY_JWT', 'EDAGame$!2021')
 WEB_SERVER_URL = load_env_var('WEB_SERVER_URL', 'localhost')
 WEB_SERVER_PORT = load_env_var('WEB_SERVER_PORT', '8000')
 REDIS_HOST = load_env_var('REDIS_HOST', 'localhost')
