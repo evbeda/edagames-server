@@ -1,9 +1,9 @@
 import os
 
-from server.constants import (
-    GAME_HOST_PORT,
-    GAME_PORT
-)
+# from server.constants import (
+#     GAME_HOST_PORT,
+#     GAME_PORT
+# )
 
 
 def load_env_var(name: str, default: str = None):
@@ -24,4 +24,6 @@ RABBIT_HOST = load_env_var('RABBIT_HOST', 'localhost')
 RABBIT_PORT = load_env_var('RABBIT_PORT', '5672')
 
 # Temporary?
+GAME_HOST = load_env_var('GAME_HOST', 'localhost')
+GAME_PORT = load_env_var('GAME_PORT', '50051')
 FAKE_SERVICE_DISCOVERY_GAME_HOST_PORT = load_env_var(GAME_HOST_PORT, GAME_PORT)
