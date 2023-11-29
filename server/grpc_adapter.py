@@ -10,8 +10,8 @@ from server.environment import (
 cached_adapters = {}
 
 
-def discover_game(game_name: str):
-    return FAKE_SERVICE_DISCOVERY_GAME_HOST_PORT.split(':')
+# def discover_game(game_name: str):
+#     return FAKE_SERVICE_DISCOVERY_GAME_HOST_PORT.split(':')
 
 
 class GRPCAdapterFactory:
