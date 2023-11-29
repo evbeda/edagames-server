@@ -14,12 +14,15 @@ from server.constants import (
     DEFAULT_EXPIRE,
 )
 
-elastiCache_api_client = ElastiCache_Api_client()
-REDIS_HOST, REDIS_PORT = elastiCache_api_client.get_host_port()
+# elastiCache_api_client = ElastiCache_Api_client()
+# REDIS_HOST, REDIS_PORT = elastiCache_api_client.get_host_port()
 
-redis_data = redis.Redis(
-    host=REDIS_HOST,
-    port=REDIS_PORT,
+from .environment import REDIS_URL
+
+redis_data = redis.Redis.from_url(
+    # host=REDIS_HOST,
+    # port=REDIS_PORT,
+    url=REDIS_URL,
     db=0,
     charset="utf-8",
     decode_responses=True,
@@ -78,7 +81,13 @@ def get_string(key: str):
 
 def add_to_set(key: str, value: str, _=None):
     try:
+        print('add_to_set: ')
+        print(key)
+        print(value)
         return redis_data.sadd(key, value)
+    except Exception as e:
+        logger.error(f'Error while saving data in add_to_set: {e}')
+        return REDIS_ERROR
     except DataError as e:
         logger.error(f'Error while saving data in add_to_set: {e}')
         return REDIS_ERROR
