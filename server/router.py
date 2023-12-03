@@ -10,6 +10,17 @@ from server.redis_interface import redis_get
 router = APIRouter()
 
 
+@router.get("/")
+async def home():
+    return JSONResponse(
+        {
+            'status': 'ERROR',
+            'code': 200,
+            'message': message,
+        },
+        status_code=200
+    )
+
 @router.post("/challenge")
 async def challenge(challenge: Challenge):
     try:
