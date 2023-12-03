@@ -1,5 +1,5 @@
 from server.websockets import notify_feedback, notify_user_list_to_client
-from server.grpc_adapter import GRPCAdapterFactory
+# from server.grpc_adapter import GRPCAdapterFactory
 from server.utilities_server_event import ServerEvent, make_challenge, start_game, move
 from server.redis_interface import (
     log_action,
@@ -13,6 +13,7 @@ from server.constants import (
     CHALLENGE_ID,
     CLIENT_LIST,
     CLIENT_LIST_KEY,
+    CURRENT_PLAYER,
     DEBUG_MODE,
     DEFAULT_GAME,
     EMPTY_PLAYER,  # game_over
@@ -23,6 +24,9 @@ from server.constants import (
     MSG_TURN_TOKEN,
     OPPONENT,
     TURN_TOKEN,
+)
+from server.web_requests import (
+    execute_action_to_game,
 )
 
 
@@ -102,14 +106,16 @@ class Movements(ServerEvent):
                 await self.execute_action(game, game_id)
 
     async def execute_action(self, game_data: dict, game_id: str):
-        adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
+        # adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
+        # data_received = await adapter.execute_action(
+        #     game_id,
+        #     self.response
+        # )
         await log_action(game_id, self.response)
-        data_received = await adapter.execute_action(
-            game_id,
-            self.response
-        )
-        await log_action(game_id, data_received.play_data)
-        if data_received.current_player == EMPTY_PLAYER:
+        data_received = await execute_action_to_game(game_id, self.response)
+        await log_action(game_id, data_received)
+        # TODO: END CONDITION?
+        if data_received[CURRENT_PLAYER] == EMPTY_PLAYER:
             await self.game_over(data_received, game_data)
         else:
             await move(

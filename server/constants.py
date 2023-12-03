@@ -46,6 +46,8 @@ TOKEN_COMPARE = 'token_compare'
 LOG = 'log'
 PLAIN_SEARCH = 'plain_search'
 CLIENT_LIST = 'client'
+TURN_DATA = 'turn_data'
+CURRENT_PLAYER = 'current_player'
 
 # dict.get values
 DATA = 'data'

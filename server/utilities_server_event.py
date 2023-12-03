@@ -8,6 +8,7 @@ from uvicorn.config import logger
 
 from server.constants import (
     CHALLENGE_ID,
+    CURRENT_PLAYER,
     DATA,
     DEBUG_AWAIT,
     DEBUG_MODE,
@@ -19,6 +20,7 @@ from server.constants import (
     TOKEN_COMPARE,
     TOURNAMENT_ID,
     TURN_TOKEN,
+    TURN_DATA,
 )
 from server.exception import GameIdException
 from server.game import (
@@ -26,7 +28,7 @@ from server.game import (
     identifier,
     data_challenge,
 )
-from server.grpc_adapter import GRPCAdapterFactory
+# from server.grpc_adapter import GRPCAdapterFactory
 from server.redis_interface import (
     log_action,
     redis_save,
@@ -38,7 +40,12 @@ from server.websockets import (
     notify_error_to_client,
     notify_end_game_to_client,
 )
-from server.web_requests import notify_end_game_to_web
+from server.web_requests import (
+    notify_end_game_to_web,
+    create_game_to_game,
+    penalize_to_game,
+    abort_to_game,
+)
 
 
 async def move(
@@ -58,15 +65,16 @@ async def move(
 
 
 async def start_game(game_data: Dict):
-    adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
-    data_received = await adapter.create_game(game_data.get(PLAYERS))
+    # adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
+    # data_received = await adapter.create_game(game_data.get(PLAYERS))
+    game_data = await create_game_to_game(game_data.get(PLAYERS))
     redis_save(
-        data_received.game_id,
+        game_data.get(GAME_ID),
         game_data,
         GAME_ID,
     )
     await move(
-        data_received,
+        game_data,
         game_data.get(GAME_NAME),
         game_data.get(DEBUG_MODE),
     )
@@ -108,14 +116,15 @@ async def make_tournament(tournament_id: str, games: List[List[str]], game_name:
 
 
 async def make_move(data):
-    turn_token = next_turn(data.game_id)
-    data.turn_data.update({
+    turn_token = next_turn(data[GAME_ID])
+    turn_data = data[TURN_DATA]
+    turn_data.update({
         TURN_TOKEN: turn_token,
-        GAME_ID: data.game_id,
+        GAME_ID: data[GAME_ID],
     })
     await notify_your_turn(
-        data.current_player,
-        data.turn_data,
+        data[CURRENT_PLAYER],
+        turn_data,
     )
     return turn_token
 
@@ -129,27 +138,28 @@ async def make_penalize(
     PENALIZE_AWAIT = DEBUG_AWAIT if debug_mode else NORMAL_AWAIT
     await asyncio.sleep(PENALIZE_AWAIT)
     token_valid = await redis_get(
-        data.game_id,
+        data[GAME_ID],
         TOKEN_COMPARE,
-        data.current_player,
+        data[CURRENT_PLAYER],
     )
     if token_valid == past_token:
         await log_action(
-            data.game_id,
+            data[GAME_ID],
             {
-                'game_id': data.game_id,
-                'player': data.current_player,
+                'game_id': data[GAME_ID],
+                'player': data[CURRENT_PLAYER],
                 'event': 'timeout',
             },
         )
-        adapter = await GRPCAdapterFactory.get_adapter(game_name)
-        data_penalize = await adapter.penalize(data.game_id)
-        if data_penalize.game_id:
+        # adapter = await GRPCAdapterFactory.get_adapter(game_name)
+        # data_penalize = await adapter.penalize(data.game_id)
+        data_penalize = await penalize_to_game(data[GAME_ID])
+        if data_penalize[GAME_ID]:
             game_data = await redis_get(
-                data_penalize.game_id,
+                data_penalize[GAME_ID],
                 GAME_ID,
             )
-            if data_penalize.current_player == EMPTY_PLAYER:
+            if data_penalize[CURRENT_PLAYER] == EMPTY_PLAYER:
                 await ServerEvent.game_over(data_penalize, game_data)
             else:
                 await move(
@@ -186,8 +196,19 @@ class ServerEvent:
 
     @classmethod
     async def game_over(cls, data, game: dict):
-        next_turn(data.game_id)
-        end_data = make_end_data_for_web(data.turn_data)
-        data.turn_data["game_id"] = data.game_id
-        await notify_end_game_to_client(game.get(PLAYERS), data.turn_data)
-        await notify_end_game_to_web(data.game_id, game.get(TOURNAMENT_ID), end_data)
+        next_turn(data[GAME_ID])
+        end_data = make_end_data_for_web(data[TURN_DATA])
+        data[TURN_DATA][GAME_ID] = data[GAME_ID]
+        await notify_end_game_to_client(
+            # game.get(PLAYERS),
+            [
+                data['play_data']['player_1'],
+                data['play_data']['player_2'],
+            ],
+            data[TURN_DATA]
+        )
+        await notify_end_game_to_web(
+            data[GAME_ID],
+            game.get(TOURNAMENT_ID),
+            end_data,
+        )
