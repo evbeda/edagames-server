@@ -14,9 +14,9 @@ router = APIRouter()
 async def home():
     return JSONResponse(
         {
-            'status': 'ERROR',
+            'status': 'OK',
             'code': 200,
-            'message': message,
+            'message': "Welcome!",
         },
         status_code=200
     )
