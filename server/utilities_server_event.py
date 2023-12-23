@@ -67,14 +67,14 @@ async def move(
 async def start_game(game_data: Dict):
     # adapter = await GRPCAdapterFactory.get_adapter(game_data.get(GAME_NAME))
     # data_received = await adapter.create_game(game_data.get(PLAYERS))
-    game_data = await create_game_to_game(game_data.get(PLAYERS))
+    game_created_data = await create_game_to_game(game_data.get(PLAYERS))
     redis_save(
-        game_data.get(GAME_ID),
+        game_created_data.get(GAME_ID),
         game_data,
         GAME_ID,
     )
     await move(
-        game_data,
+        game_created_data,
         game_data.get(GAME_NAME),
         game_data.get(DEBUG_MODE),
     )
