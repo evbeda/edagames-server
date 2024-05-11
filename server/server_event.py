@@ -148,6 +148,7 @@ class AbortGame(ServerEvent):
                 await self.end_game(game, game_id)
 
     async def end_game(self, game: dict, game_id: str):
-        adapter = await GRPCAdapterFactory.get_adapter(game.get(GAME_NAME))
-        data_received = await adapter.end_game(game_id)
+        # adapter = await GRPCAdapterFactory.get_adapter(game.get(GAME_NAME))
+        # data_received = await adapter.end_game(game_id)
+        data_received = await abort_to_game(game_id)
         await self.game_over(data_received, game)
